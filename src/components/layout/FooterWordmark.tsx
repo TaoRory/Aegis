@@ -25,10 +25,18 @@ export function FooterWordmark() {
       const width = text.scrollWidth;
       if (width > 0) text.style.fontSize = `${(current * available) / width}px`;
     };
-    const observer = new ResizeObserver(fit);
+    // Đo ở khung hình kế tiếp: đổi cỡ chữ ngay trong callback làm Safari báo "ResizeObserver loop"
+    let raf = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(fit);
+    });
     observer.observe(box);
     document.fonts?.ready.then(fit);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
   }, []);
 
   useGSAP(

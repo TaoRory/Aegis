@@ -1,4 +1,5 @@
-import { ContactForm } from "@/components/contact/ContactForm";
+import Link from "next/link";
+
 import { MistCursor } from "@/components/fx/MistCursor";
 import { SheetRise } from "@/components/fx/SheetRise";
 import { SplitReveal } from "@/components/motion/SplitReveal";
@@ -6,8 +7,12 @@ import { RoundButton } from "@/components/ui/Button";
 import { Lines } from "@/components/ui/Rich";
 import { siteConfig } from "@/config/site";
 import { contactSection } from "@/content/about";
-import { isContactDeliveryConfigured } from "@/lib/contact/delivery";
+import { serviceQuestion } from "@/content/contact-flow";
 
+/**
+ * Màn kết trang chủ: tấm bản vẽ xanh trồi lên, rồi câu 1 của form liên hệ.
+ * Chọn một hạng mục → sang trang /lien-he với hạng mục đã chọn sẵn (?dv=…), hỏi tiếp các câu riêng.
+ */
 export function Contact() {
   const { email, phone, address } = siteConfig.contact;
   const channels = [
@@ -39,26 +44,19 @@ export function Contact() {
             </SplitReveal>
             <div className="mt-14 flex flex-wrap items-end justify-between gap-10">
               <p className="max-w-[30rem] text-lead">{contactSection.lead}</p>
-              <RoundButton href="#lien-he-form" size="lg">
-                Viết cho Aegis
+              <RoundButton href="#lien-he-chon" size="lg">
+                Bắt đầu phiếu
               </RoundButton>
             </div>
           </div>
         </div>
       </SheetRise>
 
-      <div id="lien-he-form" className="container-page scroll-mt-24 pt-(--section-y)">
+      <div id="lien-he-chon" className="container-page scroll-mt-24 pt-(--section-y)">
         <div className="grid gap-16 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-4">
-            <p className="label text-muted">Để buổi trao đổi hiệu quả, bạn có thể chia sẻ</p>
-            <ol className="mt-5 space-y-4">
-              {contactSection.prompts.map((item, index) => (
-                <li key={item} className="flex gap-4 leading-relaxed">
-                  <span className="label pt-1 text-accent">0{index + 1}</span>
-                  {item}
-                </li>
-              ))}
-            </ol>
+            <p className="label text-accent">{contactSection.pickerLabel}</p>
+            <p className="mt-5 max-w-[24rem] leading-relaxed text-muted">{serviceQuestion.hint}</p>
 
             {channels.length > 0 && (
               <dl className="mt-12 space-y-4 border-t border-line pt-8">
@@ -72,9 +70,22 @@ export function Contact() {
             )}
           </div>
 
-          <div className="lg:col-span-7 lg:col-start-6">
-            <ContactForm isConfigured={isContactDeliveryConfigured()} />
-          </div>
+          <ul className="wizard-services lg:col-span-8">
+            {serviceQuestion.options.map((option, index) => (
+              <li key={option.value}>
+                <Link href={`/lien-he?dv=${option.value}`} className="wizard-service" data-cursor="link">
+                  <span className="wizard-service-face">
+                    <span className="label text-accent">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="wizard-service-title">{option.label}</span>
+                    <span className="wizard-service-note">{option.note}</span>
+                    <span aria-hidden className="wizard-service-arrow">
+                      →
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

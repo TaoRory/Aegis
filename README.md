@@ -11,16 +11,18 @@ Form liên hệ gửi email qua REST API của Resend, không cần SDK.
 
 ## Thư viện mẫu giao diện (`/mau-giao-dien`)
 
-Ngoài 7 dự án thực tế, website có **thư viện 6 mẫu giao diện demo** do Aegis tự thiết kế, mỗi mẫu cho một ngành và chạy thật:
+Ngoài 7 dự án thực tế, website có **thư viện 8 style giao diện demo** do Aegis tự thiết kế, mỗi style cho một ngành và chạy thật:
 
-| Mẫu | Ngành | Điểm nhấn |
-|---|---|---|
-| Kho Số | SaaS / web app | shader WebGL, chữ khổng lồ chạy theo cuộn |
-| Nhà Sương | resort / kiến trúc | núi sương parallax, bản vẽ SVG tự vẽ |
-| Quỹ Hành | tài chính | khối cẩm thạch raymarching, biểu đồ vẽ nét |
-| Đêm Đô Thị 2027 | sự kiện | typography khổng lồ, đếm ngược, lịch trình tab |
-| Mây Bạc | bán hàng online | sản phẩm SVG, bộ lọc, giỏ hàng trượt |
-| Lành | phòng khám / đặt lịch | web app đặt lịch 4 bước có kiểm tra dữ liệu |
+| Style | Thương hiệu giả định | Ngành | Điểm nhấn |
+|---|---|---|---|
+| ATELIER | Tơ Đêm | Thời trang | lookbook kéo được, dải ảnh cong theo tốc độ kéo |
+| SIGNAL | MẠCH | Công nghệ / AI | trường sóng shader phản ứng theo chuột và cuộn |
+| SERENE | SƯƠNG | Dịch vụ chăm sóc | làn sương theo chuột trên ảnh hero |
+| HEARTH | Than & Muối | F&B | thực đơn, ảnh món bám theo con trỏ |
+| BROADCAST | Tần Số | Truyền thông | lịch phát, tên dự án xáo chữ |
+| PLAYGROUND | Bập Bênh English | Trung tâm tiếng Anh | sticker kéo thả có quán tính |
+| VOYAGE | La Bàn | Tư vấn du học | đường bay tự vẽ theo cuộn |
+| CAMPUS | Rặng Thông | Giáo dục | một ngày ở trường, cuộn ngang theo kim đồng hồ |
 
 - Thương hiệu, nội dung, số liệu trong mẫu là **giả định**, được ghi rõ trên mọi trang mẫu (thanh "Mẫu demo", màn kết) và trên thư viện. Trang mẫu đặt `noindex`.
 - Danh mục: `src/content/templates.ts`. Mã mẫu: `src/templates/<slug>/`. Route: `src/app/(demo)/mau-giao-dien/<slug>/page.tsx`.
@@ -111,6 +113,19 @@ Cách tổ chức màu:
 
 ---
 
+## Trải nghiệm và hiệu ứng (nâng cấp 2026-10)
+
+| Hạng mục | Mô tả | File chính |
+|---|---|---|
+| Con trỏ | Một chấm + một vòng thay con trỏ gốc: nội suy theo thời gian, kéo giãn theo vận tốc, "ôm" nút, bong bóng nhãn, dấu "+" khi bấm. Tự tắt khi giảm chuyển động / cảm ứng. Mọi thứ cần theo chuột đăng ký qua `onPointerMove` (không tự `addEventListener("pointermove")`). | `src/components/motion/Cursor.tsx`, `src/lib/pointer.ts` |
+| Thư viện style 3D | Vòng thẻ 3D bằng WebGL2 tự viết ("phòng trưng bày bản vẽ"): kéo, lăn ngang, phím ← → Home End Enter, lọc theo nhóm, rê chuột thì ảnh trong thẻ tự cuộn. Không có WebGL2 / giảm chuyển động / chất lượng thấp → vòng 3D bằng CSS. Tắt JS → lưới thẻ tĩnh. Danh sách link thật luôn nằm trong DOM. | `src/components/templates/GalleryRing.tsx`, `src/components/webgl/gallery-engine.ts` |
+| Chuyển trang | View Transitions (React `<ViewTransition>` + `transitionTypes` của Next 16): "rèm bản vẽ" giữa các trang Aegis, thẻ 3D phóng thành trang mẫu (morph), nút Back/Forward mờ chéo. Trình duyệt không hỗ trợ thì chuyển trang bình thường. Mỗi `page.tsx` phải có `<PageTransition />`; link nội bộ dùng `SmartLink` / `ButtonLink` (có `navType`). | `src/components/motion/PageTransition.tsx`, `src/components/ui/SmartLink.tsx`, cuối `src/styles/effects.css` |
+| Cài đặt | Nút "Cài đặt" ở header: chất lượng hiệu ứng Cao/Thấp, bật/tắt con trỏ riêng (lưu localStorage, tải lại trang để áp dụng). | `src/components/layout/SettingsMenu.tsx` |
+
+Chụp lại ảnh thẻ cho thư viện 3D: `pnpm capture:templates` (texture lấy từ ảnh `*-full.webp`).
+
+---
+
 ## Form liên hệ
 
 Form kiểm tra dữ liệu ở trình duyệt **và** ở server (`src/app/api/contact/route.ts`). Các biện pháp chống spam:
@@ -136,7 +151,9 @@ Form kiểm tra dữ liệu ở trình duyệt **và** ở server (`src/app/api/
    Khi chưa xác minh tên miền, Resend chỉ cho gửi từ `onboarding@resend.dev` tới email của chính tài khoản Resend.
 3. **Build lại / deploy lại.** Trang được dựng tĩnh nên trạng thái “đã kết nối” của form được xác định lúc build.
 
-Khi chưa cấu hình, form hiển thị rõ là “đang chờ kết nối kênh tiếp nhận”, nút gửi bị vô hiệu hóa và API trả về `503 NOT_CONFIGURED`. Form không giả lập gửi thành công và không lưu dữ liệu vào trình duyệt.
+Khi chưa cấu hình, form hiển thị rõ là “đang chờ kết nối kênh tiếp nhận”, nút gửi bị vô hiệu hóa và API trả về `503 NOT_CONFIGURED`. Form không giả lập gửi thành công. Trình duyệt chỉ giữ tạm câu trả lời (sessionStorage, mất khi đóng tab) để tải lại trang không mất bài; **họ tên / liên hệ / công ty không được lưu**.
+
+Form là trang `/lien-he` hỏi từng câu, rẽ nhánh theo dịch vụ khách chọn ở câu 1. **Câu hỏi và lựa chọn nằm ở `src/content/contact-flow.ts`**: sửa file này để đổi câu hỏi; trình duyệt và API cùng đọc nó nên server từ chối mọi lựa chọn không thuộc đúng nhánh. Chỉ thêm lựa chọn mà Aegis thực sự làm (khách hiểu mỗi nút là một lời hứa).
 
 Muốn đổi sang dịch vụ khác (Formspree, Google Sheets, CRM…), chỉ cần viết lại `src/lib/contact/delivery.ts`.
 
@@ -179,7 +196,7 @@ src/
     services/ projects/ contact/   thành phần riêng của từng phần
     templates/    TemplateStage (khung xem trước), TemplateGallery
     ui/           Button (Roll, RoundButton), SmartLink, Rich/Lines (*nghiêng*), Wordmark, ScrollRevealText
-  templates/      _kit/ (DemoBar, DemoClosing, ShaderCanvas, Marquee) + 6 mẫu demo
+  templates/      _kit/ (DemoBar, DemoClosing, ShaderCanvas, Marquee) + 8 mẫu demo
   config/site.ts  cấu hình chung
   content/        nội dung doanh nghiệp, dịch vụ, portfolio
   lib/            motion (gsap + plugin), validation form, gửi email, rate limit

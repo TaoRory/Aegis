@@ -36,7 +36,7 @@ export function DemoBar({ template, index }: { template: DemoTemplate; index: nu
       )}
     >
       <div className="label flex items-center gap-3 rounded-sm border border-line-strong bg-bg/90 px-3 py-2 whitespace-nowrap text-muted backdrop-blur-md sm:gap-4">
-        <Link href="/mau-giao-dien" className="text-fg transition-colors hover:text-accent">
+        <Link href="/mau-giao-dien" transitionTypes={["aegis-back"]} className="text-fg transition-colors hover:text-accent">
           ← <span className={cn(compact && "sr-only")}>Thư viện</span>
         </Link>
         <span aria-hidden className="h-3 w-px bg-line-strong" />
@@ -45,7 +45,7 @@ export function DemoBar({ template, index }: { template: DemoTemplate; index: nu
         </span>
         <span className={cn("hidden lg:inline", compact && "lg:hidden")}>· {template.brand} là thương hiệu giả định</span>
         <span aria-hidden className={cn("hidden h-3 w-px bg-line-strong md:block", compact && "md:hidden")} />
-        <Link href="/#lien-he" className={cn("hidden text-fg transition-colors hover:text-accent md:inline", compact && "md:hidden")}>
+        <Link href="/lien-he" transitionTypes={["aegis-forward"]} className={cn("hidden text-fg transition-colors hover:text-accent md:inline", compact && "md:hidden")}>
           Trao đổi với Aegis ↗
         </Link>
       </div>

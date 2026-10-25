@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { stageStore } from "@/components/webgl/stage-store";
 import { gsap, MQ, onIntroDone, ScrollTrigger } from "@/lib/motion";
+import { onPointerMove } from "@/lib/pointer";
 
 /** Đọc màu token CSS (#rrggbb) thành vec3 0..1, để đổi theme không phải sửa shader */
 function tokenColor(name: string, fallback: [number, number, number]): [number, number, number] {
@@ -41,9 +42,10 @@ export function ParticleStage() {
 
       const reduced = window.matchMedia(MQ.reduced).matches;
       const desktop = window.matchMedia("(min-width: 64rem)").matches;
-      const weak = (navigator.hardwareConcurrency ?? 8) <= 4;
-      const count = Math.round((desktop ? 12000 : 7000) * (weak ? 0.55 : 1));
-      const dpr = Math.min(window.devicePixelRatio || 1, desktop ? 2 : 1.5);
+      const lowQuality = document.documentElement.dataset.quality === "low";
+      const weak = lowQuality || (navigator.hardwareConcurrency ?? 8) <= 4;
+      const count = Math.round((desktop ? 12000 : 7000) * (lowQuality ? 0.3 : weak ? 0.55 : 1));
+      const dpr = Math.min(window.devicePixelRatio || 1, lowQuality ? 1 : desktop ? 2 : 1.5);
 
       let engine: InstanceType<typeof ParticleEngine>;
       try {
@@ -138,9 +140,9 @@ export function ParticleStage() {
         gsap.to(s, { mouseForce: 1, rotX: ny * 0.08, duration: 0.6, overwrite: "auto" });
       };
       const onPointerLeave = () => gsap.to(s, { mouseForce: 0, rotX: 0, duration: 0.8 });
+      let stopPointer = () => {};
       if (window.matchMedia(MQ.fineHover).matches) {
-        window.addEventListener("pointermove", onPointer, { passive: true });
-        document.documentElement.addEventListener("pointerleave", onPointerLeave);
+        stopPointer = onPointerMove((event) => (event ? onPointer(event) : onPointerLeave()));
       }
 
       // Chỉ chạy vòng render khi Hero hoặc Dịch vụ đang hiển thị và tab đang mở
@@ -174,8 +176,7 @@ export function ParticleStage() {
         observer.disconnect();
         document.removeEventListener("visibilitychange", sync);
         window.removeEventListener("resize", onResize);
-        window.removeEventListener("pointermove", onPointer);
-        document.documentElement.removeEventListener("pointerleave", onPointerLeave);
+        stopPointer();
         engine.destroy();
       };
     };

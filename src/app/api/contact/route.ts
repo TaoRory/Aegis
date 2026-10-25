@@ -2,7 +2,7 @@ import { deliverContact, isContactDeliveryConfigured } from "@/lib/contact/deliv
 import { normalizeContact, validateContact, type ContactResponse } from "@/lib/contact/schema";
 import { rateLimit } from "@/lib/rate-limit";
 
-const MAX_BODY_BYTES = 10_000;
+const MAX_BODY_BYTES = 16_000;
 /** Người thật cần ít nhất vài giây để điền form */
 const MIN_FILL_MS = 3_000;
 const MAX_FILL_MS = 24 * 60 * 60 * 1000;
@@ -41,6 +41,11 @@ export async function POST(request: Request) {
     return reply({ ok: false, code: "BAD_REQUEST" }, 415);
   }
 
+  const declared = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
+    return reply({ ok: false, code: "BAD_REQUEST" }, 413);
+  }
+
   const raw = await request.text();
   if (raw.length > MAX_BODY_BYTES) {
     return reply({ ok: false, code: "BAD_REQUEST" }, 413);
@@ -56,9 +61,9 @@ export async function POST(request: Request) {
   }
 
   // Chống spam: trường ẩn phải rỗng, thời gian điền form phải hợp lý
-  const startedAt = Number(body.startedAt);
-  const elapsed = Date.now() - startedAt;
-  if (body.website || !Number.isFinite(startedAt) || elapsed < MIN_FILL_MS || elapsed > MAX_FILL_MS) {
+  // Thời gian điền do trình duyệt tự đo bằng đồng hồ đơn điệu (không phụ thuộc đồng hồ máy khách bị lệch)
+  const elapsed = Number(body.elapsedMs);
+  if (body.website || !Number.isFinite(elapsed) || elapsed < MIN_FILL_MS || elapsed > MAX_FILL_MS) {
     return reply({ ok: false, code: "SPAM" }, 400);
   }
 

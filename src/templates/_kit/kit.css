@@ -68,11 +68,10 @@
   }
 }
 
-/* Con trỏ "view/drag" của Aegis trên trang mẫu: dùng màu của chính mẫu (khai báo --tpl-cursor/--tpl-cursor-ink
+/* Con trỏ "view/drag" của Aegis trên trang mẫu: bong bóng dùng màu của chính mẫu (khai báo --tpl-cursor/--tpl-cursor-ink
    bằng :root:has(.tpl-<slug>) trong CSS của mẫu), mặc định mực đen. */
-html:has(.tpl)[data-cursor="view"] .cursor-ring::before {
+html:has(.tpl) .cursor-bubble {
   background: var(--tpl-cursor, #111);
-  border-color: var(--tpl-cursor, #111);
 }
 
 html:has(.tpl) .cursor-label {

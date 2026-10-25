@@ -1,7 +1,6 @@
-import { DragSlider } from "@/components/fx/DragSlider";
-import { TextScramble } from "@/components/fx/TextScramble";
 import { SplitReveal } from "@/components/motion/SplitReveal";
-import { TemplateStage, type TemplatePreview } from "@/components/templates/TemplateCard";
+import { GalleryRing } from "@/components/templates/GalleryRing";
+import type { TemplatePreview } from "@/components/templates/TemplateCard";
 import { ButtonLink } from "@/components/ui/Button";
 import { Lines } from "@/components/ui/Rich";
 import { templatesSection } from "@/content/about";
@@ -9,11 +8,10 @@ import previews from "@/content/template-previews.json";
 import { templateNotice, templates } from "@/content/templates";
 
 /**
- * Trang chủ: thư viện style dạng dải kéo được (cong theo tốc độ kéo, học từ Sofia Shcherbak).
+ * Trang chủ: cửa sổ nhìn vào "phòng trưng bày" 3D (cùng GalleryRing với trang /mau-giao-dien, bản rút gọn không có bộ lọc).
  * Mỗi thẻ là một style có tên; tách bạch với dự án thực tế.
  */
 export function TemplatesTeaser() {
-  const map = previews as Record<string, TemplatePreview>;
   return (
     <section
       id="mau-giao-dien"
@@ -37,39 +35,14 @@ export function TemplatesTeaser() {
         </div>
         <div className="label mt-14 flex items-center justify-between border-b border-line pb-4 text-muted lg:mt-20">
           <span>{String(templates.length).padStart(2, "0")} style · mỗi style một ngành</span>
-          <span aria-hidden>Kéo ↔</span>
+          <span aria-hidden>Kéo để xoay ↔</span>
         </div>
-      </div>
 
-      <DragSlider label="Các style giao diện" bend className="mt-10 pb-6" trackClassName="gap-5 px-(--gutter) lg:gap-8">
-        {templates.map((template, index) => (
-          <article key={template.slug} className="style-card group relative w-[min(82vw,22rem)] shrink-0 lg:w-[clamp(22rem,30vw,30rem)]">
-            <TemplateStage template={template} preview={map[template.slug]} sizes="(min-width: 1024px) 30vw, 82vw" />
-            <div className="mt-5 flex items-baseline justify-between gap-4">
-              <h3 className="text-[clamp(1.9rem,1.4rem+1.6vw,3rem)] leading-none font-semibold tracking-[-0.03em]">
-                <a href={`/mau-giao-dien/${template.slug}`} className="stretched-link transition-colors group-hover:text-accent">
-                  <TextScramble text={template.name} trigger="parent" />
-                </a>
-              </h3>
-              <span className="label text-accent">/{String(index + 1).padStart(2, "0")}</span>
-            </div>
-            <p className="label mt-3 text-muted">
-              {template.industry} · {template.emotion}
-            </p>
-            <p className="mt-3 max-w-[26rem] text-[0.95rem] leading-relaxed text-muted">{template.signature}</p>
-            <ul aria-label="Bảng màu" className="mt-4 flex gap-1.5">
-              {template.palette.map((color) => (
-                <li key={color} className="size-4 rounded-full border border-line" style={{ background: color }}>
-                  <span className="sr-only">{color}</span>
-                </li>
-              ))}
-            </ul>
-          </article>
-        ))}
-      </DragSlider>
+        <div className="mt-8">
+          <GalleryRing templates={templates} previews={previews as Record<string, TemplatePreview>} variant="teaser" />
+        </div>
 
-      <div className="container-page">
-        <div className="mt-14 flex justify-start">
+        <div className="mt-12 flex justify-start">
           <ButtonLink href={templatesSection.cta.href}>{templatesSection.cta.label}</ButtonLink>
         </div>
       </div>

@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ? [
         { url: siteConfig.url, changeFrequency: "monthly", priority: 1 },
         { url: `${siteConfig.url}/mau-giao-dien`, changeFrequency: "monthly", priority: 0.7 },
+        { url: `${siteConfig.url}/lien-he`, changeFrequency: "yearly", priority: 0.6 },
       ]
     : [];
 }

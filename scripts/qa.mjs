@@ -130,8 +130,11 @@ for (const vp of viewports) {
     check("[desktop] link tới chương Marketing hiển thị đúng chương", chapterVisible);
     await page.screenshot({ path: `${outDir}/desktop-service-chapter.png` });
     await page.locator("#dich-vu-marketing").getByRole("link", { name: /Trao đổi về dịch vụ này/ }).click();
-    await page.waitForTimeout(3000);
-    check("[desktop] chọn sẵn dịch vụ từ chương dịch vụ", await page.locator('input[name="service"][value="marketing"]').isChecked());
+    await page.waitForURL(/\/lien-he\?dv=marketing/, { timeout: 10_000 });
+    await page.waitForSelector('.wizard-step[data-step-key="q:mkt_goal"][data-current]', { timeout: 10_000 });
+    check("[desktop] chọn sẵn dịch vụ từ chương dịch vụ → form vào thẳng câu riêng của Marketing", true);
+    await page.goto(baseUrl, { waitUntil: "networkidle" });
+    await page.waitForTimeout(1200);
 
     // Hover dự án: ảnh nổi theo con trỏ
     const row = page.locator("#du-an li[data-project]").nth(1);
@@ -166,7 +169,7 @@ check("[mẫu] thư viện liệt kê các mẫu", templatePaths.length > 0, tem
 for (const vp of [viewports[0], viewports[2]]) {
   const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, isMobile: vp.isMobile, hasTouch: vp.hasTouch });
   const page = await context.newPage();
-  for (const route of ["/mau-giao-dien", ...templatePaths]) {
+  for (const route of ["/mau-giao-dien", "/lien-he", ...templatePaths]) {
     const errors = [];
     page.removeAllListeners("pageerror");
     page.removeAllListeners("console");
@@ -195,22 +198,34 @@ const api = async (body, headers = {}) => {
   return { status: res.status, body: await res.json().catch(() => null) };
 };
 const valid = {
-  name: "Nguyễn Văn A",
-  email: "a@example.com",
-  company: "",
   service: "web",
-  message: "Chúng tôi cần một website giới thiệu doanh nghiệp mới.",
+  answers: { web_type: ["company"], timeline: ["asap"] },
+  others: {},
+  name: "Nguyễn Văn A",
+  contact: "a@example.com",
+  company: "",
+  message: "",
   website: "",
-  startedAt: Date.now() - 10_000,
+  elapsedMs: 10_000,
 };
 let r = await api("{bad json");
 check("[api] JSON lỗi → 400", r.status === 400, JSON.stringify(r));
 r = await api({ ...valid, website: "spam.com" });
 check("[api] honeypot → chặn", r.body?.code === "SPAM", JSON.stringify(r));
-r = await api({ ...valid, startedAt: Date.now() });
+r = await api({ ...valid, elapsedMs: 100 });
 check("[api] gửi quá nhanh → chặn", r.body?.code === "SPAM", JSON.stringify(r));
-r = await api({ ...valid, email: "khong-hop-le", message: "ngắn", service: "xyz" });
-check("[api] validation → 422 kèm lỗi từng trường", r.status === 422 && r.body?.errors?.email && r.body?.errors?.message && r.body?.errors?.service, JSON.stringify(r.body));
+r = await api({ ...valid, service: "xyz" });
+check("[api] dịch vụ lạ → 422", r.status === 422 && r.body?.errors?.service, JSON.stringify(r.body));
+r = await api({ ...valid, contact: "khong-hop-le", answers: { web_type: ["hack"], timeline: ["asap"] } });
+check(
+  "[api] liên hệ sai + lựa chọn lạ → 422 kèm lỗi từng câu",
+  r.status === 422 && r.body?.errors?.contact && r.body?.errors?.["q:web_type"],
+  JSON.stringify(r.body),
+);
+r = await api({ ...valid, service: "other", answers: { timeline: ["asap"] } });
+check("[api] nhánh 'chưa chắc' bắt buộc mô tả", r.status === 422 && r.body?.errors?.message, JSON.stringify(r.body));
+r = await api({ ...valid, answers: { ...valid.answers, mkt_goal: ["leads"] } });
+check("[api] câu trả lời của nhánh khác bị bỏ qua (không lỗi)", [200, 503, 502].includes(r.status), JSON.stringify(r));
 r = await api(valid, { Origin: "https://evil.example" });
 check("[api] khác origin → 403", r.status === 403, JSON.stringify(r));
 r = await api(valid);

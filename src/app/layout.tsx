@@ -39,10 +39,12 @@ export const viewport: Viewport = {
 
 /**
  * Chạy trước khi trang được vẽ:
+ * - data-quality="low" / data-cursor-pref="off" khi người dùng đã chọn trong "Cài đặt" (localStorage)
+ * - data-js="on" luôn đặt khi có JS (form liên hệ từng bước chỉ ẩn các câu khác dưới cờ này)
  * - data-motion="on" khi người dùng không bật giảm chuyển động (CSS chỉ ẩn phần tử chờ animation dưới cờ này)
  * - data-intro="playing" khi chưa xem preloader trong phiên này (chỉ ở trang chủ, nơi có preloader)
  */
-const bootScript = `(function(){var d=document.documentElement;try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;d.dataset.motion='on';if(location.pathname==='/'&&!sessionStorage.getItem('aegis-intro'))d.dataset.intro='playing';}catch(e){}})();`;
+const bootScript = `(function(){var d=document.documentElement;d.dataset.js='on';try{var q=localStorage.getItem('aegis-quality');if(q==='low')d.dataset.quality='low';if(localStorage.getItem('aegis-cursor')==='off')d.dataset.cursorPref='off';}catch(e){}try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;d.dataset.motion='on';if(location.pathname==='/'&&!sessionStorage.getItem('aegis-intro'))d.dataset.intro='playing';}catch(e){}})();`;
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (

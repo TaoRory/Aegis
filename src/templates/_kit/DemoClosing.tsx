@@ -1,5 +1,6 @@
 import { SplitReveal } from "@/components/motion/SplitReveal";
 import { ButtonLink } from "@/components/ui/Button";
+import { SmartLink } from "@/components/ui/SmartLink";
 import type { DemoTemplate } from "@/content/templates";
 import credits from "@/content/image-credits.json";
 import { templateNotice } from "@/content/templates";
@@ -32,15 +33,15 @@ export function DemoClosing({ template, next }: { template: DemoTemplate; next: 
               {templateNotice} Aegis có thể thiết kế và xây dựng website theo nhu cầu riêng của doanh nghiệp bạn.
             </p>
             <div className="flex flex-wrap gap-3">
-              <ButtonLink href="/#lien-he">Trao đổi với Aegis</ButtonLink>
-              <ButtonLink href="/mau-giao-dien" variant="outline" arrow="↗">
+              <ButtonLink href="/lien-he">Trao đổi với Aegis</ButtonLink>
+              <ButtonLink href="/mau-giao-dien" variant="outline" arrow="↗" navType="aegis-back">
                 Thư viện mẫu
               </ButtonLink>
             </div>
           </div>
         </div>
 
-        <a href={`/mau-giao-dien/${next.slug}`} className="group mt-12 grid gap-6 lg:grid-cols-12 lg:items-end">
+        <SmartLink href={`/mau-giao-dien/${next.slug}`} className="group mt-12 grid gap-6 lg:grid-cols-12 lg:items-end">
           <span className="label text-muted lg:col-span-3">[ Mẫu kế tiếp ]</span>
           <span className="text-mega font-semibold transition-colors group-hover:text-accent lg:col-span-7">
             {next.name}
@@ -48,7 +49,7 @@ export function DemoClosing({ template, next }: { template: DemoTemplate; next: 
           <span className="label text-muted lg:col-span-2 lg:justify-self-end">
             {next.industry} <span aria-hidden>→</span>
           </span>
-        </a>
+        </SmartLink>
 
         {imageCredits.length > 0 && (
           <details className="mt-16 border-t border-line pt-6 text-muted">

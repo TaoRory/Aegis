@@ -12,18 +12,18 @@ export const siteConfig = {
   locale: "vi_VN",
   tagline: "Aegis xây dựng nền tảng công nghệ vững chắc, giúp doanh nghiệp tự tin tiến xa.",
   description:
-    "Aegis đồng hành cùng doanh nghiệp ứng dụng AI, triển khai phần mềm quản trị, thiết kế website – web app và triển khai marketing trên môi trường số.",
+    "Aegis là đội triển khai công nghệ cho doanh nghiệp: tư vấn giải pháp, xây dựng AI, phần mềm quản trị, website – web app và marketing, bàn giao sản phẩm dễ dùng nhất.",
 
-  /** Link dạng "/#id" để dùng được từ mọi trang (ở trang chủ vẫn cuộn mượt tại chỗ) */
+  /** Link dạng "/#id" để dùng được từ mọi trang (ở trang chủ vẫn cuộn mượt tại chỗ); "/lien-he" là trang form riêng */
   nav: [
     { label: "Giới thiệu", href: "/#gioi-thieu" },
     { label: "Dịch vụ", href: "/#dich-vu" },
     { label: "Dự án", href: "/#du-an" },
     { label: "Mẫu giao diện", href: "/mau-giao-dien" },
-    { label: "Liên hệ", href: "/#lien-he" },
+    { label: "Liên hệ", href: "/lien-he" },
   ],
 
-  cta: { label: "Trao đổi nhu cầu", href: "/#lien-he" },
+  cta: { label: "Trao đổi nhu cầu", href: "/lien-he" },
 
   /**
    * Thông tin liên hệ chính thức. Để null cho tới khi được xác nhận;

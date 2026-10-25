@@ -24,6 +24,12 @@ Tham chiếu: Heron AI (ngôn ngữ bản vẽ), EnduroSat (một cảnh WebGL l
    - **Tấm bản vẽ trồi lên:** mục Giới thiệu và Mẫu giao diện là tấm giấy bo góc 3rem trồi lên đè mục tối (`SheetRise`, không bọc section có pin).
    - **Màn kết Liên hệ:** tấm ultramarine (`data-surface="accent"`) trồi lên, chữ khổng lồ + nút tròn magnetic, form nằm bên dưới.
 
+10. **Con trỏ "đầu bút kỹ thuật" (2026-10-25):** một chấm + một vòng (`src/components/motion/Cursor.tsx`), thay con trỏ gốc (trừ ô nhập chữ). Vòng đuổi theo bằng nội suy theo thời gian, kéo giãn/xoay theo vận tốc, "ôm" hình nút khi rê lên `.btn-box` / `.round-btn` / `[data-cursor="snap"]`, bong bóng nhãn cho `data-cursor="view|drag"`, bấm chuột để lại dấu "+". Vị trí chuột dùng chung ở `src/lib/pointer.ts` (`onPointerMove`): component mới cần theo chuột phải đăng ký qua đây, không tự `addEventListener("pointermove")`.
+
+11. **Phòng trưng bày bản vẽ (2026-10-25):** thư viện style là một vòng thẻ 3D WebGL2 trong xưởng tối (sàn có vòng sáng ultramarine, lưới trần phối cảnh, thẻ cong theo vòng, viền phát sáng, phản chiếu sàn, cong/tách kênh màu theo tốc độ xoay). `GalleryRing.tsx` (điều khiển, DOM thật, fallback CSS) + `gallery-engine.ts` (vẽ). Trang chủ có bản rút gọn trong khung bo góc; `/mau-giao-dien` có bản đầy đủ (lọc, thước tiến độ). Chỉ dành cho mẫu demo, không trộn với 7 dự án thật.
+12. **Chuyển trang "lật bản vẽ" (2026-10-25):** View Transitions. Rèm quét ngang giữa các trang Aegis (`aegis-forward` / `aegis-back`); thẻ 3D phóng thành trang mẫu (`aegis-open`, cặp `ViewTransition name="tpl-<slug>"` giữa lớp phủ trong thư viện và `.morph-target` của `DemoShell`). Con trỏ riêng có `view-transition-name` để không bị đóng băng.
+13. **Cài đặt hiệu ứng (2026-10-25):** nút "Cài đặt" ở header (chất lượng Cao/Thấp, con trỏ riêng Bật/Tắt) — không có âm thanh tự phát.
+
 ## Hệ thống (tạm thời, trong tokens.css)
 
 - **Màu:** giấy `#ECEAE4`, mực `#0D0E11`, than `#15171C`, accent **ultramarine** `#3B3FFF` (trên nền tối dùng `#8C8FFF`). Accent ≤ 5% diện tích: nhãn, dấu "+", hạt nhấn, CTA.

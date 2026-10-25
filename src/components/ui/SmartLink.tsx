@@ -1,13 +1,25 @@
 import type { ComponentProps } from "react";
 import Link from "next/link";
 
+/** Loại điều hướng cho View Transitions (xem PageTransition.tsx) */
+export type NavType = "aegis-forward" | "aegis-back" | "aegis-open";
+
+/** Đường dẫn nội bộ của website (không phải link ngoài, mailto, tel…) */
+export function isInternalHref(href: string | undefined): href is string {
+  return !!href && href.startsWith("/") && !href.startsWith("//");
+}
+
 /**
  * Link cùng trang ("#id") dùng <a> thường để Lenis cuộn mượt;
- * link sang trang khác dùng next/link để điều hướng phía client.
+ * link sang trang khác dùng next/link để điều hướng phía client (kèm hiệu ứng chuyển trang).
  */
-export function SmartLink({ href, ...props }: Omit<ComponentProps<"a">, "href"> & { href: string }) {
-  if (href.startsWith("#")) return <a href={href} {...props} />;
-  return <Link href={href} {...props} />;
+export function SmartLink({
+  href,
+  navType = "aegis-forward",
+  ...props
+}: Omit<ComponentProps<"a">, "href"> & { href: string; navType?: NavType }) {
+  if (!isInternalHref(href)) return <a href={href} {...props} />;
+  return <Link href={href} transitionTypes={[navType]} {...props} />;
 }
 
 /** "/#id" → "#id" khi đang ở trang chủ (để cuộn tại chỗ), giữ nguyên ở trang khác */

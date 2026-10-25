@@ -838,83 +838,101 @@
     padding-bottom: 0.2em;
   }
 
-  /* ---------- Cursor ---------- */
+  /* ---------- Cursor (Cursor.tsx) ---------- */
+  /* Vị trí/kích thước do JS ghi mỗi khung hình; CSS chỉ lo hình dạng và màu */
+  .cursor-blend {
+    mix-blend-mode: difference;
+  }
+
+  .cursor-ring,
   .cursor-dot,
-  .cursor-ring {
+  .cursor-bubble,
+  .cursor-plus {
     position: absolute;
     left: 0;
     top: 0;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    will-change: transform, opacity;
   }
 
-  [data-cursor] .cursor-dot,
-  [data-cursor] .cursor-ring {
-    opacity: 1;
+  /* Gốc biến hình ở góc trái trên: JS tự căn tâm bằng translate(-50%, -50%) nên xoay/kéo giãn không làm lệch tâm */
+  .cursor-ring,
+  .cursor-bubble {
+    transform-origin: 0 0;
+  }
+
+  .cursor-ring {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--blend-fg);
+    border-radius: 999px;
+    contain: layout paint;
   }
 
   .cursor-dot {
     width: 6px;
     height: 6px;
-    margin: -3px 0 0 -3px;
     border-radius: 999px;
     background: var(--blend-fg);
-    mix-blend-mode: difference;
   }
 
-  .cursor-ring::before {
-    content: "";
-    position: absolute;
-    left: -18px;
-    top: -18px;
-    width: 36px;
-    height: 36px;
+  .cursor-bubble {
+    display: grid;
+    place-items: center;
+    width: 104px;
+    height: 104px;
     border-radius: 999px;
-    border: 1px solid var(--blend-fg);
-    mix-blend-mode: difference;
-    transition:
-      transform 0.5s var(--motion-ease-out),
-      background-color 0.4s ease,
-      border-color 0.4s ease;
+    background: var(--palette-ultramarine);
   }
 
   .cursor-label {
-    position: absolute;
-    left: 0;
-    top: 0;
-    transform: translate(-50%, -50%) scale(0.6);
     color: var(--palette-white);
     white-space: nowrap;
-    opacity: 0;
-    transition:
-      opacity 0.3s ease,
-      transform 0.5s var(--motion-ease-out);
   }
 
-  [data-cursor="link"] .cursor-ring::before {
-    transform: scale(1.55);
+  /* Dấu "+" để lại khi bấm chuột */
+  .cursor-plus {
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
   }
 
-  [data-cursor="view"] .cursor-ring::before {
-    transform: scale(2.8);
-    background: var(--palette-ultramarine);
-    border-color: var(--palette-ultramarine);
-    mix-blend-mode: normal;
+  .cursor-plus::before,
+  .cursor-plus::after {
+    content: "";
+    position: absolute;
+    background: var(--blend-fg);
   }
 
-  [data-cursor="view"] .cursor-label {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+  .cursor-plus::before {
+    left: 50%;
+    top: 0;
+    width: 1px;
+    height: 100%;
   }
 
-  [data-cursor="view"] .cursor-dot {
-    opacity: 0;
+  .cursor-plus::after {
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 1px;
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    [data-motion="on"] [data-cursor="view"],
-    [data-motion="on"] [data-cursor="drag"] {
-      cursor: none;
+  /* Ẩn con trỏ gốc khi con trỏ riêng đã chạy (html[data-cursor-on] do Cursor.tsx đặt sau lần di chuột đầu tiên) */
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    html[data-cursor-on],
+    html[data-cursor-on] * {
+      cursor: none !important;
+    }
+
+    html[data-cursor-on]
+      :is(
+        input:not([type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="range"]),
+        textarea,
+        select,
+        [contenteditable="true"]
+      ) {
+      cursor: text !important;
     }
   }
 
@@ -922,6 +940,819 @@
   .marquee-outline {
     color: transparent;
     -webkit-text-stroke: 1.2px var(--fg);
+  }
+
+  /* ---------- Form liên hệ từng bước (ContactWizard) ---------- */
+  /* Không có JS: mọi câu hỏi xếp thành form dài. Có JS (html[data-js]): chỉ hiện câu hiện tại. */
+  .wizard-grid {
+    display: grid;
+    gap: 3rem;
+  }
+
+  .wizard-progress,
+  .wizard-nav,
+  .wizard-sheet,
+  .wizard-step-review {
+    display: none;
+  }
+
+  .wizard-step + .wizard-step {
+    margin-top: 4.5rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--border);
+  }
+
+  [data-js] .wizard-step:not([data-current]) {
+    display: none;
+  }
+
+  [data-js] .wizard-step + .wizard-step {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  [data-js] .wizard-step-review[data-current] {
+    display: block;
+  }
+
+  [data-js] .wizard-branch {
+    display: none;
+  }
+
+  [data-js] .wizard-progress {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 3rem;
+    color: var(--fg-muted);
+    white-space: nowrap;
+  }
+
+  .wizard-progress-bar {
+    position: relative;
+    flex: 1;
+    height: 1px;
+    overflow: hidden;
+    background: var(--border);
+  }
+
+  .wizard-progress-bar > span {
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform-origin: left;
+  }
+
+  .wizard-title {
+    margin-top: 1.25rem;
+    max-width: 22ch;
+    font-size: clamp(2rem, 1.2rem + 3vw, 4.5rem);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    outline: none;
+  }
+
+  /* Câu 1: bốn hạng mục dạng hàng chữ lớn (dùng chung cho thẻ dịch vụ ở trang chủ) */
+  .wizard-services {
+    display: grid;
+    border-top: 1px solid var(--border);
+  }
+
+  .wizard-service {
+    display: block;
+    cursor: pointer;
+  }
+
+  .wizard-service-face {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 0.6rem 1.25rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+    transition:
+      color 0.3s ease,
+      padding 0.5s var(--motion-ease-out);
+  }
+
+  .wizard-service-title {
+    font-size: clamp(1.6rem, 1.1rem + 2vw, 3rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+
+  .wizard-service-note {
+    grid-column: 2;
+    max-width: 40rem;
+    color: var(--fg-muted);
+    line-height: 1.55;
+  }
+
+  .wizard-service-arrow {
+    grid-row: 1;
+    grid-column: 3;
+    font-size: 1.5rem;
+    transition: transform 0.5s var(--motion-ease-out);
+  }
+
+  .wizard-service:hover .wizard-service-face,
+  .wizard-service input:checked + .wizard-service-face {
+    color: var(--accent);
+  }
+
+  .wizard-service:hover .wizard-service-arrow,
+  .wizard-service input:checked + .wizard-service-face .wizard-service-arrow {
+    transform: translateX(0.5rem);
+  }
+
+  .wizard-service input:focus-visible + .wizard-service-face,
+  a.wizard-service:focus-visible .wizard-service-face {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 4px;
+  }
+
+  a.wizard-service:focus-visible {
+    outline: none;
+  }
+
+  /* Lựa chọn của câu hỏi riêng */
+  .wizard-options {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .wizard-options-style {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wizard-option {
+    display: block;
+    cursor: pointer;
+  }
+
+  .wizard-option-face {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 4rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--corner-sm);
+    font-size: 1.1rem;
+    line-height: 1.3;
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .wizard-option-style .wizard-option-face {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.5rem 0.5rem 0.9rem;
+  }
+
+  .wizard-option-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top;
+    border-radius: var(--corner-sm);
+  }
+
+  .wizard-option-key {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--corner-sm);
+    color: var(--fg-muted);
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+
+  .wizard-option-style .wizard-option-key {
+    position: absolute;
+    top: 0.9rem;
+    left: 0.9rem;
+    background: var(--bg);
+  }
+
+  .wizard-option-label {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .wizard-option-style .wizard-option-label {
+    padding-inline: 0.4rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .wizard-option-note {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--fg-muted);
+  }
+
+  .wizard-option-check {
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .wizard-option-style .wizard-option-check {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+  }
+
+  .wizard-option:hover .wizard-option-face {
+    border-color: var(--fg);
+  }
+
+  .wizard-option input:checked + .wizard-option-face {
+    border-color: var(--accent);
+    background: color-mix(in oklab, var(--accent) 12%, transparent);
+  }
+
+  .wizard-option input:checked + .wizard-option-face .wizard-option-check {
+    opacity: 1;
+  }
+
+  .wizard-option input:checked + .wizard-option-face .wizard-option-key {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .wizard-option input:focus-visible + .wizard-option-face {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  [data-js] .wizard-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .wizard-back {
+    color: var(--fg-muted);
+    transition: color 0.3s ease;
+  }
+
+  .wizard-back:hover {
+    color: var(--fg);
+  }
+
+  .wizard-kbd {
+    display: none;
+    color: var(--fg-subtle);
+  }
+
+  /* Xem lại phiếu */
+  .wizard-review {
+    border-top: 1px solid var(--border);
+  }
+
+  .wizard-review-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.4rem 1.5rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.5;
+  }
+
+  .wizard-review-row > dt {
+    grid-column: 1 / -1;
+  }
+
+  .wizard-edit {
+    color: var(--accent);
+    text-underline-offset: 4px;
+  }
+
+  .wizard-edit:hover {
+    text-decoration: underline;
+  }
+
+  /* Phiếu bản vẽ thu nhỏ bên cạnh (desktop) */
+  .wizard-sheet-inner {
+    position: sticky;
+    top: calc(var(--header-h) + 2rem);
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    background-image:
+      linear-gradient(to right, var(--border) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+    background-size: 1.5rem 1.5rem;
+    background-position: -1px -1px;
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .wizard-sheet-mark {
+    margin-top: 2.5rem;
+    color: var(--fg-subtle);
+  }
+
+  /* Gửi xong: con dấu */
+  .wizard-done {
+    display: flex;
+    min-height: 28rem;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .wizard-stamp {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 1rem 1.6rem;
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    font-size: 1.05rem;
+    transform: rotate(-6deg);
+  }
+
+  .wizard-stamp span {
+    font-size: 0.7em;
+    opacity: 0.8;
+  }
+
+  @media (min-width: 40rem) {
+    .wizard-options {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .wizard-options-style {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .wizard-review-row {
+      grid-template-columns: 16rem minmax(0, 1fr) auto;
+      align-items: baseline;
+    }
+
+    .wizard-review-row > dt {
+      grid-column: auto;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    [data-js] .wizard-grid {
+      grid-template-columns: minmax(0, 1fr) 17rem;
+      gap: 5rem;
+    }
+
+    [data-js] .wizard-sheet {
+      display: block;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .wizard-kbd {
+      display: inline;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .wizard-service:hover .wizard-service-face {
+      padding-left: 1rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .wizard-progress-bar > span {
+      transition: transform 0.7s var(--motion-ease-out);
+    }
+
+    .wizard-sheet-row {
+      animation: sheet-row-in 0.6s var(--motion-ease-out) both;
+    }
+
+    .wizard-stamp {
+      animation: stamp-in 0.7s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+    }
+  }
+
+  /* ---------- Thư viện style 3D (GalleryRing) ---------- */
+  .gallery-stage {
+    --g-h: min(88svh, 58rem);
+    position: relative;
+    height: var(--g-h);
+    min-height: 36rem;
+    overflow: hidden;
+    background: radial-gradient(ellipse 70% 45% at 50% 92%, color-mix(in oklab, var(--palette-ultramarine) 26%, transparent), transparent 70%), #07080c;
+    color: var(--palette-paper);
+    outline: none;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .gallery[data-variant="teaser"] .gallery-stage {
+    --g-h: min(78svh, 46rem);
+    border-radius: 2rem;
+  }
+
+  .gallery-stage:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -4px;
+  }
+
+  .gallery-canvas-host {
+    position: absolute;
+    inset: 0;
+  }
+
+  .gallery-canvas {
+    position: absolute;
+    inset: 0;
+    display: none;
+    width: 100%;
+    height: 100%;
+  }
+
+  .gallery[data-mode="gl"] .gallery-canvas {
+    display: block;
+  }
+
+  /* Danh sách thẻ thật trong DOM. ssr = lưới tĩnh · gl = ẩn khỏi mắt nhưng vẫn focus/đọc được · css = vòng 3D bằng CSS */
+  .gallery-cards {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 1.25rem;
+    padding: 1.5rem var(--gutter) 9rem;
+    list-style: none;
+  }
+
+  .gallery-card-link {
+    position: relative;
+    display: block;
+    color: var(--palette-paper);
+  }
+
+  .gallery-card-frame {
+    display: block;
+    aspect-ratio: 0.74;
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, var(--palette-ultramarine-light) 55%, transparent);
+    border-radius: 0.9rem;
+    background: var(--stage);
+  }
+
+  .gallery-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 0%;
+  }
+
+  .gallery-card-name {
+    display: block;
+    margin-top: 0.7rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  html:not([data-js]) .gallery-stage {
+    height: auto;
+    min-height: 0;
+  }
+
+  html:not([data-js]) .gallery-dock,
+  html:not([data-js]) .gallery-rule,
+  html:not([data-js]) .gallery-filters,
+  html:not([data-js]) .gallery-hint {
+    display: none;
+  }
+
+  /* Có JS nhưng chưa biết dùng chế độ nào: giữ sân khấu tối, chưa hiện lưới để khỏi nháy */
+  html[data-js] .gallery[data-mode="ssr"] .gallery-cards {
+    visibility: hidden;
+  }
+
+  .gallery[data-mode="gl"] .gallery-cards {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .gallery[data-mode="css"] .gallery-cards {
+    position: absolute;
+    inset: 0;
+    display: block;
+    padding: 0;
+    perspective: 1500px;
+    perspective-origin: 50% 40%;
+    transform-style: preserve-3d;
+  }
+
+  .gallery[data-mode="css"] .gallery-card {
+    position: absolute;
+    left: 50%;
+    top: 44%;
+    width: var(--g-card-w, 200px);
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+  }
+
+  .gallery[data-mode="css"] .gallery-card-frame {
+    box-shadow: 0 0 2.5rem -0.5rem color-mix(in oklab, var(--palette-ultramarine-light) 55%, transparent);
+  }
+
+  .gallery[data-mode="css"] .gallery-card-img {
+    object-position: 50% calc(var(--g-scroll, 0) * 100%);
+  }
+
+  .gallery[data-mode="css"] .gallery-card-name {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    opacity: 0;
+  }
+
+  .gallery[data-mode="css"] .gallery-card[data-active] .gallery-card-name {
+    opacity: 0.0;
+  }
+
+  .gallery-card-link,
+  .gallery-card-img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  /* Chế độ WebGL: thẻ thật bị ẩn khỏi mắt nên viền focus vẽ quanh cả sân khấu khi Tab tới một link thẻ */
+  .gallery[data-mode="gl"] .gallery-stage:has(.gallery-card-link:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -4px;
+  }
+
+  .gallery-card-link:focus-visible .gallery-card-frame {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 4px;
+  }
+
+  .gallery-hint {
+    position: absolute;
+    top: 1.25rem;
+    right: var(--gutter);
+    z-index: 4;
+    color: color-mix(in oklab, var(--palette-paper) 60%, transparent);
+    pointer-events: none;
+  }
+
+  .gallery-filters {
+    position: absolute;
+    top: 1.25rem;
+    left: var(--gutter);
+    right: var(--gutter);
+    z-index: 4;
+    display: flex;
+    gap: 0.5rem;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+  }
+
+  .gallery[data-variant="page"] .gallery-filters {
+    right: 12rem;
+  }
+
+  .gallery-chip {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    height: 2.4rem;
+    padding-inline: 1rem;
+    border: 1px solid color-mix(in oklab, var(--palette-paper) 28%, transparent);
+    border-radius: 999px;
+    background: color-mix(in oklab, #07080c 70%, transparent);
+    color: color-mix(in oklab, var(--palette-paper) 75%, transparent);
+    backdrop-filter: blur(8px);
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .gallery-chip:hover {
+    border-color: var(--palette-paper);
+    color: var(--palette-paper);
+  }
+
+  .gallery-chip[aria-pressed="true"] {
+    border-color: var(--palette-ultramarine-light);
+    background: color-mix(in oklab, var(--palette-ultramarine) 40%, #07080c);
+    color: var(--palette-paper);
+  }
+
+  .gallery-chip-count {
+    opacity: 0.6;
+  }
+
+  .gallery-dock {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.25rem 2rem;
+    padding: 6rem var(--gutter) 1.5rem;
+    background: linear-gradient(to top, rgb(7 8 12 / 0.92) 20%, transparent);
+    pointer-events: none;
+  }
+
+  .gallery-dock > * {
+    pointer-events: auto;
+  }
+
+  .gallery-info {
+    max-width: 30rem;
+  }
+
+  .gallery-name {
+    margin-top: 0.5rem;
+    font-size: clamp(2.2rem, 1.5rem + 2.6vw, 4rem);
+    font-weight: 600;
+    line-height: 0.95;
+    letter-spacing: -0.045em;
+  }
+
+  .gallery-sub {
+    margin-top: 0.75rem;
+    color: color-mix(in oklab, var(--palette-paper) 70%, transparent);
+    line-height: 1.45;
+  }
+
+  .gallery-note {
+    margin-top: 0.75rem;
+    color: color-mix(in oklab, var(--palette-paper) 50%, transparent);
+  }
+
+  .gallery-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .gallery-arrow {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid color-mix(in oklab, var(--palette-paper) 30%, transparent);
+    border-radius: 999px;
+    font-size: 1.15rem;
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .gallery-arrow:hover {
+    border-color: var(--palette-paper);
+    background: color-mix(in oklab, var(--palette-paper) 12%, transparent);
+  }
+
+  /* Thước tiến độ kiểu Emotion, bằng vạch và nhãn mono */
+  .gallery-rule {
+    position: absolute;
+    left: 50%;
+    bottom: 1.6rem;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transform: translateX(-50%);
+  }
+
+  .gallery-rule-label {
+    color: color-mix(in oklab, var(--palette-paper) 70%, transparent);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .gallery-ticks {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.35rem;
+  }
+
+  .gallery-tick {
+    position: relative;
+    width: 0.7rem;
+    height: 1.5rem;
+  }
+
+  .gallery-tick::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 1px;
+    height: 0.7rem;
+    background: color-mix(in oklab, var(--palette-paper) 45%, transparent);
+    transition:
+      height 0.4s var(--motion-ease-out),
+      background-color 0.3s ease,
+      width 0.3s ease;
+  }
+
+  .gallery-tick:hover::before {
+    height: 1.1rem;
+    background: var(--palette-paper);
+  }
+
+  .gallery-tick[aria-current="true"]::before {
+    width: 3px;
+    height: 1.5rem;
+    margin-left: -1px;
+    background: var(--palette-ultramarine-light);
+  }
+
+  .gallery-tick[data-off]::before {
+    opacity: 0.25;
+  }
+
+  /* Lớp phủ để thẻ "phóng" thành trang mẫu (ViewTransition cùng tên với .morph-target) */
+  .gallery-morph {
+    position: fixed;
+    z-index: 90;
+    pointer-events: none;
+    border-radius: 0.9rem;
+    background-size: cover;
+    background-position: top center;
+    box-shadow: 0 0 3rem -0.5rem color-mix(in oklab, var(--palette-ultramarine-light) 60%, transparent);
+  }
+
+  @media (max-width: 63.99rem) {
+    .gallery[data-variant="page"] .gallery-filters {
+      right: var(--gutter);
+    }
+
+    .gallery-hint {
+      display: none;
+    }
+
+    /* Thước tiến độ nằm ngay dưới hàng lọc (trang đầy đủ) hoặc ở đỉnh sân khấu (bản trang chủ) */
+    .gallery-rule {
+      top: 4.25rem;
+      bottom: auto;
+      left: var(--gutter);
+      transform: none;
+    }
+
+    .gallery[data-variant="teaser"] .gallery-rule {
+      top: 1.25rem;
+    }
+
+    .gallery-dock {
+      padding-top: 4rem;
+    }
+  }
+
+  @media (max-width: 47.99rem) {
+    .gallery-stage {
+      --g-h: min(86svh, 46rem);
+    }
+
+    .gallery-sub {
+      display: none;
+    }
+
+    .gallery[data-variant="page"] .gallery-filters {
+      top: 0.75rem;
+    }
   }
 
   /* ---------- HUD ---------- */
@@ -945,6 +1776,22 @@
 @media (prefers-reduced-motion: no-preference) {
   .scroll-cue {
     animation: nudge 2.4s var(--motion-ease-in-out) infinite;
+  }
+
+  /* Menu di động: rèm bản vẽ kéo xuống từ đỉnh màn hình */
+  .mobile-menu {
+    opacity: 1;
+    clip-path: inset(0 0 100% 0);
+    transition:
+      clip-path 0.75s cubic-bezier(0.76, 0, 0.24, 1),
+      visibility 0s 0.75s;
+  }
+
+  .mobile-menu[data-open="true"] {
+    clip-path: inset(0);
+    transition:
+      clip-path 0.75s cubic-bezier(0.76, 0, 0.24, 1),
+      visibility 0s;
   }
 
   .mobile-menu-item {
@@ -1004,5 +1851,174 @@
   }
   30% {
     box-shadow: 0 0 0 6px var(--accent-soft);
+  }
+}
+
+@keyframes sheet-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    transform: rotate(-14deg) scale(1.8);
+  }
+  60% {
+    opacity: 1;
+  }
+}
+
+/* ================= Chuyển trang: "lật bản vẽ" (View Transitions) ================= */
+/* PageTransition.tsx kích hoạt; ở đây tạo hiệu ứng trên ảnh chụp gốc của trang. Chỉ khi người dùng không giảm chuyển động. */
+.vt-marker {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.morph-target {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  pointer-events: none;
+  visibility: hidden;
+  background-size: cover;
+  background-position: top center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Lớp ảnh phủ chỉ hiện khi cờ html[data-morph-from] đúng slug của chính trang mẫu: quy tắc nằm trong DemoShell */
+
+  /* Con trỏ riêng và phần tử đang sống phải tiếp tục chạy trong lúc chuyển trang */
+  .cursor-layer {
+    view-transition-name: aegis-cursor;
+  }
+
+  .cursor-blend {
+    view-transition-name: aegis-cursor-blend;
+  }
+
+  ::view-transition-old(aegis-cursor),
+  ::view-transition-old(aegis-cursor-blend) {
+    display: none;
+  }
+
+  ::view-transition-group(aegis-cursor),
+  ::view-transition-group(aegis-cursor-blend),
+  ::view-transition-new(aegis-cursor),
+  ::view-transition-new(aegis-cursor-blend) {
+    animation: none;
+  }
+
+  /* Trang vẫn bấm được trong lúc chuyển (lớp ::view-transition mặc định chặn chuột) */
+  ::view-transition {
+    pointer-events: none;
+  }
+
+  /* Chấm đánh dấu: không tự có hiệu ứng riêng */
+  ::view-transition-group(.aegis-marker),
+  ::view-transition-old(.aegis-marker),
+  ::view-transition-new(.aegis-marker) {
+    animation: none;
+  }
+
+  /* Mặc định (nút Back/Forward của trình duyệt, điều hướng không gắn loại): mờ chéo ngắn */
+  ::view-transition-old(root) {
+    animation: 0.28s ease both vt-fade-out;
+  }
+
+  ::view-transition-new(root) {
+    animation: 0.4s ease 0.08s both vt-fade-in;
+  }
+
+  /* Rèm bản vẽ: trang mới quét ngang qua trang cũ, mép nghiêng như đường kẻ; trang cũ lùi nhẹ và tối đi */
+  :root:active-view-transition-type(aegis-forward)::view-transition-old(root),
+  :root:active-view-transition-type(aegis-back)::view-transition-old(root) {
+    mix-blend-mode: normal;
+    animation: 0.9s cubic-bezier(0.76, 0, 0.24, 1) both vt-curtain-old;
+  }
+
+  :root:active-view-transition-type(aegis-forward)::view-transition-new(root) {
+    mix-blend-mode: normal;
+    animation: 0.9s cubic-bezier(0.76, 0, 0.24, 1) both vt-wipe-forward;
+  }
+
+  :root:active-view-transition-type(aegis-back)::view-transition-new(root) {
+    mix-blend-mode: normal;
+    animation: 0.9s cubic-bezier(0.76, 0, 0.24, 1) both vt-wipe-back;
+  }
+
+  /* Mở mẫu từ thư viện: ảnh thẻ phóng ra, phần còn lại của trang chỉ mờ đi */
+  :root:active-view-transition-type(aegis-open)::view-transition-old(root) {
+    animation: 0.5s ease both vt-fade-out;
+  }
+
+  :root:active-view-transition-type(aegis-open)::view-transition-new(root) {
+    animation: 0.5s ease 0.3s both vt-fade-in;
+  }
+
+  ::view-transition-group(.aegis-morph) {
+    animation-duration: 0.95s;
+    animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+    z-index: 5;
+  }
+
+  ::view-transition-old(.aegis-morph),
+  ::view-transition-new(.aegis-morph) {
+    mix-blend-mode: normal;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-curtain-old {
+  to {
+    transform: translateX(-6%) scale(0.985);
+    filter: brightness(0.55);
+  }
+}
+
+@keyframes vt-wipe-forward {
+  from {
+    clip-path: polygon(0 0, 0 0, -14% 100%, 0 100%);
+  }
+  to {
+    clip-path: polygon(0 0, 114% 0, 100% 100%, 0 100%);
+  }
+}
+
+@keyframes vt-wipe-back {
+  from {
+    clip-path: polygon(100% 0, 100% 0, 100% 100%, 114% 100%);
+  }
+  to {
+    clip-path: polygon(-14% 0, 100% 0, 100% 100%, 0 100%);
+  }
+}
+
+@keyframes morph-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
   }
 }

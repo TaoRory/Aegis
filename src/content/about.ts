@@ -9,7 +9,7 @@ export const hero = {
   label: "BV-00 — Tổng mặt bằng",
   lines: ["Xây nền móng", "*vững chắc,*", "để tiến xa."],
   description:
-    "Aegis đồng hành cùng doanh nghiệp ứng dụng AI, triển khai phần mềm quản trị, xây dựng website – web app và làm marketing trên môi trường số.",
+    "Aegis là đội triển khai công nghệ cho doanh nghiệp: tư vấn giải pháp, trực tiếp xây dựng AI, phần mềm quản trị, website – web app, chạy marketing, rồi bàn giao sản phẩm dễ dùng nhất.",
   secondaryCta: { label: "Xem dự án", href: "#du-an" },
   scrollHint: "Cuộn để xem bản vẽ",
 };
@@ -17,8 +17,12 @@ export const hero = {
 export const about = {
   label: "[01] — Về Aegis",
   statement:
-    "Aegis là đối tác *công nghệ và marketing* của doanh nghiệp. Chúng tôi giúp doanh nghiệp ứng dụng AI, vận hành bằng phần mềm phù hợp, hiện diện chuyên nghiệp trên môi trường số và *tiếp cận đúng khách hàng.*",
-  body: "Mỗi giải pháp bắt đầu từ bài toán thực tế: quy trình đang vận hành ra sao, đội ngũ cần gì và mục tiêu nào cần đạt. Từ đó, Aegis đề xuất phạm vi phù hợp, triển khai và đồng hành để giải pháp thực sự được sử dụng.",
+    "Aegis là đội *triển khai công nghệ và marketing* của doanh nghiệp. Chúng tôi tư vấn đúng giải pháp, tự tay xây dựng và bàn giao *sản phẩm dễ dùng nhất,* để chủ doanh nghiệp tự vận hành được.",
+  body: "Mỗi dự án bắt đầu từ bài toán thực tế: quy trình đang vận hành ra sao, đội ngũ cần gì và mục tiêu nào cần đạt. Tư vấn chỉ là bước mở đầu: Aegis chốt phạm vi rồi trực tiếp triển khai, không dừng lại ở bản đề xuất.",
+  promise: {
+    label: "Điều Aegis bàn giao",
+    text: "Sản phẩm *dễ dùng nhất* cho chủ doanh nghiệp: không cần rành công nghệ vẫn tự vận hành được.",
+  },
   valuesLabel: "Ba nguyên tắc",
 };
 
@@ -36,7 +40,7 @@ export const values: Value[] = [
   {
     title: "Đồng hành",
     description:
-      "Cùng doanh nghiệp ứng dụng AI, phần mềm và phát triển trên môi trường số, từ lúc xác định nhu cầu đến khi giải pháp đi vào vận hành.",
+      "Cùng doanh nghiệp từ lúc tư vấn giải pháp, qua triển khai, đến khi sản phẩm được bàn giao và đi vào vận hành.",
   },
 ];
 
@@ -49,23 +53,23 @@ export const servicesSection = {
 export const process: { label: string; lines: string[]; lead: string; steps: ProcessStep[] } = {
   label: "[03] — Cách làm việc",
   lines: ["Rõ ràng từ", "*cuộc trao đổi đầu tiên.*"],
-  lead: "Mỗi dự án đi qua bốn bước, để doanh nghiệp luôn biết việc gì đang được làm và vì sao.",
+  lead: "Mỗi dự án đi qua bốn bước, từ tư vấn đến bàn giao, để doanh nghiệp luôn biết việc gì đang được làm và vì sao.",
   steps: [
     {
-      title: "Trao đổi nhu cầu",
-      description: "Lắng nghe bài toán, mục tiêu và bối cảnh vận hành của doanh nghiệp.",
+      title: "Tư vấn giải pháp",
+      description: "Lắng nghe bài toán, mục tiêu và bối cảnh vận hành, rồi đề xuất giải pháp phù hợp.",
     },
     {
-      title: "Đề xuất giải pháp",
-      description: "Đề xuất hướng triển khai, phạm vi công việc và kế hoạch phù hợp.",
+      title: "Chốt phạm vi",
+      description: "Thống nhất phạm vi công việc, kế hoạch và tiến độ triển khai.",
     },
     {
       title: "Triển khai",
       description: "Thực hiện theo phạm vi đã thống nhất và cập nhật tiến độ trong suốt quá trình.",
     },
     {
-      title: "Đồng hành",
-      description: "Hỗ trợ theo phạm vi thống nhất để giải pháp vận hành ổn định và tiếp tục phát triển.",
+      title: "Bàn giao",
+      description: "Bàn giao sản phẩm dễ dùng nhất để doanh nghiệp tự vận hành, hỗ trợ theo phạm vi thống nhất.",
     },
   ],
 };
@@ -88,10 +92,10 @@ export const templatesSection = {
 export const contactSection = {
   label: "[06] — Liên hệ",
   lines: ["Bắt đầu từ", "*bản vẽ đầu tiên.*"],
-  lead: "Chia sẻ ngắn gọn nhu cầu hiện tại. Aegis sẽ liên hệ lại để trao đổi chi tiết và đề xuất hướng phù hợp.",
-  prompts: [
-    "Lĩnh vực và mô hình hoạt động của doanh nghiệp",
-    "Bài toán hoặc mục tiêu đang cần giải quyết",
-    "Thời gian mong muốn bắt đầu triển khai",
-  ],
+  lead: "Trả lời vài câu hỏi ngắn, chủ yếu là bấm chọn. Aegis đọc phiếu, tư vấn giải pháp và liên hệ lại để bắt tay triển khai.",
+  /** Trang chủ: câu 1 của form hiện ngay tại đây, chọn xong sang trang /lien-he */
+  pickerLabel: "Câu 01 · Bạn cần Aegis dựng gì?",
+  pageLabel: "[06] — Phiếu yêu cầu",
+  pageLines: ["Bản vẽ của bạn,", "*bắt đầu từ đây.*"],
+  pageLead: "Mỗi màn một câu hỏi, khoảng một phút. Các câu sau đổi theo hạng mục bạn chọn, để Aegis hiểu đúng bài toán ngay từ đầu.",
 };

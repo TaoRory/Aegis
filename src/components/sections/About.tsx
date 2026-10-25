@@ -1,4 +1,5 @@
 import { SplitReveal } from "@/components/motion/SplitReveal";
+import { Rich } from "@/components/ui/Rich";
 import { ScrollRevealText } from "@/components/ui/ScrollRevealText";
 import { about, values } from "@/content/about";
 
@@ -22,6 +23,17 @@ export function About() {
             <ScrollRevealText text={about.statement} className="text-statement font-medium" />
             <p className="mt-12 max-w-[38rem] text-lead text-muted lg:ml-[25%]">{about.body}</p>
           </div>
+        </div>
+
+        {/* Lời hứa bàn giao chung cho cả 4 dịch vụ */}
+        <div className="mt-20 grid gap-6 border-y border-line py-10 lg:mt-28 lg:grid-cols-12 lg:items-baseline lg:py-14">
+          <p className="label text-accent lg:col-span-3">
+            <span aria-hidden>↳ </span>
+            {about.promise.label}
+          </p>
+          <p className="text-h3 font-semibold lg:col-span-9">
+            <Rich text={about.promise.text} />
+          </p>
         </div>
 
         <div className="mt-28 lg:mt-40">

@@ -1,12 +1,8 @@
-"use client";
-
 import type { ReactNode } from "react";
-
-export const SELECT_SERVICE_EVENT = "aegis:select-service";
+import Link from "next/link";
 
 /**
- * Liên kết tới form liên hệ và chọn sẵn dịch vụ.
- * Không có JavaScript thì vẫn là liên kết cuộn tới #lien-he bình thường.
+ * Liên kết tới form liên hệ (/lien-he) với dịch vụ đã chọn sẵn: form bỏ qua câu 1, vào thẳng các câu riêng.
  */
 export function SelectServiceLink({
   serviceId,
@@ -18,12 +14,8 @@ export function SelectServiceLink({
   children: ReactNode;
 }) {
   return (
-    <a
-      href="#lien-he"
-      className={className}
-      onClick={() => window.dispatchEvent(new CustomEvent(SELECT_SERVICE_EVENT, { detail: serviceId }))}
-    >
+    <Link href={`/lien-he?dv=${serviceId}`} className={className}>
       {children}
-    </a>
+    </Link>
   );
 }

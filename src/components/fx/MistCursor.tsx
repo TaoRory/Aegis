@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { cn } from "@/lib/cn";
 import { gsap, MQ } from "@/lib/motion";
+import { onPointerMove } from "@/lib/pointer";
 
 const VERT = `#version 300 es
 in vec2 aPos; out vec2 vUv;
@@ -54,7 +55,7 @@ export function MistCursor({ color = "#ffffff", opacity = 0.85, className }: { c
 
   useEffect(() => {
     const host = hostRef.current;
-    if (!host || !window.matchMedia(`${MQ.fineHover} and ${MQ.anyMotion}`).matches) return;
+    if (!host || document.documentElement.dataset.quality === "low" || !window.matchMedia(`${MQ.fineHover} and ${MQ.anyMotion}`).matches) return;
     // Canvas mới cho mỗi lần mount (Strict Mode dev mount 2 lần; context đã mất không dùng lại được)
     const canvas = document.createElement("canvas");
     canvas.className = "block h-full w-full";
@@ -141,7 +142,7 @@ export function MistCursor({ color = "#ffffff", opacity = 0.85, className }: { c
       m.bx = x;
       m.by = y;
     };
-    window.addEventListener("pointermove", onMove, { passive: true });
+    const stopPointer = onPointerMove((e) => e && onMove(e));
 
     let visible = true;
     const io = new IntersectionObserver(([entry]) => (visible = entry.isIntersecting));
@@ -192,7 +193,7 @@ export function MistCursor({ color = "#ffffff", opacity = 0.85, className }: { c
       gsap.ticker.remove(tick);
       ro.disconnect();
       io.disconnect();
-      window.removeEventListener("pointermove", onMove);
+      stopPointer();
       gl.getExtension("WEBGL_lose_context")?.loseContext();
       canvas.remove();
     };

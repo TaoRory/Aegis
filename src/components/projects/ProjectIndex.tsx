@@ -31,6 +31,8 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
   const [filter, setFilter] = useState<Filter>("all");
   const [hovered, setHovered] = useState<string | null>(null);
   const [previewReady, setPreviewReady] = useState(false);
+  /** Chỉ gán view-transition-name cho các dòng trong lúc lọc, để không lẫn vào hiệu ứng chuyển trang */
+  const [naming, setNaming] = useState(false);
   const listRef = useRef<HTMLUListElement>(null);
   const floatRef = useRef<HTMLDivElement>(null);
   /** Đặt ảnh nổi theo tọa độ con trỏ; `immediate` dùng khi vừa đi vào dòng (tránh ảnh bay từ vị trí cũ) */
@@ -42,8 +44,11 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
   const changeFilter = (next: Filter) => {
     if (next === filter) return;
     const animate = "startViewTransition" in document && window.matchMedia(MQ.anyMotion).matches;
-    if (animate) document.startViewTransition(() => flushSync(() => setFilter(next)));
-    else setFilter(next);
+    if (animate) {
+      flushSync(() => setNaming(true));
+      const transition = document.startViewTransition(() => flushSync(() => setFilter(next)));
+      void transition.finished.finally(() => setNaming(false));
+    } else setFilter(next);
   };
 
   // Ảnh nổi theo con trỏ (chỉ thiết bị có chuột, có chuyển động)
@@ -64,14 +69,20 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
     const xTo = gsap.quickTo(float, "x", { duration: 0.65, ease: "power3" });
     const yTo = gsap.quickTo(float, "y", { duration: 0.65, ease: "power3" });
     const rTo = gsap.quickTo(float, "rotation", { duration: 0.8, ease: "power3" });
+    const skewTo = gsap.quickTo(float, "skewX", { duration: 0.5, ease: "power3" });
     let lastX = 0;
     let visible = false;
+    let skewTimer = 0;
     moveFloat.current = (x, y, immediate) => {
       if (immediate && !visible) gsap.set(float, { x, y, rotation: 0 });
       visible = true;
       xTo(x);
       yTo(y);
       rTo(Math.max(-8, Math.min(8, (x - lastX) * 0.4)));
+      // Ảnh vặn nhẹ theo hướng kéo rồi hồi về (cảm giác "chất lỏng")
+      skewTo(Math.max(-14, Math.min(14, (x - lastX) * -0.5)));
+      window.clearTimeout(skewTimer);
+      skewTimer = window.setTimeout(() => skewTo(0), 90);
       lastX = x;
     };
     const onMove = (event: PointerEvent) => moveFloat.current(event.clientX, event.clientY);
@@ -82,6 +93,7 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
     list.addEventListener("pointerleave", onLeave);
     return () => {
       io.disconnect();
+      window.clearTimeout(skewTimer);
       list.removeEventListener("pointermove", onMove);
       list.removeEventListener("pointerleave", onLeave);
       moveFloat.current = () => {};
@@ -129,7 +141,7 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
               key={project.slug}
               data-project={project.slug}
               className={cn("project-row", hovered === project.slug && "is-active")}
-              style={{ viewTransitionName: `project-${project.slug}` }}
+              style={naming ? { viewTransitionName: `project-${project.slug}` } : undefined}
               onPointerEnter={(event) => {
                 moveFloat.current(event.clientX, event.clientY, true);
                 setHovered(project.slug);

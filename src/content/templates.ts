@@ -8,6 +8,9 @@
  * Ảnh xem trước: `pnpm capture:templates` → public/templates + template-previews.json
  */
 
+export const templateGroups = ["Thương mại", "Công nghệ & truyền thông", "Dịch vụ", "Giáo dục"] as const;
+export type TemplateGroup = (typeof templateGroups)[number];
+
 export interface DemoTemplate {
   slug: string;
   /** Tên style (gọi tên này để dựng website theo style) */
@@ -15,6 +18,8 @@ export interface DemoTemplate {
   /** Tên thương hiệu giả định dùng trong mẫu */
   brand: string;
   industry: string;
+  /** Nhóm để lọc trong thư viện (nhóm thể loại demo, không phải phân loại khách hàng thật) */
+  group: TemplateGroup;
   /** Cảm xúc chủ đạo quyết định font, màu, chuyển động */
   emotion: string;
   /** Ý tưởng lớn, một câu */
@@ -39,6 +44,7 @@ export const templates: DemoTemplate[] = [
     name: "ATELIER",
     brand: "Tơ Đêm",
     industry: "Thời trang",
+    group: "Thương mại",
     emotion: "Khao khát",
     idea: "Website là một số tạp chí thời trang: masthead khổng lồ, ảnh bìa, lookbook như dải phim.",
     signature: "Lookbook kéo được, cả dải ảnh cong theo tốc độ tay kéo.",
@@ -54,6 +60,7 @@ export const templates: DemoTemplate[] = [
     name: "SIGNAL",
     brand: "MẠCH",
     industry: "Công nghệ / AI",
+    group: "Công nghệ & truyền thông",
     emotion: "Chính xác",
     idea: "Tín hiệu từ nhiễu: trường sóng hỗn loạn duỗi thẳng khi người xem cuộn và rê chuột.",
     signature: "Trường sóng shader phản ứng theo chuột và cuộn.",
@@ -69,6 +76,7 @@ export const templates: DemoTemplate[] = [
     name: "SERENE",
     brand: "SƯƠNG",
     industry: "Dịch vụ chăm sóc",
+    group: "Dịch vụ",
     emotion: "An tâm",
     idea: "Sương sớm phủ trang, tan dần dưới con trỏ, mọi chuyển động chậm như hơi thở.",
     signature: "Làn sương theo chuột trên ảnh hero.",
@@ -84,6 +92,7 @@ export const templates: DemoTemplate[] = [
     name: "HEARTH",
     brand: "Than & Muối",
     industry: "F&B",
+    group: "Thương mại",
     emotion: "Thèm",
     idea: "Gian bếp lúc tối, than hồng hắt sáng; món ăn hiện ra khi người xem lướt thực đơn.",
     signature: "Thực đơn: ảnh món bám theo con trỏ.",
@@ -99,6 +108,7 @@ export const templates: DemoTemplate[] = [
     name: "BROADCAST",
     brand: "Tần Số",
     industry: "Truyền thông",
+    group: "Công nghệ & truyền thông",
     emotion: "Táo bạo",
     idea: "Website như một kênh đang lên sóng: REC, timecode, danh sách dự án như lịch phát.",
     signature: "Lịch phát: tên dự án xáo chữ, ảnh bám con trỏ.",
@@ -114,6 +124,7 @@ export const templates: DemoTemplate[] = [
     name: "PLAYGROUND",
     brand: "Bập Bênh English",
     industry: "Trung tâm tiếng Anh",
+    group: "Giáo dục",
     emotion: "Vui",
     idea: "Sân chơi ngôn ngữ: sticker kéo được, kiểm tra trình độ là trò chơi, từ vựng là thẻ lật.",
     signature: "Sticker kéo thả có quán tính trên hero.",
@@ -129,6 +140,7 @@ export const templates: DemoTemplate[] = [
     name: "VOYAGE",
     brand: "La Bàn",
     industry: "Tư vấn du học",
+    group: "Dịch vụ",
     emotion: "Khát vọng",
     idea: "Mỗi section là một chặng bay, từ tấm vé đầu tiên tới ngày nhập học.",
     signature: "Đường bay tự vẽ theo cuộn, máy bay chạy theo đường.",
@@ -144,6 +156,7 @@ export const templates: DemoTemplate[] = [
     name: "CAMPUS",
     brand: "Rặng Thông",
     industry: "Giáo dục",
+    group: "Giáo dục",
     emotion: "Điềm tĩnh",
     idea: "Niên giám được biên tập kỹ: chương đánh số, chú thích bên lề, ảnh lớn yên tĩnh.",
     signature: "Một ngày ở trường: cuộn ngang theo kim đồng hồ.",

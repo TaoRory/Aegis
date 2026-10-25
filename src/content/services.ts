@@ -6,15 +6,15 @@ export const services: Service[] = [
     title: "Giải pháp AI doanh nghiệp",
     shortTitle: "AI doanh nghiệp",
     summary:
-      "Tư vấn và phát triển giải pháp AI xuất phát từ bài toán thực tế của doanh nghiệp, không phải từ xu hướng.",
+      "Tư vấn đúng bài toán, rồi dựng công cụ AI chạy thật trong quy trình của doanh nghiệp, không chạy theo xu hướng.",
     needs: [
       "Muốn ứng dụng AI nhưng chưa rõ nên bắt đầu từ đâu",
       "Cần đánh giá AI có phù hợp với quy trình và dữ liệu hiện có hay không",
       "Cần công cụ AI điều chỉnh theo cách làm việc riêng của đội ngũ",
     ],
     scope: [
-      "Tư vấn ứng dụng AI theo nhu cầu và bài toán cụ thể",
-      "Phát triển sản phẩm AI cung cấp cho doanh nghiệp",
+      "Tư vấn giải pháp AI theo bài toán cụ thể, làm rõ trước khi triển khai",
+      "Phát triển và triển khai sản phẩm AI cho doanh nghiệp",
       "Tùy chỉnh giải pháp theo yêu cầu riêng của từng khách hàng",
     ],
     value: "AI được đặt đúng chỗ trong quy trình, phục vụ công việc hằng ngày của doanh nghiệp.",
@@ -24,14 +24,14 @@ export const services: Service[] = [
     title: "Triển khai phần mềm quản trị doanh nghiệp",
     shortTitle: "Phần mềm quản trị",
     summary:
-      "Tư vấn, triển khai và tùy chỉnh phần mềm quản trị theo đúng quy trình vận hành của doanh nghiệp.",
+      "Tư vấn giải pháp, triển khai và tùy chỉnh phần mềm quản trị theo đúng quy trình vận hành, bàn giao để đội ngũ dùng ngay.",
     needs: [
       "Dữ liệu và công việc nằm rải rác ở nhiều nơi, khó theo dõi",
       "Phần mềm có sẵn chưa khớp với cách vận hành thực tế",
       "Cần chuẩn hóa quy trình khi doanh nghiệp mở rộng",
     ],
     scope: [
-      "Tư vấn hướng triển khai và phạm vi phù hợp",
+      "Tư vấn giải pháp và chốt phạm vi triển khai",
       "Triển khai phần mềm vào hoạt động của doanh nghiệp",
       "Tùy chỉnh theo quy trình vận hành riêng",
     ],
@@ -59,7 +59,7 @@ export const services: Service[] = [
     id: "marketing",
     title: "Marketing cho doanh nghiệp",
     shortTitle: "Marketing",
-    summary: "Đưa doanh nghiệp đến gần khách hàng hơn trên các kênh trực tuyến.",
+    summary: "Lên kế hoạch và trực tiếp triển khai marketing trên các kênh trực tuyến, đưa doanh nghiệp đến gần khách hàng hơn.",
     needs: [
       "Cần tiếp cận khách hàng mới trên kênh trực tuyến",
       "Cần duy trì hiện diện đều đặn trên mạng xã hội",

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { gsap, MQ } from "@/lib/motion";
+import { onPointerMove } from "@/lib/pointer";
 
 const VERT = `#version 300 es
 in vec2 aPos; out vec2 vUv;
@@ -118,7 +119,7 @@ export function ImageDistortLayer() {
       s.my = 1 - (e.clientY - r.top) / r.height;
     };
     document.addEventListener("pointerover", onOver, { passive: true });
-    window.addEventListener("pointermove", onMove, { passive: true });
+    const stopPointer = onPointerMove((e) => e && onMove(e));
 
     const start = performance.now();
     const tick = () => {
@@ -163,7 +164,7 @@ export function ImageDistortLayer() {
     return () => {
       gsap.ticker.remove(tick);
       document.removeEventListener("pointerover", onOver);
-      window.removeEventListener("pointermove", onMove);
+      stopPointer();
       gl.getExtension("WEBGL_lose_context")?.loseContext();
       canvas.remove();
     };

@@ -8,7 +8,9 @@ description: Ngữ cảnh doanh nghiệp Aegis (dữ kiện đã xác nhận, 4 
 ## Doanh nghiệp
 
 - **Tên:** Aegis. Cung cấp giải pháp công nghệ và marketing cho doanh nghiệp.
-- **4 nhóm dịch vụ:** (1) Giải pháp AI doanh nghiệp: tư vấn ứng dụng AI, phát triển sản phẩm AI và tùy chỉnh; (2) Triển khai phần mềm quản trị doanh nghiệp: tư vấn, triển khai, tùy chỉnh theo quy trình; (3) Thiết kế, phát triển website và web app: có thể có cơ sở dữ liệu, thu thập thông tin, phân quyền theo phạm vi dự án; (4) Marketing: quảng cáo trực tuyến, social media, hoạt động khác theo phạm vi thống nhất.
+- **4 nhóm dịch vụ:** (1) Giải pháp AI doanh nghiệp: tư vấn giải pháp, phát triển, triển khai sản phẩm AI và tùy chỉnh; (2) Triển khai phần mềm quản trị doanh nghiệp: tư vấn giải pháp, triển khai, tùy chỉnh theo quy trình; (3) Thiết kế, phát triển website và web app: có thể có cơ sở dữ liệu, thu thập thông tin, phân quyền theo phạm vi dự án; (4) Marketing: quảng cáo trực tuyến, social media, hoạt động khác theo phạm vi thống nhất.
+- **Định vị (chốt 2026-10-25):** Aegis là **đội triển khai, thực thi** dự án tech, **không phải công ty tư vấn**. Tư vấn chỉ là bước mở đầu của triển khai, không bán riêng. Chuỗi giá trị: *tư vấn giải pháp → triển khai → bàn giao sản phẩm dễ dùng nhất* để chủ doanh nghiệp tự vận hành. Khi viết, chữ "tư vấn" luôn đi kèm triển khai/bàn giao, không đứng một mình.
+- **Lời hứa bàn giao (chung cho 4 dịch vụ):** sản phẩm dễ dùng nhất cho chủ doanh nghiệp, không cần rành công nghệ vẫn tự vận hành. Không tự liệt kê hạng mục bàn giao cụ thể khi chưa được xác nhận.
 - **Tinh thần:** Tin cậy · Vững chắc · Đồng hành. Thông điệp: "Aegis xây dựng nền tảng công nghệ vững chắc, giúp doanh nghiệp tự tin tiến xa."
 - **Người đọc:** chủ doanh nghiệp, người phụ trách công nghệ/vận hành/marketing; viết tiếng Việt dễ hiểu.
 - **Nguồn nội dung trong code:** `src/config/site.ts`, `src/content/*.ts`. Portfolio: `src/content/projects.ts` (7 dự án, URL cố định).

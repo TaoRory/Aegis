@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from
 import { usePathname } from "next/navigation";
 import { flushSync } from "react-dom";
 
+import { SettingsMenu } from "@/components/layout/SettingsMenu";
 import { ButtonLink, Roll } from "@/components/ui/Button";
 import { localizeHref, SmartLink } from "@/components/ui/SmartLink";
 import { Wordmark } from "@/components/ui/Wordmark";
@@ -142,7 +143,7 @@ export function Header() {
           </nav>
 
           {/* Chừa chỗ cho nút CTA (nằm ở lớp riêng, không blend) */}
-          <span aria-hidden className="hidden w-[11.5rem] lg:block" />
+          <span aria-hidden className="hidden w-[11.5rem] lg:block xl:w-[18.5rem]" />
 
           <button
             ref={toggleRef}
@@ -167,6 +168,7 @@ export function Header() {
         data-hidden={hidden && !open}
         className="site-header header-cta fixed top-0 z-50 hidden h-(--header-h) items-center sm:flex"
       >
+        <SettingsMenu className="mr-3 hidden lg:block" />
         <ButtonLink href={localizeHref(siteConfig.cta.href, pathname)} className="h-10 px-4">
           {siteConfig.cta.label}
         </ButtonLink>
@@ -203,6 +205,7 @@ export function Header() {
               {siteConfig.cta.label}
             </ButtonLink>
             <p className="label mt-6 text-muted">{siteConfig.tagline}</p>
+            <SettingsMenu inline className="mt-8" />
           </div>
         </nav>
       </div>

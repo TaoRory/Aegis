@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { MistCursor } from "@/components/fx/MistCursor";
 import { gsap, MQ, onIntroDone } from "@/lib/motion";
+import { onPointerMove } from "@/lib/pointer";
 
 const FILTER_ID = "hero-warp";
 
@@ -72,10 +73,18 @@ export function HeroFx() {
     const lx = gsap.quickTo(label, "x", { duration: 0.45, ease: "power3" });
     const ly = gsap.quickTo(label, "y", { duration: 0.45, ease: "power3" });
 
-    const onMove = (e: PointerEvent) => {
+    const stopPointer = onPointerMove((e) => {
+      if (!e) {
+        delete root.dataset.active;
+        return;
+      }
       const r = section.getBoundingClientRect();
       const x = e.clientX - r.left;
       const y = e.clientY - r.top;
+      if (x < 0 || y < 0 || x > r.width || y > r.height) {
+        delete root.dataset.active;
+        return;
+      }
       xTo(x);
       yTo(y);
       lx(x + 14);
@@ -83,14 +92,8 @@ export function HeroFx() {
       // Quy đổi sang "mm" trên bản vẽ khổ A1 (841 × 594) cho vui mắt — chỉ là trang trí
       label.textContent = `X ${String(Math.round((x / r.width) * 841)).padStart(3, "0")} · Y ${String(Math.round((y / r.height) * 594)).padStart(3, "0")} mm`;
       root.dataset.active = "true";
-    };
-    const onLeave = () => delete root.dataset.active;
-    section.addEventListener("pointermove", onMove);
-    section.addEventListener("pointerleave", onLeave);
-    return () => {
-      section.removeEventListener("pointermove", onMove);
-      section.removeEventListener("pointerleave", onLeave);
-    };
+    });
+    return stopPointer;
   }, []);
 
   return (

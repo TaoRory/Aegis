@@ -1,5 +1,6 @@
 import { SheetRise } from "@/components/fx/SheetRise";
 import { ChapterHud } from "@/components/motion/ChapterHud";
+import { PageTransition } from "@/components/motion/PageTransition";
 import { Preloader } from "@/components/motion/Preloader";
 import { About } from "@/components/sections/About";
 import { Contact } from "@/components/sections/Contact";
@@ -14,6 +15,7 @@ import { ParticleStage } from "@/components/webgl/ParticleStage";
 export default function HomePage() {
   return (
     <>
+      <PageTransition />
       <Preloader />
       <ParticleStage />
       <Hero />

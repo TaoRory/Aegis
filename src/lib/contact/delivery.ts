@@ -1,6 +1,7 @@
 import "server-only";
 
-import { serviceLabel, type ContactInput } from "@/lib/contact/schema";
+import { commonQuestions, questionsFor, serviceShortLabel, serviceTitle } from "@/content/contact-flow";
+import { answerLabels, isEmail, type ContactInput } from "@/lib/contact/schema";
 
 /**
  * Điểm tích hợp gửi thông tin liên hệ.
@@ -28,27 +29,47 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
-export async function deliverContact(input: ContactInput): Promise<boolean> {
-  const rows: [string, string][] = [
-    ["Họ tên", input.name],
-    ["Email", input.email],
-    ["Công ty", input.company || "(không cung cấp)"],
-    ["Dịch vụ quan tâm", serviceLabel(input.service)],
-  ];
+function table(rows: [string, string][]) {
+  return `<table style="font-family:sans-serif;border-collapse:collapse">${rows
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:4px 16px 4px 0;color:#555;vertical-align:top">${escapeHtml(k)}</td><td style="padding:4px 0"><strong>${escapeHtml(v)}</strong></td></tr>`,
+    )
+    .join("")}</table>`;
+}
 
-  const text = [...rows.map(([k, v]) => `${k}: ${v}`), "", "Nội dung:", input.message].join("\n");
+export async function deliverContact(input: ContactInput): Promise<boolean> {
+  const people: [string, string][] = [
+    ["Họ tên", input.name],
+    ["Liên hệ", input.contact],
+    ["Công ty", input.company || "(không cung cấp)"],
+  ];
+  const brief: [string, string][] = [
+    ["Hạng mục", serviceTitle(input.service)],
+    ...questionsFor(input.service).map((question): [string, string] => [
+      question.title,
+      answerLabels(question, input).join(" · ") || "(bỏ qua)",
+    ]),
+  ];
+  const timeline = commonQuestions.find((q) => q.id === "timeline");
+  const when = timeline ? answerLabels(timeline, input)[0] : undefined;
+
+  const text = [
+    ...people.map(([k, v]) => `${k}: ${v}`),
+    "",
+    ...brief.map(([k, v]) => `${k}: ${v}`),
+    "",
+    "Mô tả thêm:",
+    input.message || "(không có)",
+  ].join("\n");
+
   const html = `
-    <h2 style="font-family:sans-serif">Yêu cầu tư vấn mới từ website</h2>
-    <table style="font-family:sans-serif;border-collapse:collapse">
-      ${rows
-        .map(
-          ([k, v]) =>
-            `<tr><td style="padding:4px 16px 4px 0;color:#555">${k}</td><td style="padding:4px 0"><strong>${escapeHtml(v)}</strong></td></tr>`,
-        )
-        .join("")}
-    </table>
-    <p style="font-family:sans-serif;color:#555;margin-top:16px">Nội dung:</p>
-    <p style="font-family:sans-serif;white-space:pre-wrap">${escapeHtml(input.message)}</p>`;
+    <h2 style="font-family:sans-serif">Phiếu yêu cầu mới từ website</h2>
+    ${table(people)}
+    <h3 style="font-family:sans-serif;margin-top:20px">Nhu cầu</h3>
+    ${table(brief)}
+    <p style="font-family:sans-serif;color:#555;margin-top:16px">Mô tả thêm:</p>
+    <p style="font-family:sans-serif;white-space:pre-wrap">${escapeHtml(input.message || "(không có)")}</p>`;
 
   try {
     const response = await fetch("https://api.resend.com/emails", {
@@ -60,8 +81,11 @@ export async function deliverContact(input: ContactInput): Promise<boolean> {
       body: JSON.stringify({
         from: process.env.CONTACT_FROM_EMAIL || DEFAULT_FROM,
         to: [process.env.CONTACT_TO_EMAIL],
-        reply_to: input.email,
-        subject: `[Website Aegis] ${input.name} – ${serviceLabel(input.service)}`,
+        // Chỉ đặt reply_to khi khách để lại email (không phải số điện thoại)
+        ...(isEmail(input.contact) && { reply_to: input.contact }),
+        subject: ["[Website Aegis]", serviceShortLabel(input.service), "–", input.name, when && `– ${when}`]
+          .filter(Boolean)
+          .join(" "),
         text,
         html,
       }),

@@ -1,5 +1,6 @@
 import { FooterWordmark } from "@/components/layout/FooterWordmark";
 import { RoundButton } from "@/components/ui/Button";
+import { SmartLink } from "@/components/ui/SmartLink";
 import { siteConfig } from "@/config/site";
 import { services } from "@/content/services";
 
@@ -25,9 +26,9 @@ export function Footer() {
             <ul className="mt-5 space-y-2.5">
               {siteConfig.nav.map((item) => (
                 <li key={item.href}>
-                  <a href={item.href} className="link-underline">
+                  <SmartLink href={item.href} className="link-underline">
                     {item.label}
-                  </a>
+                  </SmartLink>
                 </li>
               ))}
             </ul>
@@ -38,10 +39,10 @@ export function Footer() {
             <ul className="mt-5 space-y-2.5">
               {services.map((service, index) => (
                 <li key={service.id}>
-                  <a href={`/#dich-vu-${service.id}`} className="link-underline">
+                  <SmartLink href={`/#dich-vu-${service.id}`} className="link-underline">
                     <span className="label mr-2 text-accent">0{index + 1}</span>
                     {service.shortTitle}
-                  </a>
+                  </SmartLink>
                 </li>
               ))}
             </ul>

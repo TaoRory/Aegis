@@ -2,6 +2,7 @@ import { CursorPreview } from "@/components/fx/CursorPreview";
 import { TextScramble } from "@/components/fx/TextScramble";
 import { TemplateStage, type TemplatePreview } from "@/components/templates/TemplateCard";
 import { ButtonLink } from "@/components/ui/Button";
+import { SmartLink } from "@/components/ui/SmartLink";
 import type { DemoTemplate } from "@/content/templates";
 import { cn } from "@/lib/cn";
 
@@ -48,7 +49,7 @@ export function StyleProfiles({ templates, previews }: { templates: DemoTemplate
             aria-labelledby={`style-${template.slug}-title`}
             className="grid scroll-mt-24 gap-10 border-b border-line py-16 lg:grid-cols-12 lg:items-center lg:gap-12 lg:py-24"
           >
-            <a
+            <SmartLink
               href={`/mau-giao-dien/${template.slug}`}
               data-cursor="view"
               data-cursor-label="Mở mẫu ↗"
@@ -56,7 +57,7 @@ export function StyleProfiles({ templates, previews }: { templates: DemoTemplate
               aria-label={`Mở mẫu style ${template.name}`}
             >
               <TemplateStage template={template} preview={previews[template.slug]} sizes="(min-width: 1024px) 55vw, 100vw" />
-            </a>
+            </SmartLink>
             <div className={cn("lg:col-span-5", flip && "lg:order-1")}>
               <p className="label text-accent">
                 Style /{String(index + 1).padStart(2, "0")} · {template.industry}

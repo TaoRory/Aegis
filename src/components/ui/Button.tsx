@@ -1,6 +1,7 @@
 import type { ComponentProps, ReactNode } from "react";
 
 import { Magnetic } from "@/components/motion/Magnetic";
+import { SmartLink, type NavType } from "@/components/ui/SmartLink";
 import { cn } from "@/lib/cn";
 
 type Variant = "primary" | "outline" | "link";
@@ -48,12 +49,14 @@ export function ButtonLink({
   arrow = "→",
   className,
   children,
+  href = "#",
+  navType,
   ...props
-}: StyleProps & Omit<ComponentProps<"a">, "children">) {
+}: StyleProps & Omit<ComponentProps<"a">, "children"> & { navType?: NavType }) {
   return (
-    <a className={cn(variants[variant], className)} {...props}>
+    <SmartLink href={href} navType={navType} className={cn(variants[variant], className)} {...props}>
       <Content arrow={arrow}>{children}</Content>
-    </a>
+    </SmartLink>
   );
 }
 
@@ -77,17 +80,18 @@ export function RoundButton({
   children,
   className,
   size = "md",
+  href = "#",
   ...props
 }: { children: ReactNode; size?: "md" | "lg" } & ComponentProps<"a">) {
   return (
     <Magnetic strength={0.3}>
-      <a className={cn("round-btn", size === "lg" && "round-btn-lg", className)} data-cursor="link" {...props}>
+      <SmartLink href={href} className={cn("round-btn", size === "lg" && "round-btn-lg", className)} data-cursor="link" {...props}>
         <span className="round-btn-fill" aria-hidden />
         <span className="relative">{children}</span>
         <span aria-hidden className="relative text-[1.4em] leading-none">
           ↘
         </span>
-      </a>
+      </SmartLink>
     </Magnetic>
   );
 }
