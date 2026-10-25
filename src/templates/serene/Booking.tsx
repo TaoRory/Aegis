@@ -1,0 +1,259 @@
+"use client";
+
+import { useEffect, useRef, useState, type FormEvent } from "react";
+
+import { cn } from "@/lib/cn";
+
+/**
+ * SERENE: đặt lịch 4 bước (demo, từ legacy/Booking.tsx.txt): dữ liệu chỉ nằm trong trình duyệt, không gửi đi đâu.
+ * Minh họa: kiểm tra dữ liệu từng bước, trạng thái rõ ràng, chuyển focus khi đổi bước, aria-live.
+ */
+
+export const services = [
+  { id: "soi-da", name: "Soi da & tư vấn", note: "30 phút · chuyên viên da" },
+  { id: "cham-soc-da", name: "Chăm sóc da chuyên sâu", note: "75 phút · làm sạch, cấp ẩm" },
+  { id: "massage", name: "Massage thư giãn", note: "60 phút · tinh dầu thảo mộc" },
+  { id: "thuy-lieu", name: "Thủy liệu & xông", note: "90 phút · bể khoáng, xông đá" },
+];
+
+const steps = ["Dịch vụ", "Ngày", "Giờ", "Thông tin"];
+const slots = ["09:00", "09:30", "10:00", "10:30", "11:00", "13:30", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
+const PHONE = /^(0|\+84)\d{9}$/;
+
+function isoDate(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** 14 ngày tới, tính khi người dùng tới bước chọn ngày (chỉ chạy trên trình duyệt) */
+function upcomingDays() {
+  const today = new Date();
+  return Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i + 1);
+    return {
+      iso: isoDate(d),
+      weekday: d.toLocaleDateString("vi-VN", { weekday: "short" }),
+      day: d.getDate(),
+      month: d.getMonth() + 1,
+      closed: d.getDay() === 0,
+    };
+  });
+}
+
+/** Giả lập một số khung giờ đã kín (cố định theo ngày) */
+function isBooked(date: string, slot: string) {
+  let h = 0;
+  for (const c of date + slot) h = (h * 31 + c.charCodeAt(0)) % 997;
+  return h % 4 === 0;
+}
+
+export function Booking() {
+  const [step, setStep] = useState(0);
+  const [service, setService] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const firstRender = useRef(true);
+
+  // Đổi bước: chuyển focus tới tiêu đề bước để người dùng bàn phím/đọc màn hình biết vị trí
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    headingRef.current?.focus();
+  }, [step]);
+
+  const days = step >= 1 ? upcomingDays() : [];
+  const chosenDay = days.find((d) => d.iso === date);
+  const canNext = [Boolean(service), Boolean(date), Boolean(time)][step] ?? true;
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    const found: typeof errors = {};
+    if (name.trim().length < 2) found.name = "Vui lòng nhập họ tên.";
+    if (!PHONE.test(phone.replace(/[\s.-]/g, ""))) found.phone = "Số điện thoại chưa đúng (ví dụ 0912 345 678).";
+    setErrors(found);
+    if (Object.keys(found).length === 0) setStep(4);
+  };
+
+  const reset = () => {
+    setStep(0);
+    setService("");
+    setDate("");
+    setTime("");
+    setName("");
+    setPhone("");
+    setErrors({});
+  };
+
+  const serviceName = services.find((s) => s.id === service)?.name;
+
+  return (
+    <div className="se-card p-5 md:p-10">
+      {/* Thanh bước */}
+      <ol className="flex flex-wrap gap-2" aria-label="Các bước đặt lịch">
+        {steps.map((label, i) => (
+          <li
+            key={label}
+            className="se-step flex items-center gap-2 rounded-full border border-(--t-line) px-3 py-1.5 text-sm"
+            data-state={step > i ? "done" : step === i ? "current" : "todo"}
+            aria-current={step === i ? "step" : undefined}
+          >
+            <span className="tabular-nums">{step > i ? "✓" : i + 1}</span>
+            {label}
+          </li>
+        ))}
+      </ol>
+
+      <div aria-live="polite" className="sr-only">
+        {step < 4 ? `Bước ${step + 1} trên 4: ${steps[step]}` : "Đã tạo lịch hẹn minh họa"}
+      </div>
+
+      {step === 4 ? (
+        <div className="py-10 text-center">
+          <div aria-hidden className="mx-auto grid size-16 place-items-center rounded-full bg-(--t-sage) text-2xl text-(--t-fg)">
+            ✓
+          </div>
+          <h3 ref={headingRef} tabIndex={-1} className="mt-6 text-3xl outline-none">
+            Hẹn gặp bạn, <em>thật thong thả</em>
+          </h3>
+          <p className="mx-auto mt-4 max-w-md text-(--t-muted)">
+            {serviceName} · {chosenDay ? `${chosenDay.weekday}, ${chosenDay.day}/${chosenDay.month}` : date} · {time} — {name}
+          </p>
+          <p className="mx-auto mt-4 max-w-md rounded-xl bg-(--t-mist) px-4 py-3 text-sm">
+            Đây là mẫu demo: lịch hẹn chỉ được tạo trong trình duyệt của bạn, không có dữ liệu nào được gửi đi.
+          </p>
+          <button type="button" onClick={reset} className="se-btn se-btn-ghost mt-8">
+            Đặt lịch khác
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={submit} noValidate className="mt-8">
+          <h3 ref={headingRef} tabIndex={-1} className="text-2xl outline-none md:text-3xl">
+            {["Bạn muốn được chăm sóc thế nào?", "Chọn ngày phù hợp", "Chọn khung giờ", "Thông tin liên hệ"][step]}
+          </h3>
+
+          {step === 0 && (
+            <fieldset className="mt-6 grid gap-3 sm:grid-cols-2">
+              <legend className="sr-only">Liệu trình</legend>
+              {services.map((s) => (
+                <label key={s.id} className="se-option flex flex-col gap-1 p-4">
+                  <input type="radio" name="service" value={s.id} checked={service === s.id} onChange={() => setService(s.id)} className="sr-only" />
+                  <span className="text-lg">{s.name}</span>
+                  <span className="text-sm text-(--t-muted)">{s.note}</span>
+                </label>
+              ))}
+            </fieldset>
+          )}
+
+          {step === 1 && (
+            <fieldset className="mt-6 grid grid-cols-4 gap-2 sm:grid-cols-7">
+              <legend className="sr-only">Ngày</legend>
+              {days.map((d) => (
+                <label key={d.iso} className="se-option flex flex-col items-center py-3 text-center">
+                  <input
+                    type="radio"
+                    name="date"
+                    value={d.iso}
+                    disabled={d.closed}
+                    checked={date === d.iso}
+                    onChange={() => {
+                      setDate(d.iso);
+                      setTime("");
+                    }}
+                    className="sr-only"
+                  />
+                  <span className="text-xs text-(--t-muted) capitalize">{d.weekday}</span>
+                  <span className="text-xl tabular-nums">{d.day}</span>
+                  <span className="text-xs text-(--t-muted)">{d.closed ? "Nghỉ" : `Th${d.month}`}</span>
+                </label>
+              ))}
+            </fieldset>
+          )}
+
+          {step === 2 && (
+            <fieldset className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-6">
+              <legend className="sr-only">Giờ</legend>
+              {slots.map((slot) => {
+                const booked = isBooked(date, slot);
+                return (
+                  <label key={slot} className="se-option py-3 text-center tabular-nums">
+                    <input type="radio" name="time" value={slot} disabled={booked} checked={time === slot} onChange={() => setTime(slot)} className="sr-only" />
+                    {slot}
+                    {booked && <span className="sr-only"> (đã kín)</span>}
+                  </label>
+                );
+              })}
+            </fieldset>
+          )}
+
+          {step === 3 && (
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <div>
+                <label htmlFor="se-name" className="text-sm text-(--t-muted)">
+                  Họ tên
+                </label>
+                <input
+                  id="se-name"
+                  className="se-input mt-2"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  aria-invalid={errors.name ? true : undefined}
+                  aria-describedby={errors.name ? "se-name-error" : undefined}
+                />
+                {errors.name && (
+                  <p id="se-name-error" className="mt-2 text-sm text-(--t-danger)">
+                    {errors.name}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="se-phone" className="text-sm text-(--t-muted)">
+                  Số điện thoại
+                </label>
+                <input
+                  id="se-phone"
+                  className="se-input mt-2"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  aria-invalid={errors.phone ? true : undefined}
+                  aria-describedby={errors.phone ? "se-phone-error" : undefined}
+                />
+                {errors.phone && (
+                  <p id="se-phone-error" className="mt-2 text-sm text-(--t-danger)">
+                    {errors.phone}
+                  </p>
+                )}
+              </div>
+              <p className="rounded-xl bg-(--t-mist) px-4 py-3 text-sm sm:col-span-2">
+                {serviceName} · {chosenDay ? `${chosenDay.weekday}, ${chosenDay.day}/${chosenDay.month}` : ""} · {time}
+              </p>
+            </div>
+          )}
+
+          <div className="mt-8 flex justify-between gap-3">
+            <button type="button" onClick={() => setStep((s) => Math.max(0, s - 1))} className={cn("se-btn se-btn-ghost", step === 0 && "invisible")}>
+              ← Quay lại
+            </button>
+            {step < 3 ? (
+              <button type="button" disabled={!canNext} onClick={() => setStep((s) => s + 1)} className="se-btn">
+                Tiếp tục →
+              </button>
+            ) : (
+              <button type="submit" className="se-btn">
+                Xác nhận đặt lịch
+              </button>
+            )}
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}

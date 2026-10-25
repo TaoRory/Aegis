@@ -1,0 +1,260 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+import { SplitReveal } from "@/components/motion/SplitReveal";
+import { cn } from "@/lib/cn";
+import { getLenis } from "@/lib/motion";
+import { Jewelry, type JewelryKind } from "@/templates/may-bac/Jewelry";
+import "@/templates/may-bac/may-bac.css";
+
+type Category = "all" | "ring" | "necklace" | "earring" | "bracelet";
+
+interface Product {
+  id: string;
+  name: string;
+  category: Exclude<Category, "all">;
+  kind: JewelryKind;
+  price: number;
+  soldOut?: boolean;
+}
+
+/** Sản phẩm và giá đều là giả định của mẫu demo */
+const products: Product[] = [
+  { id: "nhan-gon-may", name: "Nhẫn Gợn Mây", category: "ring", kind: "ring", price: 590000 },
+  { id: "nhan-giot-suong", name: "Nhẫn Giọt Sương", category: "ring", kind: "ring-stone", price: 790000 },
+  { id: "day-trang-khuyet", name: "Dây chuyền Trăng Khuyết", category: "necklace", kind: "crescent", price: 890000 },
+  { id: "day-hat-mua", name: "Dây chuyền Hạt Mưa", category: "necklace", kind: "drop", price: 840000, soldOut: true },
+  { id: "bong-may-nho", name: "Bông tai Mây Nhỏ", category: "earring", kind: "cloud", price: 650000 },
+  { id: "bong-vo-oc", name: "Bông tai Vỏ Ốc", category: "earring", kind: "shell", price: 690000 },
+  { id: "lac-song", name: "Lắc tay Sóng", category: "bracelet", kind: "wave", price: 760000 },
+  { id: "day-ngoi-sao", name: "Dây chuyền Ngôi Sao", category: "necklace", kind: "star", price: 820000 },
+];
+
+const filters: { id: Category; label: string }[] = [
+  { id: "all", label: "Tất cả" },
+  { id: "ring", label: "Nhẫn" },
+  { id: "necklace", label: "Dây chuyền" },
+  { id: "earring", label: "Bông tai" },
+  { id: "bracelet", label: "Lắc tay" },
+];
+
+const money = (n: number) => `${n.toLocaleString("vi-VN")} ₫`;
+
+export function MayBac() {
+  const [filter, setFilter] = useState<Category>("all");
+  const [cart, setCart] = useState<Record<string, number>>({});
+  const [open, setOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const cartButtonRef = useRef<HTMLButtonElement>(null);
+
+  const visible = filter === "all" ? products : products.filter((p) => p.category === filter);
+  const items = products.filter((p) => cart[p.id]);
+  const count = items.reduce((sum, p) => sum + cart[p.id], 0);
+  const total = items.reduce((sum, p) => sum + cart[p.id] * p.price, 0);
+
+  const add = (id: string) => setCart((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
+  const change = (id: string, delta: number) =>
+    setCart((c) => {
+      const next = { ...c, [id]: (c[id] ?? 0) + delta };
+      if (next[id] <= 0) delete next[id];
+      return next;
+    });
+
+  // Giỏ hàng: khóa cuộn, Esc để đóng, focus vào giỏ khi mở và trả focus khi đóng
+  useEffect(() => {
+    if (!open) return;
+    getLenis()?.stop();
+    drawerRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("keydown", onKey);
+    const button = cartButtonRef.current;
+    return () => {
+      getLenis()?.start();
+      document.removeEventListener("keydown", onKey);
+      button?.focus();
+    };
+  }, [open]);
+
+  return (
+    <div className="tpl tpl-may-bac">
+      <header className="absolute inset-x-0 top-0 z-20">
+        <div className="container-page grid h-20 grid-cols-3 items-center text-sm">
+          <nav aria-label="Điều hướng Mây Bạc">
+            <ul className="flex gap-6">
+              <li>
+                <a href="#bo-suu-tap" className="hover:underline">
+                  Cửa hàng
+                </a>
+              </li>
+              <li className="hidden sm:block">
+                <a href="#cau-chuyen" className="hover:underline">
+                  Câu chuyện
+                </a>
+              </li>
+            </ul>
+          </nav>
+          <a href="#dau-trang" className="justify-self-center text-2xl italic" style={{ fontFamily: "var(--t-font-display)" }}>
+            Mây Bạc
+          </a>
+          <button
+            ref={cartButtonRef}
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-haspopup="dialog"
+            className="justify-self-end font-semibold uppercase"
+          >
+            Giỏ hàng [{count}]
+          </button>
+        </div>
+      </header>
+
+      {/* Hero: tên thương hiệu serif khổng lồ */}
+      <section id="dau-trang" aria-labelledby="may-bac-title" className="relative flex min-h-svh flex-col justify-end overflow-hidden pt-24 pb-20">
+        <div aria-hidden className="may-bac-swing absolute top-0 left-1/2 w-[min(46rem,90vw)] -translate-x-1/2">
+          <Jewelry kind="crescent" id="hero" className="w-full" />
+        </div>
+        <div className="container-page relative">
+          <div aria-hidden className="mb-6 flex flex-wrap justify-between gap-4">
+            {["Thủ công", "Bạc 925", "Từng chiếc một", "Giao toàn quốc"].map((w) => (
+              <span key={w} className="may-bac-word">
+                {w}
+              </span>
+            ))}
+          </div>
+          <h1 id="may-bac-title" className="may-bac-brand">
+            Mây <em>Bạc</em>
+          </h1>
+        </div>
+      </section>
+
+      {/* Bộ sưu tập */}
+      <section id="bo-suu-tap" aria-labelledby="may-bac-catalogue" className="py-24">
+        <div className="container-page">
+          <h2 id="may-bac-catalogue" className="may-bac-catalogue">
+            Bộ sưu tập
+          </h2>
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-b border-(--t-line) pb-4">
+            <div role="group" aria-label="Lọc theo loại" className="flex flex-wrap gap-6 text-sm text-(--t-muted)">
+              {filters.map((f) => (
+                <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className="may-bac-filter uppercase hover:text-(--t-fg)">
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-sm text-(--t-muted)" aria-live="polite">
+              {visible.length} sản phẩm
+            </p>
+          </div>
+          <ul className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4">
+            {visible.map((product) => (
+              <li key={product.id} className="may-bac-card">
+                <div className="relative grid aspect-square place-items-center overflow-hidden bg-(--t-card)">
+                  <Jewelry kind={product.kind} id={product.id} className="may-bac-art w-[72%]" />
+                  {product.soldOut && <span className="absolute top-3 left-3 text-xs font-semibold uppercase">[ Hết hàng ]</span>}
+                </div>
+                <div className="mt-3 flex items-start justify-between gap-3 text-sm">
+                  <h3 className="font-semibold" style={{ fontFamily: "var(--t-font-body)" }}>
+                    {product.name}
+                  </h3>
+                  <span className="may-bac-price shrink-0 text-(--t-muted)">{money(product.price)}</span>
+                </div>
+                <button
+                  type="button"
+                  disabled={product.soldOut}
+                  onClick={() => add(product.id)}
+                  className="mt-3 w-full border border-(--t-fg) py-2 text-xs font-semibold uppercase transition-colors hover:bg-(--t-fg) hover:text-(--t-bg) disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-(--t-fg)"
+                >
+                  {product.soldOut ? "Hết hàng" : "Thêm vào giỏ"}
+                  <span className="sr-only">: {product.name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Câu chuyện */}
+      <section id="cau-chuyen" aria-labelledby="may-bac-story" className="bg-(--t-fg) py-28 text-(--t-bg)">
+        <div className="container-page grid items-center gap-12 md:grid-cols-2">
+          <Jewelry kind="drop" id="story" className="mx-auto w-[min(26rem,80%)]" />
+          <div>
+            <SplitReveal as="h2" id="may-bac-story" className="text-[clamp(2.6rem,1rem+4vw,5.5rem)] leading-[1]">
+              <span className="block">Nhỏ như mây,</span>
+              <span className="block">
+                <em>bền như bạc.</em>
+              </span>
+            </SplitReveal>
+            <p className="mt-8 max-w-[30rem] leading-relaxed opacity-75">
+              Mỗi món được đúc và đánh bóng bằng tay trong xưởng nhỏ. Không có hai chiếc hoàn toàn giống nhau — và đó là điều chúng tôi thích nhất.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Giỏ hàng trượt */}
+      <div data-open={open} className="may-bac-scrim fixed inset-0 z-40 bg-(--t-fg)/40" onClick={() => setOpen(false)} aria-hidden />
+      <div
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Giỏ hàng"
+        tabIndex={-1}
+        data-open={open}
+        inert={!open}
+        className="may-bac-drawer fixed inset-y-0 right-0 z-50 flex w-[min(26rem,100%)] flex-col bg-(--t-card) p-6 outline-none"
+      >
+        <div className="flex items-center justify-between border-b border-(--t-line) pb-4">
+          <h2 className="text-3xl italic">Giỏ hàng</h2>
+          <button type="button" onClick={() => setOpen(false)} className="text-sm uppercase underline">
+            Đóng
+          </button>
+        </div>
+        {items.length === 0 ? (
+          <p className="mt-8 text-(--t-muted)">Giỏ hàng đang trống.</p>
+        ) : (
+          <ul className="mt-4 flex-1 overflow-y-auto">
+            {items.map((p) => (
+              <li key={p.id} className="flex items-center gap-4 border-b border-(--t-line) py-4">
+                <div className="grid size-16 shrink-0 place-items-center bg-(--t-bg)">
+                  <Jewelry kind={p.kind} id={`cart-${p.id}`} className="w-12" />
+                </div>
+                <div className="flex-1 text-sm">
+                  <p className="font-semibold">{p.name}</p>
+                  <p className="text-(--t-muted)">{money(p.price)}</p>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <button type="button" aria-label={`Bớt ${p.name}`} onClick={() => change(p.id, -1)} className="size-7 border border-(--t-line)">
+                    −
+                  </button>
+                  <span className="w-5 text-center tabular-nums">{cart[p.id]}</span>
+                  <button type="button" aria-label={`Thêm ${p.name}`} onClick={() => change(p.id, 1)} className="size-7 border border-(--t-line)">
+                    +
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-auto border-t border-(--t-line) pt-4">
+          <div className="flex justify-between font-semibold">
+            <span>Tạm tính</span>
+            <span>{money(total)}</span>
+          </div>
+          <p className="mt-2 text-xs text-(--t-muted)">Mẫu demo — không có giao dịch thật.</p>
+          <a
+            href="#demo-ket"
+            onClick={() => setOpen(false)}
+            className={cn(
+              "mt-4 block bg-(--t-fg) py-3 text-center text-sm font-semibold text-(--t-bg) uppercase",
+              items.length === 0 && "pointer-events-none opacity-40",
+            )}
+            aria-disabled={items.length === 0}
+          >
+            Thanh toán
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}

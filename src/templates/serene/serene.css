@@ -1,0 +1,197 @@
+/* SERENE: token riêng. Công thức: .claude/skills/style-library/styles/serene.md */
+@layer components {
+  .tpl-serene {
+    --t-bg: #eef0ec;
+    --t-fg: #1f2a26;
+    --t-muted: #5f6c66;
+    --t-accent: #b8735d;
+    --t-sage: #a9b8ad;
+    --t-mist: #e1e7e1;
+    --t-surface: #f7f8f5;
+    --t-line: rgb(31 42 38 / 0.14);
+    --t-danger: #a33a2a;
+    --marker: #f1d9cf;
+    --t-font-display: var(--font-serene-display), Georgia, serif;
+    --t-font-body: var(--font-serene-body), system-ui, sans-serif;
+    --t-display-weight: 350;
+  }
+
+  .tpl-serene h1,
+  .tpl-serene h2,
+  .tpl-serene h3 {
+    font-variation-settings:
+      "SOFT" 100,
+      "opsz" 96;
+    letter-spacing: -0.02em;
+  }
+
+  .tpl-serene em {
+    font-variation-settings:
+      "SOFT" 100,
+      "opsz" 96;
+    color: var(--t-accent);
+  }
+
+  /* Khung vòm cho ảnh */
+  .tpl-serene .se-arch {
+    border-radius: 999px 999px 1.5rem 1.5rem;
+    overflow: hidden;
+  }
+
+  .tpl-serene .se-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    padding: 0.85rem 1.5rem;
+    transition:
+      background-color 0.5s ease,
+      color 0.5s ease,
+      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .tpl-serene .se-pill:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Đặt lịch (từ legacy Booking) */
+  .tpl-serene .se-card {
+    background: var(--t-surface);
+    border: 1px solid var(--t-line);
+    border-radius: 2rem;
+  }
+
+  .tpl-serene .se-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 3rem;
+    padding-inline: 1.5rem;
+    border-radius: 999px;
+    background: var(--t-fg);
+    color: var(--t-surface);
+    transition:
+      background-color 0.3s ease,
+      opacity 0.3s ease;
+  }
+
+  .tpl-serene .se-btn:hover {
+    background: var(--t-accent);
+  }
+
+  .tpl-serene .se-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .tpl-serene .se-btn-ghost {
+    background: transparent;
+    color: var(--t-fg);
+    border: 1px solid var(--t-line);
+  }
+
+  .tpl-serene .se-btn-ghost:hover {
+    background: var(--t-mist);
+  }
+
+  .tpl-serene .se-option {
+    border: 1px solid var(--t-line);
+    border-radius: 1.25rem;
+    background: var(--t-surface);
+    cursor: pointer;
+    transition:
+      border-color 0.25s ease,
+      background-color 0.25s ease;
+  }
+
+  .tpl-serene .se-option:hover {
+    border-color: var(--t-accent);
+  }
+
+  .tpl-serene .se-option:has(input:checked) {
+    border-color: var(--t-fg);
+    background: var(--t-mist);
+  }
+
+  .tpl-serene .se-option:has(input:focus-visible) {
+    outline: 2px solid var(--t-accent);
+    outline-offset: 2px;
+  }
+
+  .tpl-serene .se-option:has(input:disabled) {
+    opacity: 0.4;
+    cursor: not-allowed;
+    text-decoration: line-through;
+  }
+
+  .tpl-serene .se-step[data-state="done"] {
+    background: var(--t-sage);
+  }
+
+  .tpl-serene .se-step[data-state="current"] {
+    background: var(--t-fg);
+    color: var(--t-surface);
+  }
+
+  .tpl-serene .se-input {
+    width: 100%;
+    height: 3rem;
+    padding-inline: 1rem;
+    border-radius: 1rem;
+    border: 1px solid var(--t-line);
+    background: var(--t-surface);
+    color: var(--t-fg);
+  }
+
+  .tpl-serene .se-input:focus {
+    outline: none;
+    border-color: var(--t-fg);
+    box-shadow: 0 0 0 4px var(--t-mist);
+  }
+
+  .tpl-serene .se-input[aria-invalid="true"] {
+    border-color: var(--t-danger);
+  }
+
+  /* Accordion */
+  .tpl-serene details > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .tpl-serene details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .tpl-serene details[open] .se-plus {
+    rotate: 45deg;
+  }
+
+  .tpl-serene .se-plus {
+    transition: rotate 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .tpl-serene details::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition:
+        block-size 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+        content-visibility 0.6s allow-discrete;
+    }
+
+    .tpl-serene details[open]::details-content {
+      block-size: auto;
+    }
+
+    .tpl-serene {
+      interpolate-size: allow-keywords;
+    }
+  }
+}
+
+:root:has(.tpl-serene) {
+  --tpl-cursor: #1f2a26;
+  --tpl-cursor-ink: #f7f8f5;
+}

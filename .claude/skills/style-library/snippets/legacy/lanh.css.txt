@@ -1,0 +1,152 @@
+/* Mẫu 06 — Lành (phòng khám / đặt lịch). Token riêng của mẫu. */
+@layer components {
+  .tpl-lanh {
+    --t-bg: #f3f8f5;
+    --t-surface: #ffffff;
+    --t-fg: #123b35;
+    --t-muted: #557069;
+    --t-accent: #2a8a74;
+    --t-soft: #d7efe6;
+    --t-warm: #fde6d2;
+    --t-danger: #b4402f;
+    --t-line: rgb(18 59 53 / 0.14);
+    --t-font-display: var(--font-lanh-sans), sans-serif;
+    --t-font-body: var(--font-lanh-sans), sans-serif;
+    --t-font-accent: var(--font-lanh-serif), serif;
+    --t-display-weight: 400;
+  }
+
+  .tpl-lanh em {
+    font-variation-settings: "SOFT" 100;
+    color: var(--t-accent);
+  }
+
+  /* Hình khối mềm "thở" */
+  .lanh-blob {
+    border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+    filter: blur(2px);
+  }
+
+  .lanh-card {
+    background: var(--t-surface);
+    border: 1px solid var(--t-line);
+    border-radius: 1.5rem;
+  }
+
+  .lanh-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 3rem;
+    padding-inline: 1.5rem;
+    border-radius: 999px;
+    background: var(--t-fg);
+    color: var(--t-bg);
+    font-weight: 500;
+    transition:
+      background-color 0.3s ease,
+      opacity 0.3s ease;
+  }
+
+  .lanh-btn:hover {
+    background: var(--t-accent);
+  }
+
+  .lanh-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .lanh-btn-ghost {
+    background: transparent;
+    color: var(--t-fg);
+    border: 1px solid var(--t-line);
+  }
+
+  .lanh-btn-ghost:hover {
+    background: var(--t-soft);
+  }
+
+  .lanh-option {
+    border: 1px solid var(--t-line);
+    border-radius: 1rem;
+    background: var(--t-surface);
+    transition:
+      border-color 0.25s ease,
+      background-color 0.25s ease,
+      transform 0.25s ease;
+    cursor: pointer;
+  }
+
+  .lanh-option:hover {
+    border-color: var(--t-accent);
+  }
+
+  .lanh-option:has(input:checked) {
+    border-color: var(--t-accent);
+    background: var(--t-soft);
+  }
+
+  .lanh-option:has(input:focus-visible) {
+    outline: 2px solid var(--t-accent);
+    outline-offset: 2px;
+  }
+
+  .lanh-option:has(input:disabled) {
+    opacity: 0.4;
+    cursor: not-allowed;
+    text-decoration: line-through;
+  }
+
+  .lanh-step[data-state="done"] {
+    background: var(--t-accent);
+    color: var(--t-surface);
+  }
+
+  .lanh-step[data-state="current"] {
+    background: var(--t-fg);
+    color: var(--t-surface);
+  }
+
+  .lanh-input {
+    width: 100%;
+    height: 3rem;
+    padding-inline: 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--t-line);
+    background: var(--t-surface);
+    color: var(--t-fg);
+  }
+
+  .lanh-input:focus {
+    outline: none;
+    border-color: var(--t-accent);
+    box-shadow: 0 0 0 4px var(--t-soft);
+  }
+
+  .lanh-input[aria-invalid="true"] {
+    border-color: var(--t-danger);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lanh-blob {
+    animation: lanh-breathe 12s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes lanh-breathe {
+  0% {
+    border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    border-radius: 58% 42% 38% 62% / 55% 38% 62% 45%;
+    transform: scale(1.06) rotate(8deg);
+  }
+  100% {
+    border-radius: 47% 53% 55% 45% / 37% 58% 42% 63%;
+    transform: scale(0.97) rotate(-6deg);
+  }
+}

@@ -1,0 +1,101 @@
+/** Trang sức minh họa vẽ bằng SVG với gradient ánh bạc (không dùng ảnh sản phẩm). */
+
+export type JewelryKind = "ring" | "ring-stone" | "crescent" | "drop" | "cloud" | "shell" | "wave" | "star";
+
+function Defs({ id }: { id: string }) {
+  return (
+    <defs>
+      <linearGradient id={`${id}-silver`} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" style={{ stopColor: "var(--t-silver-1)" }} />
+        <stop offset="0.45" style={{ stopColor: "var(--t-silver-3)" }} />
+        <stop offset="0.7" style={{ stopColor: "var(--t-silver-1)" }} />
+        <stop offset="1" style={{ stopColor: "var(--t-silver-2)" }} />
+      </linearGradient>
+      <radialGradient id={`${id}-gem`} cx="0.35" cy="0.35" r="0.7">
+        <stop offset="0" style={{ stopColor: "var(--t-silver-1)" }} />
+        <stop offset="0.5" style={{ stopColor: "var(--t-accent)" }} />
+        <stop offset="1" style={{ stopColor: "var(--t-gem-deep)" }} />
+      </radialGradient>
+    </defs>
+  );
+}
+
+function Chain({ id }: { id: string }) {
+  return <path d="M30,0 C40,70 160,70 170,0" fill="none" stroke={`url(#${id}-silver)`} strokeWidth="2" strokeDasharray="3 3" />;
+}
+
+export function Jewelry({ kind, id, className }: { kind: JewelryKind; id: string; className?: string }) {
+  const silver = `url(#${id}-silver)`;
+  return (
+    <svg viewBox="0 0 200 200" aria-hidden className={className}>
+      <Defs id={id} />
+      {kind === "ring" && (
+        <>
+          <ellipse cx="100" cy="112" rx="58" ry="58" fill="none" stroke={silver} strokeWidth="14" />
+          <path d="M60,80 Q100,60 140,80" fill="none" style={{ stroke: "var(--t-silver-1)" }} strokeWidth="3" opacity="0.8" />
+        </>
+      )}
+      {kind === "ring-stone" && (
+        <>
+          <ellipse cx="100" cy="120" rx="54" ry="54" fill="none" stroke={silver} strokeWidth="9" />
+          <circle cx="100" cy="64" r="20" fill={`url(#${id}-gem)`} stroke={silver} strokeWidth="4" />
+        </>
+      )}
+      {kind === "crescent" && (
+        <>
+          <Chain id={id} />
+          <path d="M100,70 a42,42 0 1,0 30,72 a32,32 0 1,1 -30,-72 z" fill={silver} />
+        </>
+      )}
+      {kind === "drop" && (
+        <>
+          <Chain id={id} />
+          <path d="M100,62 C130,110 136,130 136,146 a36,36 0 0,1 -72,0 C64,130 70,110 100,62 z" fill={silver} />
+          <ellipse cx="88" cy="138" rx="8" ry="14" style={{ fill: "var(--t-silver-1)" }} opacity="0.8" />
+        </>
+      )}
+      {kind === "cloud" && (
+        <>
+          {[60, 140].map((x) => (
+            <g key={x}>
+              <path d={`M${x},30 q-10,0 -10,12`} fill="none" stroke={silver} strokeWidth="3" />
+              <path
+                d={`M${x - 26},110 a16,16 0 0,1 8,-30 a20,20 0 0,1 36,0 a16,16 0 0,1 8,30 z`}
+                fill={silver}
+                transform={`translate(0 ${x === 60 ? 0 : 14})`}
+              />
+            </g>
+          ))}
+        </>
+      )}
+      {kind === "shell" && (
+        <>
+          {[64, 136].map((x) => (
+            <g key={x}>
+              <circle cx={x} cy="40" r="5" fill="none" stroke={silver} strokeWidth="3" />
+              <path d={`M${x},48 l-26,70 q26,18 52,0 z`} fill={silver} />
+              {[-14, 0, 14].map((dx) => (
+                <line key={dx} x1={x} y1="52" x2={x + dx} y2="128" style={{ stroke: "var(--t-silver-3)" }} strokeWidth="1.5" />
+              ))}
+            </g>
+          ))}
+        </>
+      )}
+      {kind === "wave" && (
+        <path
+          d="M100,40 C150,40 170,70 166,104 C162,140 132,164 100,162 C62,164 36,138 34,104 C32,72 54,40 100,40 Z"
+          fill="none"
+          stroke={silver}
+          strokeWidth="10"
+          strokeDasharray="22 6"
+        />
+      )}
+      {kind === "star" && (
+        <>
+          <Chain id={id} />
+          <path d="M100,64 L111,96 L145,97 L118,117 L128,150 L100,130 L72,150 L82,117 L55,97 L89,96 Z" fill={silver} />
+        </>
+      )}
+    </svg>
+  );
+}

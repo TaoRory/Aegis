@@ -1,0 +1,266 @@
+"use client";
+
+import { useRef, type CSSProperties } from "react";
+
+import { SplitReveal } from "@/components/motion/SplitReveal";
+import { gsap, MQ, useGSAP } from "@/lib/motion";
+import { Marquee } from "@/templates/_kit/Marquee";
+import { ShaderCanvas } from "@/templates/_kit/ShaderCanvas";
+import "@/templates/kho-so/kho-so.css";
+
+/** Bông hoa ánh sáng: các cánh xoay chậm, nghiêng theo chuột, mờ dần khi cuộn qua */
+const BLOOM = `#version 300 es
+precision highp float;
+uniform float uTime; uniform vec2 uRes; uniform vec2 uMouse; uniform float uScroll;
+out vec4 outColor;
+float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
+void main(){
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  vec2 m = uMouse - 0.5;
+  uv -= vec2(0.0, 0.0);
+  float a = atan(uv.y, uv.x) + uTime * 0.12 + m.x * 1.4;
+  float r = length(uv) * (1.0 + m.y * 0.25);
+  float petal = pow(abs(cos(a * 3.0)), 5.0);
+  float len = 0.46 * petal + 0.03;
+  float t = clamp(r / len, 0.0, 1.0);
+  float body = (1.0 - smoothstep(0.35, 1.0, t)) * smoothstep(0.0, 0.05, petal);
+  float streak = pow(petal, 24.0) * (1.0 - smoothstep(0.1, 1.0, r / 0.5));
+  vec3 lime = vec3(0.78, 0.95, 0.41);
+  vec3 coral = vec3(1.0, 0.54, 0.36);
+  vec3 teal = vec3(0.34, 0.8, 0.68);
+  vec3 col = mix(coral, mix(teal, lime, smoothstep(0.3, 0.9, t)), smoothstep(0.02, 0.45, t));
+  float alpha = clamp(body * (1.0 - t * 0.55) + streak * 0.5, 0.0, 1.0);
+  alpha *= (1.0 - uScroll * 0.8) * (0.9 + 0.1 * sin(uTime * 1.3));
+  alpha *= 0.94 + 0.06 * hash(gl_FragCoord.xy + uTime);
+  outColor = vec4(col * alpha, alpha);
+}`;
+
+const nav = [
+  { label: "Vì sao", href: "#vi-sao" },
+  { label: "Tính năng", href: "#tinh-nang" },
+  { label: "Kết nối", href: "#ket-noi" },
+  { label: "Câu hỏi", href: "#cau-hoi" },
+];
+
+const channels = ["Website bán hàng", "Sàn thương mại điện tử", "Mạng xã hội", "Cửa hàng", "Kho phụ"];
+
+const features = [
+  { title: "Nhập – xuất theo thời gian thực", text: "Mỗi đơn bán ra, mỗi lô hàng nhập về đều cập nhật tồn kho ngay lập tức, trên mọi kênh." },
+  { title: "Cảnh báo trước khi hết hàng", text: "Đặt ngưỡng cho từng mặt hàng. Kho Số nhắc bạn trước khi khách phải nghe câu “hết hàng rồi”." },
+  { title: "Quét mã bằng điện thoại", text: "Không cần máy quét riêng. Mở camera, quét, xong — kể cả khi đang đứng giữa kho." },
+  { title: "Báo cáo một chạm", text: "Hàng bán chạy, hàng nằm im, giá trị tồn kho — trên một màn hình, xuất ra bảng tính khi cần." },
+];
+
+const faq = [
+  { q: "Kho Số có thay thế phần mềm kế toán không?", a: "Không. Kho Số chỉ làm một việc: quản lý hàng trong kho thật gọn. Dữ liệu có thể xuất ra để kế toán sử dụng." },
+  { q: "Một kho hay nhiều kho?", a: "Bao nhiêu kho cũng được. Mỗi kho có tồn riêng, chuyển hàng giữa các kho chỉ bằng vài thao tác." },
+  { q: "Nhân viên mới có dùng được ngay không?", a: "Giao diện chỉ có những gì cần thiết. Phần lớn thao tác hằng ngày nằm trong ba nút bấm." },
+  { q: "Dữ liệu có an toàn không?", a: "Dữ liệu được sao lưu định kỳ và phân quyền theo vai trò: chủ cửa hàng, quản lý kho, nhân viên." },
+];
+
+const GIANT = "Kết nối với mọi kênh bán →";
+
+export function KhoSo() {
+  const giantRef = useRef<HTMLElement>(null);
+
+  // Chữ khổng lồ: ghim section, chạy ngang theo cuộn, từng chữ cái nhấp nhô lệch nhịp
+  useGSAP(
+    () => {
+      const section = giantRef.current;
+      const line = section?.querySelector<HTMLElement>("[data-giant]");
+      if (!section || !line) return;
+      const mm = gsap.matchMedia();
+      mm.add(MQ.desktopMotion, () => {
+        const distance = () => line.scrollWidth - window.innerWidth + window.innerWidth * 0.1;
+        gsap.to(line, {
+          x: () => -distance(),
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "top top",
+            end: () => `+=${distance()}`,
+            pin: true,
+            scrub: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => line.style.setProperty("--phase", String(self.progress * 14)),
+          },
+        });
+      });
+      return () => mm.revert();
+    },
+    { scope: giantRef },
+  );
+
+  return (
+    <div className="tpl tpl-kho-so">
+      {/* Header của thương hiệu giả định */}
+      <header className="absolute inset-x-0 top-0 z-20">
+        <div className="container-page flex h-20 items-center justify-between">
+          <a href="#dau-trang" className="flex items-center gap-2 text-lg tracking-tight">
+            <span aria-hidden className="text-(--t-accent)">
+              ✳
+            </span>
+            Kho Số
+          </a>
+          <nav aria-label="Điều hướng Kho Số" className="hidden md:block">
+            <ul className="kho-so-label flex gap-8 text-(--t-muted)">
+              {nav.map((item) => (
+                <li key={item.href}>
+                  <a href={item.href} className="transition-colors hover:text-(--t-accent)">
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <a href="#demo-ket" className="kho-so-label kho-so-bracket text-(--t-accent) hover:underline">
+            Dùng thử
+          </a>
+        </div>
+      </header>
+
+      {/* Hero */}
+      <section id="dau-trang" aria-labelledby="kho-so-title" className="relative isolate flex min-h-svh flex-col overflow-hidden pt-24">
+        <div aria-hidden className="absolute inset-0 -z-10 lg:left-[30%]">
+          <ShaderCanvas fragment={BLOOM} />
+        </div>
+        <div className="container-page flex flex-1 flex-col justify-between pb-20">
+          <SplitReveal as="h1" id="kho-so-title" className="mt-10 text-[clamp(3.2rem,1rem+8vw,9.5rem)] leading-[0.95] tracking-[-0.045em]">
+            <span className="block">Chúng tôi chỉ</span>
+            <span className="block">
+              <em>quản lý kho</em>
+            </span>
+          </SplitReveal>
+          <div className="mt-16 flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
+            <p className="kho-so-label max-w-[22rem] leading-relaxed text-(--t-muted)">
+              Không phải phần mềm kế toán. Không phải CRM. Chỉ là kho hàng — gọn, nhanh, đúng.
+            </p>
+            <p className="text-[clamp(2.4rem,1rem+5vw,6rem)] leading-none text-(--t-accent)">
+              <em>và vậy thôi.</em>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Kho Số là gì */}
+      <section id="vi-sao" aria-labelledby="kho-so-what" className="py-32">
+        <div className="container-page grid items-center gap-16 md:grid-cols-2">
+          <div className="relative mx-auto w-[min(26rem,70vw)]">
+            <div className="kho-so-orb" />
+            <div aria-hidden className="kho-so-orb-glass" />
+          </div>
+          <div className="md:justify-self-end">
+            <SplitReveal as="h2" id="kho-so-what" className="text-[clamp(2.6rem,1rem+4.5vw,5.5rem)] leading-[1] tracking-[-0.04em]">
+              <span className="block">Kho Số</span>
+              <span className="block">
+                nghĩa là <em>gì?</em>
+              </span>
+            </SplitReveal>
+            <p className="kho-so-label mt-8 max-w-[24rem] leading-relaxed text-(--t-muted)">
+              Một công cụ trên trình duyệt giúp cửa hàng nhỏ và vừa biết chính xác mình còn gì, ở đâu, bán được bao nhiêu.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Thẻ vấn đề / giải pháp */}
+      <section aria-labelledby="kho-so-purpose" className="container-page">
+        <div className="grid gap-12 rounded-[1.5rem] bg-(--t-accent) p-8 text-(--t-accent-ink) md:grid-cols-2 md:p-14">
+          <h2 id="kho-so-purpose" className="text-[clamp(2.4rem,1rem+3.6vw,4.5rem)] leading-[1.02] tracking-[-0.04em]">
+            Lý do
+            <br />
+            tạo ra <em>Kho Số</em>
+          </h2>
+          <div className="space-y-8 text-[0.95rem] leading-relaxed">
+            <div>
+              <h3 className="text-lg">◐ Vấn đề</h3>
+              <p className="mt-3">
+                Hàng bán trên nhiều kênh, mỗi kênh một bảng tính. Cuối ngày không ai chắc kho còn bao nhiêu, và khách đặt món đã hết.
+              </p>
+            </div>
+            <div className="border-t border-(--t-accent-ink)/25 pt-8">
+              <h3 className="text-lg">◑ Giải pháp</h3>
+              <p className="mt-3">Một nguồn tồn kho duy nhất, đồng bộ với mọi nơi bạn bán hàng:</p>
+              <ul className="mt-4">
+                {channels.map((channel) => (
+                  <li key={channel} className="flex items-center justify-between border-b border-(--t-accent-ink)/25 py-3">
+                    {channel}
+                    <span aria-hidden>↗</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tính năng */}
+      <section id="tinh-nang" aria-labelledby="kho-so-features" className="py-32">
+        <div className="container-page">
+          <div className="flex items-end justify-between gap-8">
+            <SplitReveal as="h2" id="kho-so-features" className="text-[clamp(2.6rem,1rem+4.5vw,5.5rem)] leading-[1] tracking-[-0.04em]">
+              <span className="block">Làm cho kho</span>
+              <span className="block">
+                <em>{"{nhẹ hơn}"}</em>
+              </span>
+            </SplitReveal>
+            <p className="kho-so-label hidden max-w-[16rem] text-(--t-muted) md:block">04 tính năng — không hơn, không kém</p>
+          </div>
+          <ol className="mt-16 border-t border-(--t-line)">
+            {features.map((feature, index) => (
+              <li key={feature.title} className="kho-so-feature grid gap-4 border-b border-(--t-line) px-2 py-8 md:grid-cols-12 md:items-baseline md:px-6">
+                <span className="kho-so-label kho-so-muted text-(--t-muted) md:col-span-2">[0{index + 1}]</span>
+                <h3 className="text-[clamp(1.5rem,1rem+1.6vw,2.5rem)] tracking-[-0.03em] md:col-span-5">{feature.title}</h3>
+                <p className="kho-so-muted leading-relaxed text-(--t-muted) md:col-span-5">{feature.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Chữ khổng lồ chạy ngang */}
+      <section ref={giantRef} id="ket-noi" aria-label="Kết nối với mọi kênh bán" className="flex min-h-svh flex-col justify-center overflow-hidden">
+        <p data-giant aria-hidden className="kho-so-giant hidden pl-[10vw] text-(--t-accent) lg:block">
+          {GIANT.split("").map((char, i) => (
+            <span
+              key={i}
+              style={{ transform: `translateY(calc(sin(${i * 0.55}rad + var(--phase, 0) * 1rad) * 14%))` } as CSSProperties}
+            >
+              {char === " " ? "\u00A0" : char}
+            </span>
+          ))}
+        </p>
+        <Marquee duration={22} className="lg:hidden">
+          <span aria-hidden className="kho-so-giant pr-12 text-(--t-accent)">
+            {GIANT}
+          </span>
+        </Marquee>
+        <p className="container-page kho-so-label mt-10 text-(--t-muted)">Website · Sàn thương mại điện tử · Mạng xã hội · Cửa hàng</p>
+      </section>
+
+      {/* Câu hỏi */}
+      <section id="cau-hoi" aria-labelledby="kho-so-faq" className="pb-32">
+        <div className="container-page grid gap-12 md:grid-cols-12">
+          <h2 id="kho-so-faq" className="text-[clamp(2.4rem,1rem+3.6vw,4.5rem)] leading-[1] tracking-[-0.04em] md:col-span-4">
+            Trước khi
+            <br />
+            <em>bạn hỏi</em>
+          </h2>
+          <div className="md:col-span-8">
+            {faq.map((item) => (
+              <details key={item.q} className="kho-so-faq border-b border-(--t-line) py-6">
+                <summary className="flex items-center justify-between gap-6 text-xl">
+                  {item.q}
+                  <span aria-hidden className="kho-so-plus text-2xl text-(--t-accent)">
+                    +
+                  </span>
+                </summary>
+                <p className="mt-4 max-w-[40rem] leading-relaxed text-(--t-muted)">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

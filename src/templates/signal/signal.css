@@ -1,0 +1,152 @@
+/* SIGNAL: token riêng. Công thức: .claude/skills/style-library/styles/signal.md */
+@layer components {
+  .tpl-signal {
+    --t-bg: #0a0c10;
+    --t-fg: #eef1f4;
+    --t-muted: #8a93a0;
+    --t-accent: #c6ff3d;
+    --t-on-accent: #0a0c10;
+    --t-line: rgb(238 241 244 / 0.12);
+    --t-panel: #12151b;
+    --t-font-display: var(--font-signal-display), system-ui, sans-serif;
+    --t-font-body: var(--font-signal-display), system-ui, sans-serif;
+    --t-font-mono: var(--font-brand-mono), ui-monospace, monospace;
+    --t-display-weight: 500;
+  }
+
+  .tpl-signal .sg-mono {
+    font-family: var(--t-font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .tpl-signal .sg-dots {
+    background-image: radial-gradient(circle at 1px 1px, var(--t-line) 1px, transparent 0);
+    background-size: 28px 28px;
+  }
+
+  /* Tiêu đề: trục SHRP tăng khi hover (góc chữ sắc lại) */
+  .tpl-signal .sg-sharp {
+    font-variation-settings: "SHRP" 0;
+    transition: font-variation-settings 0.9s cubic-bezier(0.7, 0, 0.2, 1);
+  }
+
+  .tpl-signal .sg-sharp:hover {
+    font-variation-settings: "SHRP" 100;
+  }
+
+  .tpl-signal .sg-sharp em {
+    font-style: normal;
+    color: var(--t-accent);
+  }
+
+  /* Gạch ngang vấn đề theo cuộn (scaleX do GSAP điều khiển) */
+  .tpl-signal .sg-strike {
+    position: relative;
+    display: inline;
+  }
+
+  .tpl-signal .sg-strike::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 55%;
+    height: 2px;
+    background: var(--t-accent);
+    transform: scaleX(var(--strike, 1));
+    transform-origin: 0 50%;
+  }
+
+  /* Có chuyển động: bắt đầu chưa gạch, GSAP đặt --strike inline trên phần tử theo cuộn */
+  [data-motion="on"] .tpl-signal .sg-strike {
+    --strike: 0;
+  }
+
+  /* Terminal */
+  .tpl-signal .sg-caret {
+    display: inline-block;
+    width: 0.55em;
+    height: 1.1em;
+    vertical-align: -0.2em;
+    background: var(--t-accent);
+    animation: sg-blink 1s steps(1) infinite;
+  }
+
+  @keyframes sg-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* Quỹ đạo tích hợp */
+  .tpl-signal .sg-orbit {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    border: 1px dashed var(--t-line);
+    border-radius: 50%;
+    animation: sg-spin var(--dur, 60s) linear infinite;
+  }
+
+  .tpl-signal .sg-orbit-node {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: rotate(var(--a)) translateX(calc(var(--r) / 2)) rotate(calc(var(--a) * -1));
+  }
+
+  .tpl-signal .sg-orbit-node > span {
+    display: block;
+    translate: -50% -50%;
+    animation: sg-spin var(--dur, 60s) linear infinite reverse;
+  }
+
+  .tpl-signal .sg-orbits:hover .sg-orbit,
+  .tpl-signal .sg-orbits:hover .sg-orbit-node > span {
+    animation-play-state: paused;
+  }
+
+  @keyframes sg-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tpl-signal .sg-orbit,
+    .tpl-signal .sg-orbit-node > span,
+    .tpl-signal .sg-caret {
+      animation: none;
+    }
+  }
+
+  /* Hàng tính năng: vạch lime chạy khi hover */
+  .tpl-signal .sg-row {
+    position: relative;
+  }
+
+  .tpl-signal .sg-row::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: -1px;
+    height: 1px;
+    width: 100%;
+    background: var(--t-accent);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 0.7s cubic-bezier(0.7, 0, 0.2, 1);
+  }
+
+  .tpl-signal .sg-row:hover::before,
+  .tpl-signal .sg-row:focus-within::before {
+    transform: scaleX(1);
+  }
+}
+
+:root:has(.tpl-signal) {
+  --tpl-cursor: #c6ff3d;
+  --tpl-cursor-ink: #0a0c10;
+}

@@ -1,0 +1,255 @@
+"use client";
+
+import { useRef } from "react";
+
+import { SplitReveal } from "@/components/motion/SplitReveal";
+import { gsap, MQ, ScrollTrigger, useGSAP } from "@/lib/motion";
+import { Marquee } from "@/templates/_kit/Marquee";
+import "@/templates/nha-suong/nha-suong.css";
+
+/** Sườn núi sinh bằng tổng các sóng sin (xác định, không ngẫu nhiên) */
+function ridge(seed: number, base: number, amp: number, width = 1440, height = 800) {
+  const points: string[] = [];
+  for (let x = 0; x <= width; x += 24) {
+    const t = x / width;
+    const y =
+      base +
+      Math.sin(t * 5.2 + seed) * amp * 0.55 +
+      Math.sin(t * 11.7 + seed * 2.3) * amp * 0.28 +
+      Math.sin(t * 23.1 + seed * 0.7) * amp * 0.12;
+    points.push(`${x},${y.toFixed(1)}`);
+  }
+  return `M0,${height} L${points.join(" L")} L${width},${height} Z`;
+}
+
+const ridges = [
+  { fill: "var(--t-ridge-1)", d: ridge(1.2, 430, 70), depth: -6 },
+  { fill: "var(--t-ridge-2)", d: ridge(2.7, 500, 80), depth: -12 },
+  { fill: "var(--t-ridge-3)", d: ridge(4.1, 570, 70), depth: -20 },
+  { fill: "var(--t-ridge-4)", d: ridge(5.9, 640, 60), depth: -30 },
+  { fill: "var(--t-ridge-5)", d: ridge(7.3, 720, 40), depth: -42 },
+];
+
+const villas = [
+  {
+    name: "Biệt thự Đồi Thông",
+    detail: "3 phòng ngủ · hiên gỗ hướng thung lũng",
+    sky: "linear-gradient(#dfe2d8, #f1ebdc)",
+    ridge: ridge(3.3, 120, 26, 600, 200),
+    tone: "#6f7f69",
+  },
+  {
+    name: "Nhà Kính Bên Suối",
+    detail: "2 phòng ngủ · mái kính, bồn tắm ngoài trời",
+    sky: "linear-gradient(#d6dfdc, #e8eee6)",
+    ridge: ridge(6.1, 130, 20, 600, 200),
+    tone: "#56706b",
+  },
+  {
+    name: "Gác Mây",
+    detail: "1 phòng ngủ · gác lửng ngắm sao",
+    sky: "linear-gradient(#e2dcd3, #efe6d6)",
+    ridge: ridge(9.4, 110, 30, 600, 200),
+    tone: "#7a6b58",
+  },
+];
+
+const moments = ["Trà sớm trên hiên", "Rừng thông", "Suối nước nóng", "Bếp củi", "Sao đêm", "Sương lúc sáu giờ"];
+
+export function NhaSuong() {
+  const heroRef = useRef<HTMLElement>(null);
+  const drawingRef = useRef<HTMLElement>(null);
+
+  useGSAP(() => {
+    const mm = gsap.matchMedia();
+    mm.add(MQ.anyMotion, () => {
+      // Núi trôi theo chiều sâu khi cuộn qua hero
+      heroRef.current?.querySelectorAll<SVGPathElement>("[data-depth]").forEach((layer) => {
+        gsap.to(layer, {
+          yPercent: Number(layer.dataset.depth),
+          ease: "none",
+          scrollTrigger: { trigger: heroRef.current, start: "top top", end: "bottom top", scrub: true },
+        });
+      });
+      gsap.to("[data-hero-title]", {
+        yPercent: 60,
+        opacity: 0,
+        ease: "none",
+        scrollTrigger: { trigger: heroRef.current, start: "top top", end: "bottom top", scrub: true },
+      });
+
+      // Bản vẽ mặt đứng: từng nét được vẽ theo cuộn
+      const shapes = drawingRef.current?.querySelectorAll<SVGGeometryElement>("svg [data-draw]") ?? [];
+      shapes.forEach((shape) => {
+        const length = shape.getTotalLength();
+        gsap.set(shape, { strokeDasharray: length, strokeDashoffset: length });
+      });
+      gsap.to(shapes, {
+        strokeDashoffset: 0,
+        ease: "none",
+        stagger: 0.04,
+        scrollTrigger: { trigger: drawingRef.current, start: "top 75%", end: "bottom 60%", scrub: 1 },
+      });
+      ScrollTrigger.refresh();
+    });
+    return () => mm.revert();
+  });
+
+  return (
+    <div className="tpl tpl-nha-suong">
+      <header className="absolute inset-x-0 top-0 z-20">
+        <div className="container-page grid h-24 grid-cols-3 items-center">
+          <nav aria-label="Điều hướng Nhà Sương">
+            <ul className="nha-suong-caps flex gap-6 text-(--t-muted)">
+              <li>
+                <a href="#biet-thu" className="hover:text-(--t-fg)">
+                  Biệt thự
+                </a>
+              </li>
+              <li className="hidden sm:block">
+                <a href="#trai-nghiem" className="hover:text-(--t-fg)">
+                  Trải nghiệm
+                </a>
+              </li>
+            </ul>
+          </nav>
+          <a href="#dau-trang" className="justify-self-center text-2xl tracking-[0.3em] uppercase" style={{ fontFamily: "var(--t-font-display)" }}>
+            Nhà Sương
+          </a>
+          <a href="#demo-ket" className="nha-suong-caps justify-self-end border-b border-(--t-fg) pb-1">
+            Đặt chỗ
+          </a>
+        </div>
+      </header>
+
+      {/* Hero: núi sương nhiều lớp */}
+      <section ref={heroRef} id="dau-trang" aria-labelledby="nha-suong-title" className="nha-suong-sky relative h-[115svh] overflow-hidden">
+        <div aria-hidden className="nha-suong-sun absolute top-[18%] left-1/2 size-[42vw] -translate-x-1/2 rounded-full" />
+        <div data-hero-title className="absolute inset-x-0 top-[24%] z-10 text-center">
+          <p className="nha-suong-caps text-(--t-muted)">Biệt thự nghỉ dưỡng giữa rừng thông</p>
+          <SplitReveal as="h1" id="nha-suong-title" trigger="intro" className="mt-6 text-[clamp(3.4rem,1rem+8vw,9.5rem)] leading-[0.95] tracking-[-0.02em]">
+            <span className="block">Nơi sương</span>
+            <span className="block">
+              <em>dừng lại</em>
+            </span>
+          </SplitReveal>
+        </div>
+        <svg aria-hidden viewBox="0 0 1440 800" preserveAspectRatio="xMidYMax slice" className="absolute inset-x-0 bottom-0 h-[78%] w-full">
+          {ridges.map((layer, i) => (
+            <g key={i}>
+              <path data-depth={layer.depth} d={layer.d} style={{ fill: layer.fill }} />
+              {i === 1 || i === 3 ? <rect className="nha-suong-fog" x="-200" y={460 + i * 50} width="1840" height="60" fill="white" opacity="0.35" /> : null}
+            </g>
+          ))}
+        </svg>
+      </section>
+
+      {/* Câu chuyện */}
+      <section aria-labelledby="nha-suong-story" className="py-32">
+        <div className="container-page grid gap-12 md:grid-cols-12">
+          <p className="nha-suong-caps text-(--t-muted) md:col-span-3">Câu chuyện</p>
+          <div className="md:col-span-7 md:col-start-5">
+            <h2 id="nha-suong-story" className="text-[clamp(2.4rem,1rem+3.4vw,4.5rem)] leading-[1.05]">
+              Ít hơn, <em>chậm hơn,</em> gần thiên nhiên hơn.
+            </h2>
+            <div className="mt-10 grid gap-8 text-[1.02rem] leading-[1.8] text-(--t-muted) md:grid-cols-2">
+              <p className="nha-suong-dropcap">
+                Mỗi căn biệt thự được đặt theo hướng nắng và đường gió, để buổi sáng bắt đầu bằng ánh sáng xuyên qua lớp sương.
+              </p>
+              <p>
+                Vật liệu địa phương — đá, gỗ thông, đất nung — được giữ nguyên bề mặt. Không gian không cố gây ấn tượng; nó chỉ để bạn nghỉ ngơi.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Bản vẽ mặt đứng tự vẽ theo cuộn */}
+      <section ref={drawingRef} aria-labelledby="nha-suong-drawing" className="nha-suong-drawing border-y border-(--t-line) bg-(--t-surface) py-24">
+        <div className="container-page">
+          <div className="flex items-end justify-between gap-6">
+            <h2 id="nha-suong-drawing" className="text-[clamp(2rem,1rem+2.4vw,3.4rem)] leading-[1.05]">
+              Mặt đứng <em>Biệt thự Đồi Thông</em>
+            </h2>
+            <p className="nha-suong-caps hidden text-(--t-muted) md:block">Tỉ lệ 1 : 100</p>
+          </div>
+          <svg viewBox="0 0 1200 460" className="mt-12 w-full" role="img" aria-label="Bản vẽ mặt đứng biệt thự minh họa">
+            <line data-draw x1="20" y1="400" x2="1180" y2="400" />
+            {/* Khối chính */}
+            <rect data-draw x="260" y="220" width="420" height="180" />
+            <polyline data-draw points="240,226 470,120 700,226" />
+            {/* Khối kính */}
+            <rect data-draw x="680" y="270" width="300" height="130" />
+            <line data-draw x1="670" y1="270" x2="1000" y2="270" />
+            {[0, 1, 2, 3, 4].map((i) => (
+              <line data-draw key={`g${i}`} x1={710 + i * 60} y1="270" x2={710 + i * 60} y2="400" />
+            ))}
+            {/* Cửa sổ khối chính */}
+            {[0, 1, 2].map((i) => (
+              <rect data-draw key={`w${i}`} x={300 + i * 120} y="260" width="80" height="100" />
+            ))}
+            <rect data-draw x="440" y="300" width="60" height="100" />
+            {/* Bậc thềm */}
+            <polyline data-draw points="420,400 420,388 520,388 520,400" />
+            {/* Cây thông */}
+            <polyline data-draw points="120,400 120,330 80,330 120,250 160,330 120,330" />
+            <polyline data-draw points="1080,400 1080,320 1040,320 1080,230 1120,320 1080,320" />
+            <circle data-draw cx="190" cy="350" r="34" />
+            {/* Đường kích thước */}
+            <line data-draw className="accent" x1="260" y1="430" x2="980" y2="430" />
+            <line data-draw className="accent" x1="260" y1="422" x2="260" y2="438" />
+            <line data-draw className="accent" x1="980" y1="422" x2="980" y2="438" />
+            <line data-draw className="accent" x1="1010" y1="120" x2="1010" y2="400" />
+            <text x="620" y="452" textAnchor="middle" fontSize="11" letterSpacing="3" style={{ fill: "var(--t-accent)" }}>
+              24 000
+            </text>
+            <text x="1024" y="264" fontSize="11" letterSpacing="3" style={{ fill: "var(--t-accent)" }}>
+              9 800
+            </text>
+          </svg>
+        </div>
+      </section>
+
+      {/* Các căn biệt thự */}
+      <section id="biet-thu" aria-labelledby="nha-suong-villas" className="py-32">
+        <div className="container-page">
+          <h2 id="nha-suong-villas" className="text-[clamp(2.4rem,1rem+3.4vw,4.5rem)] leading-[1.05]">
+            Ba cách <em>ở lại</em>
+          </h2>
+          <ul className="mt-16 border-t border-(--t-line)">
+            {villas.map((villa, i) => (
+              <li key={villa.name} className="nha-suong-villa grid items-center gap-6 border-b border-(--t-line) py-8 md:grid-cols-12">
+                <span className="nha-suong-caps text-(--t-muted) md:col-span-1">0{i + 1}</span>
+                <h3 className="text-[clamp(1.8rem,1rem+1.8vw,3rem)] md:col-span-5">{villa.name}</h3>
+                <p className="text-(--t-muted) md:col-span-3">{villa.detail}</p>
+                <div aria-hidden className="relative aspect-[3/1] overflow-hidden md:col-span-3" style={{ background: villa.sky }}>
+                  <svg viewBox="0 0 600 200" preserveAspectRatio="none" className="absolute inset-0 size-full">
+                    <path d={villa.ridge} fill={villa.tone} opacity="0.85" />
+                  </svg>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Trải nghiệm */}
+      <section id="trai-nghiem" aria-label="Trải nghiệm" className="border-y border-(--t-line) py-10">
+        <Marquee duration={40}>
+          {moments.map((m) => (
+            <span key={m} className="px-10 text-[clamp(2rem,1rem+3vw,4rem)] whitespace-nowrap" style={{ fontFamily: "var(--t-font-display)" }}>
+              <em>{m}</em> <span className="text-(--t-accent)">·</span>
+            </span>
+          ))}
+        </Marquee>
+      </section>
+
+      <section aria-label="Lời mời" className="py-32 text-center">
+        <p className="nha-suong-caps text-(--t-muted)">Mở cửa quanh năm</p>
+        <p className="mx-auto mt-8 max-w-[18ch] text-[clamp(2.4rem,1rem+3.6vw,5rem)] leading-[1.05]" style={{ fontFamily: "var(--t-font-display)" }}>
+          Đến khi sương tan, <em>bạn sẽ muốn ở thêm một ngày.</em>
+        </p>
+      </section>
+    </div>
+  );
+}

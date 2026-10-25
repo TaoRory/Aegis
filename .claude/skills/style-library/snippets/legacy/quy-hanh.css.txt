@@ -1,0 +1,70 @@
+/* Mẫu 03 — Quỹ Hành (tài chính). Token riêng của mẫu. */
+@layer components {
+  .tpl-quy-hanh {
+    --t-bg: #ebebe7;
+    --t-surface: #f5f5f2;
+    --t-fg: #1b2523;
+    --t-muted: #66706d;
+    --t-accent: #1d4a42;
+    --t-accent-soft: #d5e2dc;
+    --t-line: rgb(27 37 35 / 0.16);
+    --t-font-display: var(--font-quy-hanh-sans), sans-serif;
+    --t-font-body: var(--font-quy-hanh-sans), sans-serif;
+    --t-font-accent: var(--font-quy-hanh-serif), serif;
+    --t-display-weight: 400;
+  }
+
+  .quy-hanh-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding-inline: 1.25rem;
+    border-radius: 999px;
+    background: var(--t-fg);
+    color: var(--t-bg);
+    font-size: 0.875rem;
+    transition: background-color 0.4s ease;
+  }
+
+  .quy-hanh-pill:hover {
+    background: var(--t-accent);
+  }
+
+  .quy-hanh-halo {
+    background: radial-gradient(circle, rgb(255 255 255 / 0.9), rgb(255 255 255 / 0) 65%);
+  }
+
+  .quy-hanh-stat {
+    border: 1px solid var(--t-line);
+    border-radius: 1.25rem;
+    background: rgb(255 255 255 / 0.35);
+  }
+
+  .quy-hanh-chart path {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .quy-hanh-item summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .quy-hanh-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .quy-hanh-item[open] .quy-hanh-toggle {
+    transform: rotate(45deg);
+    background: var(--t-fg);
+    color: var(--t-bg);
+  }
+
+  .quy-hanh-toggle {
+    transition:
+      transform 0.4s var(--motion-ease-out),
+      background-color 0.4s ease,
+      color 0.4s ease;
+  }
+}

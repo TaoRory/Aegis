@@ -1,0 +1,86 @@
+{
+  "vidi26": {
+    "cover": {
+      "src": "/portfolio/vidi26.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/portfolio/vidi26-full.webp",
+      "width": 900,
+      "height": 1470
+    }
+  },
+  "handle-vietnam": {
+    "cover": {
+      "src": "/portfolio/handle-vietnam.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/portfolio/handle-vietnam-full.webp",
+      "width": 900,
+      "height": 3600
+    }
+  },
+  "integritas-vu-legal": {
+    "cover": {
+      "src": "/portfolio/integritas-vu-legal.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/portfolio/integritas-vu-legal-full.webp",
+      "width": 900,
+      "height": 3600
+    }
+  },
+  "tedx-vinuniversity-2026": {
+    "cover": {
+      "src": "/portfolio/tedx-vinuniversity-2026.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/portfolio/tedx-vinuniversity-2026-full.webp",
+      "width": 900,
+      "height": 3600
+    }
+  },
+  "rethink": {
+    "cover": {
+      "src": "/portfolio/rethink.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/portfolio/rethink-full.webp",
+      "width": 900,
+      "height": 3600
+    }
+  },
+  "tedx-vinuniversity-2025": {
+    "cover": {
+      "src": "/portfolio/tedx-vinuniversity-2025.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/portfolio/tedx-vinuniversity-2025-full.webp",
+      "width": 900,
+      "height": 2498
+    }
+  },
+  "rethink-halloween": {
+    "cover": {
+      "src": "/portfolio/rethink-halloween.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/portfolio/rethink-halloween-full.webp",
+      "width": 900,
+      "height": 3600
+    }
+  }
+}

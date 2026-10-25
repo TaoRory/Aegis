@@ -1,0 +1,112 @@
+/* PLAYGROUND: token riêng. Công thức: .claude/skills/style-library/styles/playground.md */
+@layer components {
+  .tpl-playground {
+    --t-bg: #fff6e6;
+    --t-fg: #15153a;
+    --t-muted: #5b5b7a;
+    --t-accent: #2f4bff;
+    --t-sun: #ffd23f;
+    --t-coral: #ff6b57;
+    --t-mint: #3dd6a5;
+    --t-lilac: #c9b8ff;
+    --t-paper: #ffffff;
+    --t-line: #15153a;
+    --marker: #ffd23f;
+    --t-font-display: var(--font-pg-display), system-ui, sans-serif;
+    --t-font-body: var(--font-pg-body), system-ui, sans-serif;
+    --t-font-hand: var(--font-pg-hand), cursive;
+    --t-display-weight: 700;
+    font-size: 1.0625rem;
+  }
+
+  .tpl-playground h1,
+  .tpl-playground h2,
+  .tpl-playground h3 {
+    letter-spacing: -0.03em;
+    line-height: 1.02;
+  }
+
+  .tpl-playground em {
+    font-style: normal;
+    font-family: var(--t-font-display);
+  }
+
+  .tpl-playground .pg-hand {
+    font-family: var(--t-font-hand);
+  }
+
+  /* Khối "sticker": viền đậm + bóng cứng lệch */
+  .tpl-playground .pg-card {
+    border: 2px solid var(--t-line);
+    border-radius: 1.75rem;
+    box-shadow: 6px 6px 0 var(--t-line);
+  }
+
+  .tpl-playground .pg-lift {
+    transition:
+      transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @media (hover: hover) {
+    .tpl-playground .pg-lift:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 9px 9px 0 var(--t-line);
+    }
+  }
+
+  .tpl-playground .pg-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 2px solid var(--t-line);
+    border-radius: 999px;
+    padding: 0.85rem 1.4rem;
+    font-weight: 800;
+    box-shadow: 4px 4px 0 var(--t-line);
+    transition:
+      transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .tpl-playground .pg-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--t-line);
+  }
+
+  .tpl-playground .pg-btn:active {
+    transform: translate(3px, 3px);
+    box-shadow: 1px 1px 0 var(--t-line);
+  }
+
+  /* Bong bóng thoại */
+  .tpl-playground .pg-bubble {
+    position: relative;
+    border: 2px solid var(--t-line);
+    border-radius: 1.5rem;
+    padding: 0.7rem 1.2rem;
+    font-family: var(--t-font-display);
+    font-weight: 700;
+    font-size: clamp(1rem, 0.8rem + 0.8vw, 1.6rem);
+    white-space: nowrap;
+    box-shadow: 4px 4px 0 var(--t-line);
+  }
+
+  .tpl-playground .pg-bubble::after {
+    content: "";
+    position: absolute;
+    left: 1.4rem;
+    bottom: -12px;
+    width: 18px;
+    height: 18px;
+    background: inherit;
+    border-right: 2px solid var(--t-line);
+    border-bottom: 2px solid var(--t-line);
+    transform: rotate(45deg);
+  }
+}
+
+:root:has(.tpl-playground) {
+  --tpl-cursor: #ff6b57;
+  --tpl-cursor-ink: #15153a;
+}

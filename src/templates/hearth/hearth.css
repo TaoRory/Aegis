@@ -1,0 +1,112 @@
+/* HEARTH: token riêng. Công thức: .claude/skills/style-library/styles/hearth.md */
+@layer components {
+  .tpl-hearth {
+    --t-bg: #15110e;
+    --t-fg: #f3e9dc;
+    --t-muted: #a8998a;
+    --t-accent: #ff5b1f;
+    --t-gold: #e0b25b;
+    --t-panel: #1e1915;
+    --t-line: rgb(243 233 220 / 0.14);
+    --t-font-display: var(--font-hearth-display), Georgia, serif;
+    --t-font-body: var(--font-hearth-body), system-ui, sans-serif;
+    --t-display-weight: 500;
+  }
+
+  .tpl-hearth .ht-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .tpl-hearth .ht-condensed {
+    font-family: var(--t-font-display);
+    font-variation-settings: "wdth" 62.5;
+    font-weight: 600;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .tpl-hearth em {
+    color: var(--t-gold);
+  }
+
+  /* Hàng thực đơn: tên dịch phải, giá đổi màu khi hover */
+  .tpl-hearth .ht-dish {
+    transition: background-color 0.4s ease;
+  }
+
+  .tpl-hearth .ht-dish .ht-name {
+    transition:
+      transform 0.5s cubic-bezier(0.7, 0, 0.2, 1),
+      color 0.4s ease;
+  }
+
+  .tpl-hearth .ht-dish:hover .ht-name,
+  .tpl-hearth .ht-dish:focus-visible .ht-name {
+    transform: translateX(0.6rem);
+    color: var(--t-accent);
+  }
+
+  .tpl-hearth .ht-dots {
+    flex: 1;
+    min-width: 2rem;
+    border-bottom: 1px dotted var(--t-muted);
+    translate: 0 -0.3em;
+    opacity: 0.6;
+  }
+
+  /* Vé giữ bàn: răng cưa */
+  .tpl-hearth .ht-ticket {
+    --notch: radial-gradient(circle at 0 50%, transparent 0.8rem, #000 0.82rem);
+    mask:
+      radial-gradient(circle at 0 50%, transparent 0.8rem, #000 0.82rem) left / 51% 100% no-repeat,
+      radial-gradient(circle at 100% 50%, transparent 0.8rem, #000 0.82rem) right / 51% 100% no-repeat;
+  }
+
+  .tpl-hearth .ht-chip {
+    border: 1px solid var(--t-line);
+    border-radius: 999px;
+    padding: 0.55rem 1rem;
+    cursor: pointer;
+    transition:
+      border-color 0.25s ease,
+      background-color 0.25s ease;
+  }
+
+  .tpl-hearth .ht-chip:hover {
+    border-color: var(--t-accent);
+  }
+
+  .tpl-hearth .ht-chip:has(input:checked) {
+    background: var(--t-accent);
+    border-color: var(--t-accent);
+    color: var(--t-bg);
+  }
+
+  .tpl-hearth .ht-chip:has(input:focus-visible) {
+    outline: 2px solid var(--t-gold);
+    outline-offset: 2px;
+  }
+
+  .tpl-hearth [role="tab"][aria-selected="true"] {
+    color: var(--t-accent);
+  }
+
+  .tpl-hearth [role="tab"][aria-selected="true"] .ht-tab-line {
+    transform: scaleX(1);
+  }
+
+  .tpl-hearth .ht-tab-line {
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 0.6s cubic-bezier(0.7, 0, 0.2, 1);
+  }
+}
+
+:root:has(.tpl-hearth) {
+  --tpl-cursor: #ff5b1f;
+  --tpl-cursor-ink: #15110e;
+}

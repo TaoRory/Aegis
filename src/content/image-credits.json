@@ -1,0 +1,839 @@
+{
+  "atelier": {
+    "look-1": {
+      "src": "/templates/atelier/look-1.webp",
+      "width": 1333,
+      "height": 2000,
+      "creator": "Unknown authorUnknown author",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Woman%27s_silk_taffeta_dress_c._1865.jpg",
+      "title": "Woman's silk taffeta dress c. 1865"
+    },
+    "look-2": {
+      "src": "/templates/atelier/look-2.webp",
+      "width": 1285,
+      "height": 2000,
+      "creator": "Unknown authorUnknown author",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Woman%27s_plaid_silk_taffeta_dress_c._1855.jpg",
+      "title": "Woman's plaid silk taffeta dress c. 1855"
+    },
+    "look-3": {
+      "src": "/templates/atelier/look-3.webp",
+      "width": 1357,
+      "height": 2000,
+      "creator": "Importers Mmes. Polhamus and McGrath",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Woman%27s_Blue_Silk_Velvet_Dress_Ensemble_and_Hat_1880s_LACMA_M86_413_3a-c_2.jpg",
+      "title": "Woman's Blue Silk Velvet Dress Ensemble and Hat 1880s LACMA M86 413 3a-c 2"
+    },
+    "look-4": {
+      "src": "/templates/atelier/look-4.webp",
+      "width": 1333,
+      "height": 2000,
+      "creator": "Không rõ tác giả",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Woman%27s_Brown_Silk_Dress_of_Sarah_Bakewell_Anderson_-_DPLA_-_ecd25cbe0e4e9f0b82a79f1b77f5851e_(page_1).jpg",
+      "title": "Woman's Brown Silk Dress of Sarah Bakewell Anderson"
+    },
+    "look-5": {
+      "src": "/templates/atelier/look-5.webp",
+      "width": 1259,
+      "height": 2000,
+      "creator": "House of Rouff, Paris, France",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:House_of_Rouff_woman%27s_dress_c._1897.jpg",
+      "title": "House of Rouff woman's dress c. 1897"
+    },
+    "look-6": {
+      "src": "/templates/atelier/look-6.webp",
+      "width": 1152,
+      "height": 2000,
+      "creator": "Unknown authorUnknown author",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Woman%27s_dress_c._1885.jpg",
+      "title": "Woman's dress c. 1885"
+    },
+    "look-7": {
+      "src": "/templates/atelier/look-7.webp",
+      "width": 1333,
+      "height": 2000,
+      "creator": "Không rõ tác giả",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Woman%27s_Blue_Silk_Dress_of_Lucinda_Pepper_Clifford_Carroll_-_DPLA_-_c358fd1fdc9286c304cb388dcfde0eee_(page_1).jpg",
+      "title": "Woman's Blue Silk Dress of Lucinda Pepper Clifford Carroll"
+    },
+    "look-7b": {
+      "src": "/templates/atelier/look-7b.webp",
+      "width": 1333,
+      "height": 2000,
+      "creator": "Không rõ tác giả",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Woman%27s_Blue_Silk_Dress_of_Lucinda_Pepper_Clifford_Carroll_-_DPLA_-_c358fd1fdc9286c304cb388dcfde0eee_(page_3).jpg",
+      "title": "Woman's Blue Silk Dress of Lucinda Pepper Clifford Carroll"
+    },
+    "look-8": {
+      "src": "/templates/atelier/look-8.webp",
+      "width": 1327,
+      "height": 2000,
+      "creator": "Không rõ tác giả",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Womens_dress_of_silk_fabric_1931_(JOKAOT4SK1931_09-1).tif",
+      "title": "Womens dress of silk fabric"
+    },
+    "bts-1": {
+      "src": "/templates/atelier/bts-1.webp",
+      "width": 1333,
+      "height": 2000,
+      "creator": "Samia Dib Benkaci",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Portrait_de_femme_en_tenue_traditionnelle_de_Berb%C3%A8re_Alg%C3%A9rien.jpg",
+      "title": "Portrait de femme en tenue traditionnelle de Berbère Algérien"
+    },
+    "bts-2": {
+      "src": "/templates/atelier/bts-2.webp",
+      "width": 1643,
+      "height": 2000,
+      "creator": "Günther Krampf",
+      "license": "CC0",
+      "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "source": "https://commons.wikimedia.org/wiki/File:Portrait_of_an_Unidentfiied_Female_Fashion_Model,_by_G%C3%BCnther_Krampf_(Getty_106N6D).jpg",
+      "title": "Portrait of an Unidentfiied Female Fashion Model, by Günther Krampf (Getty 106N6D)"
+    },
+    "bts-3": {
+      "src": "/templates/atelier/bts-3.webp",
+      "width": 1484,
+      "height": 2000,
+      "creator": "Photographed by Sam Hood",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Fashion_Model_in_Hat_(31553515671).jpg",
+      "title": "Fashion Model in Hat (31553515671)"
+    },
+    "bts-4": {
+      "src": "/templates/atelier/bts-4.webp",
+      "width": 1334,
+      "height": 2000,
+      "creator": "Mostafameraji",
+      "license": "CC0",
+      "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "source": "https://commons.wikimedia.org/wiki/File:Iranian_Model_-_Fashion_Style_-_Mashhad_City-Iran-Asia-Mostafa_Meraji_01.jpg",
+      "title": "Iranian Model - Fashion Style - Mashhad City-Iran-Asia-Mostafa Meraji 01"
+    },
+    "craft-hands": {
+      "src": "/templates/atelier/craft-hands.webp",
+      "width": 2000,
+      "height": 1335,
+      "creator": "Sajid213",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Tailor_sewing_machine.jpg",
+      "title": "Tailor sewing machine"
+    },
+    "craft-tailor": {
+      "src": "/templates/atelier/craft-tailor.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "Eman abdelkader12",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Senior_tailor_man.jpg",
+      "title": "Senior tailor man"
+    },
+    "craft-machine": {
+      "src": "/templates/atelier/craft-machine.webp",
+      "width": 2000,
+      "height": 1500,
+      "creator": "Wuzyprod",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:African_tailor_sewing_a_leather_bag.jpg",
+      "title": "African tailor sewing a leather bag"
+    }
+  },
+  "serene": {
+    "hero": {
+      "src": "/templates/serene/hero.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "Basile Morin",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Indoor_pool_of_spa_with_open_door_at_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg",
+      "title": "Indoor pool of spa with open door at Amantaka luxury Resort & Hotel in Luang Prabang Laos"
+    },
+    "bath": {
+      "src": "/templates/serene/bath.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "Basile Morin",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Indoor_pool_and_showers_of_the_spa_at_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg",
+      "title": "Indoor pool and showers of the spa at Amantaka luxury Resort & Hotel in Luang Prabang Laos"
+    },
+    "room": {
+      "src": "/templates/serene/room.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "Basile Morin",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Spa_massage_parlor_in_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg",
+      "title": "Spa massage parlor in Amantaka luxury Resort & Hotel in Luang Prabang Laos"
+    },
+    "arch": {
+      "src": "/templates/serene/arch.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "Basile Morin",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Indoor_pool_and_shower_of_spa_at_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos_front_view.jpg",
+      "title": "Indoor pool and shower of spa at Amantaka luxury Resort & Hotel in Luang Prabang Laos front view"
+    },
+    "tub": {
+      "src": "/templates/serene/tub.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "Basile Morin",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Spa_bath_and_chairs_in_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg",
+      "title": "Spa bath and chairs in Amantaka luxury Resort & Hotel in Luang Prabang Laos"
+    },
+    "lounge": {
+      "src": "/templates/serene/lounge.webp",
+      "width": 2000,
+      "height": 1580,
+      "creator": "Basile Morin",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Reception_lounge_of_the_spa_at_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg",
+      "title": "Reception lounge of the spa at Amantaka luxury Resort & Hotel in Luang Prabang Laos"
+    },
+    "robes": {
+      "src": "/templates/serene/robes.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "Basile Morin",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Spa_bathrobes_and_massage_parlor_in_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg",
+      "title": "Spa bathrobes and massage parlor in Amantaka luxury Resort & Hotel in Luang Prabang Laos"
+    },
+    "room-2": {
+      "src": "/templates/serene/room-2.webp",
+      "width": 2000,
+      "height": 1326,
+      "creator": "Basile Morin",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Spa_massage_parlor_panoramic_view_in_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg",
+      "title": "Spa massage parlor panoramic view in Amantaka luxury Resort & Hotel in Luang Prabang Laos"
+    },
+    "massage": {
+      "src": "/templates/serene/massage.webp",
+      "width": 2000,
+      "height": 1353,
+      "creator": "IQP",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Spa_Picture.jpg",
+      "title": "Spa Picture"
+    },
+    "candle": {
+      "src": "/templates/serene/candle.webp",
+      "width": 2000,
+      "height": 1125,
+      "creator": "Avilash behera",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Spa_interiors_-_1.jpg",
+      "title": "Spa interiors - 1"
+    },
+    "pool": {
+      "src": "/templates/serene/pool.webp",
+      "width": 2000,
+      "height": 1335,
+      "creator": "Park Weggis (Nutzungsrechteinhaber)",
+      "license": "CC BY-SA 3.0 de",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+      "source": "https://commons.wikimedia.org/wiki/File:11_Private_SPA_Cottage.jpg",
+      "title": "11 Private SPA Cottage"
+    }
+  },
+  "hearth": {
+    "hero": {
+      "src": "/templates/hearth/hero.webp",
+      "width": 2000,
+      "height": 1335,
+      "creator": "domdomegg",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Hot_black_coals_glowing_orange_in_a_barbecue_05.jpg",
+      "title": "Hot black coals glowing orange in a barbecue 05"
+    },
+    "coals": {
+      "src": "/templates/hearth/coals.webp",
+      "width": 2000,
+      "height": 1335,
+      "creator": "domdomegg",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Hot_black_coals_glowing_orange_in_a_barbecue_04.jpg",
+      "title": "Hot black coals glowing orange in a barbecue 04"
+    },
+    "steak": {
+      "src": "/templates/hearth/steak.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "domdomegg",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Lamb_chops_on_the_barbecue_07.jpg",
+      "title": "Lamb chops on the barbecue 07"
+    },
+    "grate": {
+      "src": "/templates/hearth/grate.webp",
+      "width": 2000,
+      "height": 1334,
+      "creator": "domdomegg",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Hot_black_coals_glowing_orange_in_a_barbecue_02.jpg",
+      "title": "Hot black coals glowing orange in a barbecue 02"
+    },
+    "sausage": {
+      "src": "/templates/hearth/sausage.webp",
+      "width": 2000,
+      "height": 1286,
+      "creator": "Dietmar Rabich",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:D%C3%BClmen,_B%C3%BCrgerfest_2013_--_2013_--_3139.jpg",
+      "title": "Dülmen, Bürgerfest 2013 -- 2013 -- 3139"
+    },
+    "belly": {
+      "src": "/templates/hearth/belly.webp",
+      "width": 2000,
+      "height": 1510,
+      "creator": "Luis Miguel Bugallo Sánchez (Lmbuga)",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Churrasco_na_grella_a_medio_facer._Galiza.jpg",
+      "title": "Churrasco na grella a medio facer. Galiza"
+    },
+    "shrimp": {
+      "src": "/templates/hearth/shrimp.webp",
+      "width": 2000,
+      "height": 1500,
+      "creator": "Gordon Leggett",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:2026-05-24_02_Grilled_Spot_prawns_(Pandalus_platyceros)_-_Victoria_BC_CAN.jpg",
+      "title": "2026-05-24 02 Grilled Spot prawns (Pandalus platyceros) - Victoria BC CAN"
+    },
+    "tongs": {
+      "src": "/templates/hearth/tongs.webp",
+      "width": 2000,
+      "height": 1500,
+      "creator": "Gordon Leggett",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:2026-05-24_01_Grilled_Spot_prawns_(Pandalus_platyceros)_-_Victoria_BC_CAN.jpg",
+      "title": "2026-05-24 01 Grilled Spot prawns (Pandalus platyceros) - Victoria BC CAN"
+    },
+    "cheese": {
+      "src": "/templates/hearth/cheese.webp",
+      "width": 2000,
+      "height": 1500,
+      "creator": "Hmioannou",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Grilled_Halloumi.jpg",
+      "title": "Grilled Halloumi"
+    },
+    "salmon": {
+      "src": "/templates/hearth/salmon.webp",
+      "width": 2000,
+      "height": 1369,
+      "creator": "Petar Milošević",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Grilled_salmon.jpg",
+      "title": "Grilled salmon"
+    },
+    "claypot": {
+      "src": "/templates/hearth/claypot.webp",
+      "width": 2000,
+      "height": 1772,
+      "creator": "مانفی",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Abgoosht_dizi.jpg",
+      "title": "Abgoosht dizi"
+    },
+    "peppers": {
+      "src": "/templates/hearth/peppers.webp",
+      "width": 2000,
+      "height": 2000,
+      "creator": "Michal Klajban",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Organic_home-grown_tomatoes_-_unripe_to_ripe.jpg",
+      "title": "Organic home-grown tomatoes - unripe to ripe"
+    },
+    "persimmon": {
+      "src": "/templates/hearth/persimmon.webp",
+      "width": 1656,
+      "height": 2000,
+      "creator": "Rodrigo.Argenton",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Caqui_chocolate_em_fundo_preto_03.jpg",
+      "title": "Caqui chocolate em fundo preto 03"
+    },
+    "sour": {
+      "src": "/templates/hearth/sour.webp",
+      "width": 1334,
+      "height": 2000,
+      "creator": "Bhullargraphic",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:A_refined_martini_cocktail_with_lemon_at_a_Melbourne_bar._Perfect_mix_of_elegance_and_refreshment.jpg",
+      "title": "A refined martini cocktail with lemon at a Melbourne bar. Perfect mix of elegance and refreshment"
+    },
+    "rose": {
+      "src": "/templates/hearth/rose.webp",
+      "width": 1501,
+      "height": 2000,
+      "creator": "Missvain",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Cocktail_-_Round_Robin_Bar_-_2018_-_Sarah_Stierch_01.jpg",
+      "title": "Cocktail - Round Robin Bar - 2018 - Sarah Stierch 01"
+    },
+    "bar": {
+      "src": "/templates/hearth/bar.webp",
+      "width": 1500,
+      "height": 2000,
+      "creator": "DanielMichaelPerry",
+      "license": "CC0",
+      "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "source": "https://commons.wikimedia.org/wiki/File:Patio_Cocktail_Bar,_Nicosia,_Cyprus.jpg",
+      "title": "Patio Cocktail Bar, Nicosia, Cyprus"
+    },
+    "knife": {
+      "src": "/templates/hearth/knife.webp",
+      "width": 2000,
+      "height": 1429,
+      "creator": "Frank Schulenburg",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Steelport_6-Inch_Chef_Knife_(2026)-104A6580.jpg",
+      "title": "Steelport 6-Inch Chef Knife (2026)-104A6580"
+    },
+    "room-night": {
+      "src": "/templates/hearth/room-night.webp",
+      "width": 2000,
+      "height": 1500,
+      "creator": "Adam Jones from Kelowna, BC, Canada",
+      "license": "CC BY-SA 2.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Restaurant_Interior_at_Night_-_La_Paz_-_Baja_California_Sur_-_Mexico_(23819856745).jpg",
+      "title": "Restaurant Interior at Night - La Paz - Baja California Sur - Mexico (23819856745)"
+    },
+    "veranda": {
+      "src": "/templates/hearth/veranda.webp",
+      "width": 2000,
+      "height": 1530,
+      "creator": "Basile Morin",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Row_of_round_tables_and_doors_in_restaurant_of_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg",
+      "title": "Row of round tables and doors in restaurant of Amantaka luxury Resort & Hotel in Luang Prabang Laos"
+    },
+    "hall": {
+      "src": "/templates/hearth/hall.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "Basile Morin",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Restaurant_room_of_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg",
+      "title": "Restaurant room of Amantaka luxury Resort & Hotel in Luang Prabang Laos"
+    }
+  },
+  "broadcast": {
+    "concert": {
+      "src": "/templates/broadcast/concert.webp",
+      "width": 2000,
+      "height": 1335,
+      "creator": "PinkBeachPlanet",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Beach-Please-2022-crowd-stage-lights-night-performance.jpg",
+      "title": "Beach-Please-2022-crowd-stage-lights-night-performance"
+    },
+    "documentary": {
+      "src": "/templates/broadcast/documentary.webp",
+      "width": 2000,
+      "height": 1330,
+      "creator": "Shixart1985",
+      "license": "CC BY 2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Drummer_performs_energetically_on_stage_with_vibrant_lights_in_a_lively_concert_setting_during_the_night.jpg",
+      "title": "Drummer performs energetically on stage with vibrant lights in a lively concert setting during the night"
+    },
+    "livestream": {
+      "src": "/templates/broadcast/livestream.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "Shixart1985",
+      "license": "CC BY 2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:A_large_crowd_enjoys_a_music_concert_illuminated_by_colorful_lights_and_a_stunning_stage_display.jpg",
+      "title": "A large crowd enjoys a music concert illuminated by colorful lights and a stunning stage display"
+    },
+    "mv": {
+      "src": "/templates/broadcast/mv.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "Ah leong 99.",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Female_getai_performer,_Singapore_-_20141006.jpg",
+      "title": "Female getai performer, Singapore - 20141006"
+    },
+    "reel": {
+      "src": "/templates/broadcast/reel.webp",
+      "width": 2000,
+      "height": 1330,
+      "creator": "Shixart1985",
+      "license": "CC BY 2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Musician_performs_passionately_on_stage_during_energetic_night_show_with_bright_lights_and_fog.jpg",
+      "title": "Musician performs passionately on stage during energetic night show with bright lights and fog"
+    },
+    "band": {
+      "src": "/templates/broadcast/band.webp",
+      "width": 2000,
+      "height": 1330,
+      "creator": "Shixart1985",
+      "license": "CC BY 2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Live_band_performance_at_an_outdoor_concert_with_lights_and_energetic_crowd_during_nighttime.jpg",
+      "title": "Live band performance at an outdoor concert with lights and energetic crowd during nighttime"
+    },
+    "rig": {
+      "src": "/templates/broadcast/rig.webp",
+      "width": 2000,
+      "height": 1355,
+      "creator": "Department of Defense. American Forces Information Service. Defense Visual Information Center. 1994",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:A_member_of_the_stage_crew_makes_adjustments_on_lights_for_the_US_Navy_Band%27s_Silver_Anniversary_Lollipop_Concert_-_DPLA_-_bba9273ee2b50d2a53595243a16342a9.jpeg",
+      "title": "A member of the stage crew makes adjustments on lights for the US Navy Band's Silver Anniversary Lollipop Concert"
+    },
+    "campaign": {
+      "src": "/templates/broadcast/campaign.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "Oncewerecolours",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Photo_of_a_venetian_mask_in_a_studio_photo_session.jpg",
+      "title": "Photo of a venetian mask in a studio photo session"
+    },
+    "type": {
+      "src": "/templates/broadcast/type.webp",
+      "width": 2000,
+      "height": 1374,
+      "creator": "Lucasbosch",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Standardgraph_2522_2.5%E2%80%937_mm_lettering_guides.jpg",
+      "title": "Standardgraph 2522 2.5–7 mm lettering guides"
+    },
+    "files": {
+      "src": "/templates/broadcast/files.webp",
+      "width": 2000,
+      "height": 745,
+      "creator": "Lucasbosch",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Glardon_Vallorbe_LA2442-0_140_mm_Swiss_cut_0_6-piece_needle_file_set.jpg",
+      "title": "Glardon Vallorbe LA2442-0 140 mm Swiss cut 0 6-piece needle file set"
+    },
+    "product": {
+      "src": "/templates/broadcast/product.webp",
+      "width": 1212,
+      "height": 2000,
+      "creator": "Lucasbosch",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Gedore_No._7_combination_wrenches_6%E2%80%9319_mm.jpg",
+      "title": "Gedore No. 7 combination wrenches 6–19 mm"
+    },
+    "compass": {
+      "src": "/templates/broadcast/compass.webp",
+      "width": 1125,
+      "height": 2000,
+      "creator": "Lucasbosch",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Rotring_S0214750_with_Rapidograph_0.5_mm_drawing_1.5%E2%80%9315_mm_circles.jpg",
+      "title": "Rotring S0214750 with Rapidograph 0.5 mm drawing 1.5–15 mm circles"
+    },
+    "camera": {
+      "src": "/templates/broadcast/camera.webp",
+      "width": 2000,
+      "height": 1328,
+      "creator": "Achim Raschka (talk)",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:13-06-07_RaR_Fujinon_film_camera.jpg",
+      "title": "13-06-07 RaR Fujinon film camera"
+    }
+  },
+  "voyage": {
+    "sky": {
+      "src": "/templates/voyage/sky.webp",
+      "width": 2000,
+      "height": 1500,
+      "creator": "Pinakpani",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Aerial_photograph_of_clouds_from_flight_window_08.jpg",
+      "title": "Aerial photograph of clouds from flight window 08"
+    },
+    "clouds": {
+      "src": "/templates/voyage/clouds.webp",
+      "width": 2000,
+      "height": 1333,
+      "creator": "Jakec",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Cumulus_clouds_as_seen_from_an_airplane.JPG",
+      "title": "Cumulus clouds as seen from an airplane"
+    },
+    "sydney": {
+      "src": "/templates/voyage/sydney.webp",
+      "width": 2000,
+      "height": 1105,
+      "creator": "Diliff",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Sydney_Opera_House_-_Dec_2008.jpg",
+      "title": "Sydney Opera House - Dec 2008"
+    },
+    "toronto": {
+      "src": "/templates/voyage/toronto.webp",
+      "width": 1328,
+      "height": 2000,
+      "creator": "Wladyslaw, Correction of perspective distortion: Niabot",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Toronto_-_ON_-_CN_Tower_bei_Nacht2.jpg",
+      "title": "Toronto - ON - CN Tower bei Nacht2"
+    },
+    "london": {
+      "src": "/templates/voyage/london.webp",
+      "width": 1316,
+      "height": 2000,
+      "creator": "Photograph by Mike Peel (www.mikepeel.net).",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Royal_Arcade,_London_2023_03.jpg",
+      "title": "Royal Arcade, London 2023 03"
+    },
+    "tokyo": {
+      "src": "/templates/voyage/tokyo.webp",
+      "width": 1333,
+      "height": 2000,
+      "creator": "Photograph by Mike Peel (www.mikepeel.net).",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:At_Tokyo_2024_568.jpg",
+      "title": "At Tokyo 2024 568"
+    },
+    "campus": {
+      "src": "/templates/voyage/campus.webp",
+      "width": 1333,
+      "height": 2000,
+      "creator": "Yu Chu Chin",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Mitchell_Building_of_Adelaide_University,_September_2026_(028A0850).jpg",
+      "title": "Mitchell Building of Adelaide University, September 2026 (028A0850)"
+    },
+    "tower": {
+      "src": "/templates/voyage/tower.webp",
+      "width": 1333,
+      "height": 2000,
+      "creator": "Daderot",
+      "license": "CC0",
+      "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "source": "https://commons.wikimedia.org/wiki/File:Main_Building_(University_of_Texas_at_Austin)_-_DSC08585.jpg",
+      "title": "Main Building (University of Texas at Austin) - DSC08585"
+    },
+    "newyork": {
+      "src": "/templates/voyage/newyork.webp",
+      "width": 1333,
+      "height": 2000,
+      "creator": "King of Hearts",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Central_Park_New_York_May_2015_007.jpg",
+      "title": "Central Park New York May 2015 007"
+    },
+    "amsterdam": {
+      "src": "/templates/voyage/amsterdam.webp",
+      "width": 1333,
+      "height": 2000,
+      "creator": "Massimo Catarinella",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:OudezijdsKolkAmsterdam.jpg",
+      "title": "OudezijdsKolkAmsterdam"
+    }
+  },
+  "campus": {
+    "hero": {
+      "src": "/templates/campus/hero.webp",
+      "width": 1920,
+      "height": 1128,
+      "creator": "Jim Evans",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Rice_University_Mechanical_Laboratory_and_Power_House.jpg",
+      "title": "Rice University Mechanical Laboratory and Power House"
+    },
+    "arrive": {
+      "src": "/templates/campus/arrive.webp",
+      "width": 1920,
+      "height": 1080,
+      "creator": "Larry D. Moore",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Godley_School_Main_Building.jpg",
+      "title": "Godley School Main Building"
+    },
+    "lesson": {
+      "src": "/templates/campus/lesson.webp",
+      "width": 1920,
+      "height": 1293,
+      "creator": "Kwameghana(Bright Kwame Ayisi)",
+      "license": "CC0",
+      "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "source": "https://commons.wikimedia.org/wiki/File:The_art_of_writing_010.jpg",
+      "title": "The art of writing 010"
+    },
+    "project": {
+      "src": "/templates/campus/project.webp",
+      "width": 1920,
+      "height": 1281,
+      "creator": "Joshua Tree National Park",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Student_writing_in_field_notebook_(25630489366).jpg",
+      "title": "Student writing in field notebook (25630489366)"
+    },
+    "young": {
+      "src": "/templates/campus/young.webp",
+      "width": 1920,
+      "height": 1281,
+      "creator": "Joshua Tree National Park",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Student_writing_in_field_notebook_(25564115031).jpg",
+      "title": "Student writing in field notebook (25564115031)"
+    },
+    "teen": {
+      "src": "/templates/campus/teen.webp",
+      "width": 1920,
+      "height": 1440,
+      "creator": "English106",
+      "license": "CC BY 2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Female_student_writing_and_studying_at_dorm_room_desk.jpg",
+      "title": "Female student writing and studying at dorm room desk"
+    },
+    "club": {
+      "src": "/templates/campus/club.webp",
+      "width": 1920,
+      "height": 1309,
+      "creator": "Tulane Public Relations",
+      "license": "CC BY 2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Music_Lessons_Tulane.jpg",
+      "title": "Music Lessons Tulane"
+    },
+    "band": {
+      "src": "/templates/campus/band.webp",
+      "width": 1920,
+      "height": 1371,
+      "creator": "U.S. Navy photo by Mass Communication Specialist 2nd Class Jonathen E. Davis",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:US_Navy_110420-N-RM525-032_Musician_3rd_Class_Christopher_Roland,_from_Atlus,_Okla.,_gives_a_music_lesson_to_a_student.jpg",
+      "title": "US Navy 110420-N-RM525-032 Musician 3rd Class Christopher Roland, from Atlus, Okla., gives a music lesson to a student"
+    },
+    "library": {
+      "src": "/templates/campus/library.webp",
+      "width": 1920,
+      "height": 1275,
+      "creator": "Ralf Roletschek",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:13-11-02-olb-by-RalfR-03.jpg",
+      "title": "13-11-02-olb-by-RalfR-03"
+    },
+    "atrium": {
+      "src": "/templates/campus/atrium.webp",
+      "width": 1920,
+      "height": 1440,
+      "creator": "Matthew Petroff",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:George-peabody-library.jpg",
+      "title": "George-peabody-library"
+    },
+    "reading": {
+      "src": "/templates/campus/reading.webp",
+      "width": 1920,
+      "height": 1280,
+      "creator": "Basile Morin",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Interior_of_the_library_at_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg",
+      "title": "Interior of the library at Amantaka luxury Resort & Hotel in Luang Prabang Laos"
+    },
+    "artclass": {
+      "src": "/templates/campus/artclass.webp",
+      "width": 1920,
+      "height": 1536,
+      "creator": "Johnston, Frances Benjamin, 1864-1952, photographer",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Women_painting_at_easels_in_a_class_at_the_Art_Students_League,_Washington,_D.C._LCCN2012645985.jpg",
+      "title": "Women painting at easels in a class at the Art Students League, Washington, D.C. LCCN2012645985"
+    },
+    "sport": {
+      "src": "/templates/campus/sport.webp",
+      "width": 1920,
+      "height": 1080,
+      "creator": "Igor123121",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Sports_fields_and_areas,_Na_Groblach_Square,_Nowy_%C5%9Awiat,_Krak%C3%B3w,_Poland.jpg",
+      "title": "Sports fields and areas, Na Groblach Square, Nowy Świat, Kraków, Poland"
+    },
+    "painting": {
+      "src": "/templates/campus/painting.webp",
+      "width": 1400,
+      "height": 1099,
+      "creator": "Sam Hood",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Primary_school_art_class,_n.d.,_by_Sam_Hood_(6094300269).jpg",
+      "title": "Primary school art class, n.d., by Sam Hood (6094300269)"
+    }
+  }
+}

@@ -1,0 +1,138 @@
+"use client";
+
+import { SplitReveal } from "@/components/motion/SplitReveal";
+import { Booking, services } from "@/templates/lanh/Booking";
+import "@/templates/lanh/lanh.css";
+
+const steps = [
+  { title: "Chọn dịch vụ", text: "Bốn chuyên khoa, mô tả rõ thời gian và việc sẽ làm." },
+  { title: "Chọn ngày giờ", text: "Chỉ hiện khung giờ còn trống — không gọi điện chờ máy." },
+  { title: "Đến khám", text: "Nhận nhắc lịch trước một ngày, đến đúng giờ, không xếp hàng." },
+];
+
+export function Lanh() {
+  return (
+    <div className="tpl tpl-lanh">
+      <header className="absolute inset-x-0 top-0 z-20">
+        <div className="container-page flex h-20 items-center justify-between">
+          <a href="#dau-trang" className="flex items-center gap-2 text-xl">
+            <span aria-hidden className="lanh-blob size-6 bg-(--t-accent)" />
+            Lành
+          </a>
+          <nav aria-label="Điều hướng Lành" className="hidden md:block">
+            <ul className="flex gap-8 text-sm text-(--t-muted)">
+              {[
+                ["Dịch vụ", "#dich-vu"],
+                ["Cách hoạt động", "#cach-hoat-dong"],
+                ["Đặt lịch", "#dat-lich"],
+              ].map(([label, href]) => (
+                <li key={href}>
+                  <a href={href} className="hover:text-(--t-fg)">
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <a href="#dat-lich" className="lanh-btn h-10 text-sm">
+            Đặt lịch
+          </a>
+        </div>
+      </header>
+
+      {/* Hero với hình khối mềm */}
+      <section id="dau-trang" aria-labelledby="lanh-title" className="relative isolate flex min-h-svh items-center overflow-hidden pt-24 pb-16">
+        <div aria-hidden className="absolute inset-0 -z-10">
+          <div className="lanh-blob absolute top-[12%] right-[-8%] size-[48vmax] bg-(--t-soft)" />
+          <div className="lanh-blob absolute bottom-[-18%] left-[-10%] size-[36vmax] bg-(--t-warm)" style={{ animationDelay: "-4s" }} />
+        </div>
+        <div className="container-page grid items-center gap-12 lg:grid-cols-12">
+          <div className="lg:col-span-7">
+            <p className="inline-flex rounded-full bg-(--t-surface) px-4 py-2 text-sm text-(--t-muted)">Mở cửa 7:30 – 17:00 · Thứ Hai – Thứ Bảy</p>
+            <SplitReveal as="h1" id="lanh-title" trigger="intro" className="mt-6 text-[clamp(2.8rem,1rem+5vw,6.5rem)] leading-[1.02] tracking-[-0.035em]">
+              <span className="block">Chăm sóc sức khỏe</span>
+              <span className="block">
+                <em>nhẹ nhàng,</em> đặt lịch
+              </span>
+              <span className="block">trong một phút.</span>
+            </SplitReveal>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <a href="#dat-lich" className="lanh-btn">
+                Đặt lịch ngay
+              </a>
+              <a href="#dich-vu" className="lanh-btn lanh-btn-ghost">
+                Xem dịch vụ
+              </a>
+            </div>
+          </div>
+          <div className="lanh-card hidden p-6 lg:col-span-5 lg:block">
+            <p className="text-sm text-(--t-muted)">Khung giờ trống gần nhất</p>
+            <ul className="mt-4 space-y-3">
+              {services.slice(0, 3).map((s, i) => (
+                <li key={s.id} className="flex items-center justify-between rounded-xl bg-(--t-bg) px-4 py-3">
+                  <span>{s.name}</span>
+                  <span className="rounded-full bg-(--t-soft) px-3 py-1 text-sm tabular-nums">{["08:30", "09:00", "14:00"][i]}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* Dịch vụ */}
+      <section id="dich-vu" aria-labelledby="lanh-services" className="py-24">
+        <div className="container-page">
+          <h2 id="lanh-services" className="text-[clamp(2.2rem,1rem+3vw,4rem)] leading-[1.05] tracking-[-0.03em]">
+            Bốn chuyên khoa, <em>một nơi</em>
+          </h2>
+          <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {services.map((s, i) => (
+              <li key={s.id} className="lanh-card flex min-h-56 flex-col justify-between p-6 transition-transform duration-500 hover:-translate-y-1">
+                <span aria-hidden className="lanh-blob size-12" style={{ background: i % 2 ? "var(--t-warm)" : "var(--t-soft)", animationDelay: `${-i * 2}s` }} />
+                <div>
+                  <h3 className="text-xl">{s.name}</h3>
+                  <p className="mt-2 text-sm text-(--t-muted)">{s.note}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Cách hoạt động */}
+      <section id="cach-hoat-dong" aria-labelledby="lanh-how" className="pb-24">
+        <div className="container-page grid gap-10 lg:grid-cols-12">
+          <h2 id="lanh-how" className="text-[clamp(2.2rem,1rem+3vw,4rem)] leading-[1.05] tracking-[-0.03em] lg:col-span-4">
+            Ba bước, <em>không chờ đợi</em>
+          </h2>
+          <ol className="grid gap-4 sm:grid-cols-3 lg:col-span-8">
+            {steps.map((s, i) => (
+              <li key={s.title} className="border-t-2 border-(--t-accent) pt-5">
+                <span className="text-sm text-(--t-muted)">0{i + 1}</span>
+                <h3 className="mt-2 text-xl">{s.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-(--t-muted)">{s.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Web app đặt lịch */}
+      <section id="dat-lich" aria-labelledby="lanh-booking" className="bg-(--t-soft) py-24">
+        <div className="container-page grid gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <h2 id="lanh-booking" className="text-[clamp(2.2rem,1rem+3vw,4rem)] leading-[1.05] tracking-[-0.03em]">
+              Đặt lịch <em>khám</em>
+            </h2>
+            <p className="mt-5 leading-relaxed text-(--t-muted)">
+              Ứng dụng đặt lịch nhiều bước: kiểm tra dữ liệu, hiển thị khung giờ trống, xác nhận rõ ràng. Trong mẫu demo, dữ liệu chỉ nằm trong trình duyệt.
+            </p>
+          </div>
+          <div className="lg:col-span-8">
+            <Booking />
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

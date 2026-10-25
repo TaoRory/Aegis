@@ -1,0 +1,104 @@
+/* Mẫu 05 — Mây Bạc (trang sức / bán hàng). Token riêng của mẫu. */
+@layer components {
+  .tpl-may-bac {
+    --t-bg: #d9d9d6;
+    --t-surface: #e9e9e6;
+    --t-card: #f2f2ef;
+    --t-fg: #141414;
+    --t-muted: #5d5d5a;
+    --t-accent: #e2589c;
+    --t-gem-deep: #7a1f4f;
+    --t-line: rgb(20 20 20 / 0.16);
+    --t-silver-1: #fbfbfb;
+    --t-silver-2: #b9bcbf;
+    --t-silver-3: #8a8e92;
+    --t-font-display: var(--font-may-bac-serif), serif;
+    --t-font-body: var(--font-may-bac-sans), sans-serif;
+    --t-font-accent: var(--font-may-bac-serif), serif;
+    --t-display-weight: 400;
+  }
+
+  .may-bac-brand {
+    font-family: var(--t-font-display);
+    font-size: clamp(5rem, 24vw, 30rem);
+    line-height: 0.82;
+    letter-spacing: -0.04em;
+    font-variation-settings: "wdth" 87, "opsz" 1200;
+  }
+
+  .may-bac-word {
+    font-weight: 800;
+    font-size: clamp(1rem, 0.6rem + 1.4vw, 2rem);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .may-bac-catalogue {
+    font-weight: 700;
+    font-size: clamp(3.4rem, 1rem + 13vw, 15rem);
+    line-height: 0.85;
+    letter-spacing: -0.06em;
+    text-transform: uppercase;
+    color: var(--t-surface);
+    -webkit-text-stroke: 1px var(--t-muted);
+  }
+
+  .may-bac-filter[aria-pressed="true"] {
+    color: var(--t-fg);
+    text-decoration: underline;
+    text-underline-offset: 6px;
+  }
+
+  .may-bac-art {
+    transition: transform 0.9s var(--motion-ease-out);
+  }
+
+  .may-bac-card:hover .may-bac-art {
+    transform: rotate(-10deg) scale(1.08);
+  }
+
+  .may-bac-price::before {
+    content: "[ ";
+  }
+
+  .may-bac-price::after {
+    content: " ]";
+  }
+
+  .may-bac-drawer {
+    transform: translateX(100%);
+    transition: transform 0.6s var(--motion-ease-out);
+  }
+
+  .may-bac-drawer[data-open="true"] {
+    transform: none;
+  }
+
+  .may-bac-scrim {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .may-bac-scrim[data-open="true"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .may-bac-swing {
+    transform-origin: 50% 0;
+    animation: may-bac-swing 6s ease-in-out infinite;
+  }
+}
+
+@keyframes may-bac-swing {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}

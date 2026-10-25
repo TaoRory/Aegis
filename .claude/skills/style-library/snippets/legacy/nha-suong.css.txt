@@ -1,0 +1,88 @@
+/* Mẫu 02 — Nhà Sương (resort / kiến trúc). Token riêng của mẫu. */
+@layer components {
+  .tpl-nha-suong {
+    --t-bg: #ebe6da;
+    --t-surface: #f3efe6;
+    --t-fg: #2b3428;
+    --t-muted: #6b7163;
+    --t-accent: #8a6a3f;
+    --t-line: rgb(43 52 40 / 0.18);
+    --t-mist: #e3e6de;
+    --t-ridge-1: #c4cbbd;
+    --t-ridge-2: #9fab98;
+    --t-ridge-3: #75846f;
+    --t-ridge-4: #4d5c48;
+    --t-ridge-5: #313d2e;
+    --t-font-display: var(--font-nha-suong-serif), serif;
+    --t-font-body: var(--font-nha-suong-sans), sans-serif;
+    --t-font-accent: var(--font-nha-suong-serif), serif;
+    --t-display-weight: 300;
+  }
+
+  .nha-suong-caps {
+    font-size: 0.6875rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+  }
+
+  .nha-suong-sky {
+    background: linear-gradient(to bottom, #d9ddd4 0%, var(--t-mist) 45%, var(--t-bg) 100%);
+  }
+
+  .nha-suong-sun {
+    background: radial-gradient(circle, #f6efe0 0%, rgb(246 239 224 / 0) 70%);
+  }
+
+  /* Dải sương trôi ngang */
+  .nha-suong-fog {
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent);
+    filter: blur(18px);
+  }
+
+  .nha-suong-dropcap::first-letter {
+    float: left;
+    font-family: var(--t-font-display);
+    font-size: 4.6em;
+    line-height: 0.82;
+    padding: 0.06em 0.12em 0 0;
+    color: var(--t-accent);
+  }
+
+  .nha-suong-drawing path,
+  .nha-suong-drawing line,
+  .nha-suong-drawing rect,
+  .nha-suong-drawing circle,
+  .nha-suong-drawing polyline {
+    fill: none;
+    stroke: var(--t-fg);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .nha-suong-drawing .accent {
+    stroke: var(--t-accent);
+  }
+
+  .nha-suong-villa {
+    transition: background-color 0.6s ease;
+  }
+
+  .nha-suong-villa:hover {
+    background: var(--t-surface);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nha-suong-fog {
+    animation: nha-suong-drift 26s linear infinite alternate;
+  }
+}
+
+@keyframes nha-suong-drift {
+  from {
+    transform: translateX(-20%);
+  }
+  to {
+    transform: translateX(20%);
+  }
+}

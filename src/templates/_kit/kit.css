@@ -1,0 +1,80 @@
+/*
+ * CSS dùng chung cho các mẫu demo. Mỗi mẫu có file CSS riêng khai báo token
+ * dưới class gốc (.tpl-<slug>): --t-bg, --t-fg, --t-muted, --t-accent, --t-line…
+ * Component của mẫu dùng utility dạng bg-(--t-bg), text-(--t-fg)…
+ */
+
+@layer components {
+  .tpl {
+    background: var(--t-bg);
+    color: var(--t-fg);
+    font-family: var(--t-font-body);
+    overflow-x: clip;
+  }
+
+  .tpl h1,
+  .tpl h2,
+  .tpl h3 {
+    font-family: var(--t-font-display);
+    font-weight: var(--t-display-weight, 500);
+  }
+
+  .tpl em {
+    font-family: var(--t-font-accent, var(--t-font-display));
+    font-style: italic;
+  }
+
+  .tpl ::selection {
+    background: var(--t-accent);
+    color: var(--t-bg);
+  }
+
+  .tpl :focus-visible {
+    outline: 2px solid var(--t-accent);
+    outline-offset: 3px;
+  }
+
+  /* ---------- Marquee ---------- */
+  .marquee {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee var(--marquee-duration, 30s) linear infinite;
+  }
+
+  .marquee-reverse .marquee-track {
+    animation-direction: reverse;
+  }
+
+  .marquee-group {
+    display: flex;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+/* Con trỏ "view/drag" của Aegis trên trang mẫu: dùng màu của chính mẫu (khai báo --tpl-cursor/--tpl-cursor-ink
+   bằng :root:has(.tpl-<slug>) trong CSS của mẫu), mặc định mực đen. */
+html:has(.tpl)[data-cursor="view"] .cursor-ring::before {
+  background: var(--tpl-cursor, #111);
+  border-color: var(--tpl-cursor, #111);
+}
+
+html:has(.tpl) .cursor-label {
+  color: var(--tpl-cursor-ink, #fff);
+}

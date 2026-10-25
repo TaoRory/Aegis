@@ -1,0 +1,108 @@
+/* BROADCAST: token riêng. Công thức: .claude/skills/style-library/styles/broadcast.md */
+@layer components {
+  .tpl-broadcast {
+    --t-bg: #f1efea;
+    --t-fg: #0b0b0b;
+    --t-muted: #6b6965;
+    --t-accent: #ff2d00;
+    --t-line: rgb(11 11 11 / 0.2);
+    --t-dark: #0b0b0b;
+    --t-paper: #f1efea;
+    --t-font-display: var(--font-broadcast-display), system-ui, sans-serif;
+    --t-font-body: var(--font-broadcast-display), system-ui, sans-serif;
+    --t-font-mono: var(--font-broadcast-mono), ui-monospace, monospace;
+    --t-display-weight: 800;
+  }
+
+  .tpl-broadcast .bc-mono {
+    font-family: var(--t-font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* Tuyên ngôn: mỗi dòng dàn kín ngang, từng từ có trục wdth riêng (GSAP scrub đổi --w) */
+  .tpl-broadcast .bc-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.22em;
+    font-weight: 850;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .tpl-broadcast .bc-line > span {
+    font-variation-settings: "wdth" var(--w, 100);
+  }
+
+  /* Hàng lịch phát: đảo màu cả hàng khi hover (Aura/Signal-A) */
+  .tpl-broadcast .bc-row {
+    position: relative;
+    isolation: isolate;
+    transition: color 0.35s ease;
+  }
+
+  .tpl-broadcast .bc-row::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--t-dark);
+    clip-path: inset(50% 0 50% 0);
+    transition: clip-path 0.45s cubic-bezier(0.7, 0, 0.2, 1);
+  }
+
+  @media (hover: hover) {
+    .tpl-broadcast .bc-row:hover,
+    .tpl-broadcast .bc-row:focus-visible {
+      color: var(--t-paper);
+    }
+
+    .tpl-broadcast .bc-row:hover::before,
+    .tpl-broadcast .bc-row:focus-visible::before {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  .tpl-broadcast .bc-rec {
+    animation: bc-blink 1.2s steps(1) infinite;
+  }
+
+  @keyframes bc-blink {
+    50% {
+      opacity: 0.15;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tpl-broadcast .bc-rec {
+      animation: none;
+    }
+  }
+
+  /* Dịch vụ: chữ giãn trục wdth khi mở/hover */
+  .tpl-broadcast .bc-service-name {
+    font-variation-settings: "wdth" 75;
+    transition: font-variation-settings 0.7s cubic-bezier(0.7, 0, 0.2, 1);
+  }
+
+  .tpl-broadcast .bc-service:hover .bc-service-name,
+  .tpl-broadcast .bc-service[data-open="true"] .bc-service-name {
+    font-variation-settings: "wdth" 125;
+  }
+
+  .tpl-broadcast .bc-scan {
+    background: repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.18) 0 1px, transparent 1px 3px);
+    mix-blend-mode: multiply;
+  }
+
+  .tpl-broadcast dialog::backdrop {
+    background: rgb(11 11 11 / 0.85);
+  }
+}
+
+:root:has(.tpl-broadcast) {
+  --tpl-cursor: #ff2d00;
+  --tpl-cursor-ink: #0b0b0b;
+}

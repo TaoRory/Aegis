@@ -1,0 +1,98 @@
+{
+  "atelier": {
+    "cover": {
+      "src": "/templates/atelier.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/templates/atelier-full.webp",
+      "width": 900,
+      "height": 4200
+    }
+  },
+  "signal": {
+    "cover": {
+      "src": "/templates/signal.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/templates/signal-full.webp",
+      "width": 900,
+      "height": 3593
+    }
+  },
+  "serene": {
+    "cover": {
+      "src": "/templates/serene.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/templates/serene-full.webp",
+      "width": 900,
+      "height": 4200
+    }
+  },
+  "hearth": {
+    "cover": {
+      "src": "/templates/hearth.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/templates/hearth-full.webp",
+      "width": 900,
+      "height": 3453
+    }
+  },
+  "broadcast": {
+    "cover": {
+      "src": "/templates/broadcast.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/templates/broadcast-full.webp",
+      "width": 900,
+      "height": 3343
+    }
+  },
+  "playground": {
+    "cover": {
+      "src": "/templates/playground.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/templates/playground-full.webp",
+      "width": 900,
+      "height": 3136
+    }
+  },
+  "voyage": {
+    "cover": {
+      "src": "/templates/voyage.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/templates/voyage-full.webp",
+      "width": 900,
+      "height": 4200
+    }
+  },
+  "campus": {
+    "cover": {
+      "src": "/templates/campus.webp",
+      "width": 1200,
+      "height": 750
+    },
+    "full": {
+      "src": "/templates/campus-full.webp",
+      "width": 900,
+      "height": 4200
+    }
+  }
+}

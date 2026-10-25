@@ -1,0 +1,159 @@
+@import "tailwindcss";
+@import "./tokens.css";
+@import "./effects.css";
+@import "../components/fx/fx.css";
+@import "../templates/_kit/kit.css";
+
+/* Bỏ bảng màu/font mặc định của Tailwind: component chỉ dùng được token của Aegis */
+@theme {
+  --color-*: initial;
+  --font-*: initial;
+}
+
+/* Ánh xạ token (tokens.css) sang utility. `inline` để giá trị đọc tại phần tử → data-surface ghi đè được. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-subtle: var(--fg-subtle);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-blend: var(--blend-fg);
+
+  --font-sans: var(--font-family-sans);
+  --font-serif: var(--font-family-serif);
+  --font-mono: var(--font-family-mono);
+
+  --text-hero: var(--type-hero);
+  --text-hero--line-height: var(--type-leading-hero);
+  --text-hero--letter-spacing: var(--type-tracking-hero);
+  --text-mega: var(--type-mega);
+  --text-mega--line-height: 0.95;
+  --text-mega--letter-spacing: var(--type-tracking-hero);
+  --text-h2: var(--type-h2);
+  --text-h2--line-height: 1;
+  --text-h2--letter-spacing: var(--type-tracking-heading);
+  --text-h3: var(--type-h3);
+  --text-h3--line-height: 1.08;
+  --text-h3--letter-spacing: var(--type-tracking-heading);
+  --text-statement: var(--type-statement);
+  --text-statement--line-height: 1.16;
+  --text-statement--letter-spacing: -0.025em;
+  --text-lead: var(--type-lead);
+  --text-lead--line-height: 1.6;
+  --text-label: var(--type-label);
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: var(--type-tracking-label);
+
+  --radius-sm: var(--corner-sm);
+  --radius-md: var(--corner-md);
+  --radius-lg: var(--corner-lg);
+  --radius-pill: var(--corner-pill);
+
+  --ease-out: var(--motion-ease-out);
+  --ease-in-out: var(--motion-ease-in-out);
+}
+
+/* ---------- Base ---------- */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    background-color: var(--palette-ink);
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-family-sans);
+    font-variation-settings: "wdth" 100;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  [data-surface] {
+    color: var(--fg);
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--on-accent);
+  }
+
+  [tabindex="-1"]:focus {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  em,
+  .serif {
+    font-family: var(--font-family-serif);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ---------- Utility dùng chung ---------- */
+@utility container-page {
+  width: 100%;
+  max-width: calc(var(--layout-max) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+@utility section-y {
+  padding-block: var(--section-y);
+}
+
+/* Nhãn kỹ thuật kiểu bản vẽ: [01] — DỊCH VỤ */
+@utility label {
+  font-family: var(--font-family-mono);
+  font-size: var(--type-label);
+  font-weight: 500;
+  letter-spacing: var(--type-tracking-label);
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+/* Dấu "+" ở 4 góc khung (dùng trên phần tử position: relative) */
+@utility frame-marks {
+  --mark: 9px;
+  background:
+    linear-gradient(var(--fg-subtle), var(--fg-subtle)) top left / var(--mark) 1px,
+    linear-gradient(var(--fg-subtle), var(--fg-subtle)) top left / 1px var(--mark),
+    linear-gradient(var(--fg-subtle), var(--fg-subtle)) top right / var(--mark) 1px,
+    linear-gradient(var(--fg-subtle), var(--fg-subtle)) top right / 1px var(--mark),
+    linear-gradient(var(--fg-subtle), var(--fg-subtle)) bottom left / var(--mark) 1px,
+    linear-gradient(var(--fg-subtle), var(--fg-subtle)) bottom left / 1px var(--mark),
+    linear-gradient(var(--fg-subtle), var(--fg-subtle)) bottom right / var(--mark) 1px,
+    linear-gradient(var(--fg-subtle), var(--fg-subtle)) bottom right / 1px var(--mark);
+  background-repeat: no-repeat;
+}
+
+@custom-variant can-hover (@media (hover: hover) and (pointer: fine));
+@custom-variant motion-on (&:where([data-motion="on"] *));

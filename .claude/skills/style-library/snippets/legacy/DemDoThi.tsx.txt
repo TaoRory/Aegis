@@ -1,0 +1,277 @@
+"use client";
+
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+
+import { gsap, MQ, useGSAP } from "@/lib/motion";
+import { Marquee } from "@/templates/_kit/Marquee";
+import "@/templates/dem-do-thi/dem-do-thi.css";
+
+/** Ngày diễn ra (giả định) */
+const EVENT_TIME = new Date("2027-06-12T20:00:00+07:00").getTime();
+
+const lineup = [
+  { name: "Tầng Thượng", stage: "Sân khấu Sông", time: "21:40", color: "var(--t-accent)" },
+  { name: "Đèn Pin", stage: "Sân khấu Phố", time: "20:30", color: "var(--t-violet)" },
+  { name: "Mưa Nhiệt Đới", stage: "Sân khấu Sông", time: "22:50", color: "var(--t-yellow)" },
+  { name: "Xe Đạp Điện", stage: "Sân khấu Mái", time: "19:45", color: "var(--t-accent)" },
+  { name: "Nhịp Phố", stage: "Sân khấu Phố", time: "18:30", color: "var(--t-violet)" },
+  { name: "Tổ Hợp 27", stage: "Sân khấu Mái", time: "23:30", color: "var(--t-yellow)" },
+];
+
+const schedule = [
+  {
+    day: "Ngày 1 — 12.06",
+    items: [
+      ["17:00", "Mở cổng · Chợ đêm ẩm thực"],
+      ["18:30", "Nhịp Phố — Sân khấu Phố"],
+      ["19:45", "Xe Đạp Điện — Sân khấu Mái"],
+      ["21:40", "Tầng Thượng — Sân khấu Sông"],
+    ],
+  },
+  {
+    day: "Ngày 2 — 13.06",
+    items: [
+      ["16:00", "Workshop vẽ tranh tường"],
+      ["20:30", "Đèn Pin — Sân khấu Phố"],
+      ["22:50", "Mưa Nhiệt Đới — Sân khấu Sông"],
+      ["23:30", "Tổ Hợp 27 — Sân khấu Mái"],
+    ],
+  },
+];
+
+const tickets = [
+  { name: "Vé một đêm", perks: ["Vào cổng một ngày", "Khu ẩm thực", "Khu nghệ thuật đường phố"] },
+  { name: "Vé hai đêm", perks: ["Vào cổng cả hai ngày", "Ưu tiên lối vào", "Túi quà lễ hội"] },
+  { name: "Vé sân thượng", perks: ["Khu xem riêng trên mái", "Quầy đồ uống riêng", "Gặp gỡ nghệ sĩ"] },
+];
+
+function Countdown() {
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    const first = window.setTimeout(() => setNow(Date.now()), 0);
+    return () => {
+      window.clearInterval(id);
+      window.clearTimeout(first);
+    };
+  }, []);
+  const left = now === null ? null : Math.max(0, EVENT_TIME - now);
+  const parts = [
+    ["Ngày", left === null ? null : Math.floor(left / 86_400_000)],
+    ["Giờ", left === null ? null : Math.floor(left / 3_600_000) % 24],
+    ["Phút", left === null ? null : Math.floor(left / 60_000) % 60],
+    ["Giây", left === null ? null : Math.floor(left / 1000) % 60],
+  ] as const;
+  return (
+    <dl aria-label="Đếm ngược tới ngày diễn ra" className="grid grid-cols-4 gap-2">
+      {parts.map(([label, value]) => (
+        <div key={label} className="border border-(--t-line) px-3 py-2">
+          <dt className="ddt-label text-(--t-muted)">{label}</dt>
+          <dd className="ddt-display mt-1 text-[clamp(1.8rem,1rem+2vw,3rem)] tabular-nums">
+            {value === null ? "--" : String(value).padStart(2, "0")}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+export function DemDoThi() {
+  const heroRef = useRef<HTMLElement>(null);
+  const [day, setDay] = useState(0);
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add(MQ.anyMotion, () => {
+        const lines = heroRef.current?.querySelectorAll<HTMLElement>("[data-line]") ?? [];
+        const inners = heroRef.current?.querySelectorAll<HTMLElement>("[data-line-inner]") ?? [];
+        // Vào trang (lớp trong): từng dòng trượt vào từ hai phía
+        gsap.from(inners, { xPercent: (i) => (i % 2 ? 40 : -40), opacity: 0, duration: 1.2, ease: "expo.out", stagger: 0.1 });
+        // Cuộn (lớp ngoài): các dòng trôi ngược chiều nhau — tách lớp để hai tween không giành cùng thuộc tính
+        lines.forEach((line, i) => {
+          gsap.to(line, {
+            xPercent: i % 2 ? -18 : 18,
+            ease: "none",
+            scrollTrigger: { trigger: heroRef.current, start: "top top", end: "bottom top", scrub: true },
+          });
+        });
+      });
+      return () => mm.revert();
+    },
+    { scope: heroRef },
+  );
+
+  const onTabKey = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+    const next = (day + (event.key === "ArrowRight" ? 1 : -1) + schedule.length) % schedule.length;
+    setDay(next);
+    tabsRef.current?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next]?.focus();
+  };
+
+  return (
+    <div className="tpl tpl-dem-do-thi">
+      <header className="absolute inset-x-0 top-0 z-20">
+        <div className="container-page flex h-20 items-center justify-between">
+          <a href="#dau-trang" className="ddt-display text-2xl">
+            Đêm Đô Thị <span className="text-(--t-accent)">’27</span>
+          </a>
+          <nav aria-label="Điều hướng Đêm Đô Thị" className="hidden md:block">
+            <ul className="ddt-label flex gap-8">
+              {[
+                ["Đội hình", "#doi-hinh"],
+                ["Lịch trình", "#lich-trinh"],
+                ["Vé", "#ve"],
+              ].map(([label, href]) => (
+                <li key={href}>
+                  <a href={href} className="hover:text-(--t-accent)">
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <a href="#ve" className="ddt-label bg-(--t-accent) px-4 py-2.5 text-(--t-bg) hover:bg-(--t-yellow)">
+            Mua vé
+          </a>
+        </div>
+      </header>
+
+      {/* Hero: chữ khổng lồ xếp chồng */}
+      <section ref={heroRef} id="dau-trang" aria-labelledby="ddt-title" className="relative flex min-h-svh flex-col justify-center overflow-hidden pt-24 pb-10">
+        <h1 id="ddt-title" className="ddt-display">
+          <span data-line className="ddt-hero-line block pl-[4vw]">
+            <span data-line-inner className="inline-block">
+              Đêm
+            </span>
+          </span>
+          <span data-line className="ddt-hero-line ddt-outline block text-right">
+            <span data-line-inner className="inline-block">
+              Đô Thị
+            </span>
+          </span>
+          <span data-line className="ddt-hero-line block pl-[18vw] text-(--t-accent)">
+            <span data-line-inner className="inline-block">
+              2027
+            </span>
+          </span>
+        </h1>
+        <div className="container-page mt-8 grid gap-6 md:grid-cols-2 md:items-end">
+          <p className="ddt-label max-w-[26rem] leading-relaxed text-(--t-muted)">
+            Lễ hội âm nhạc &amp; ánh sáng hai đêm bên sông · 12 – 13.06.2027 · Địa điểm minh họa
+          </p>
+          <Countdown />
+        </div>
+      </section>
+
+      <div className="border-y-2 border-(--t-bg) bg-(--t-accent) py-4 text-(--t-bg)">
+        <Marquee duration={18}>
+          {["Âm nhạc", "Ánh sáng", "Ẩm thực", "Nghệ thuật đường phố", "Hai đêm", "Ba sân khấu"].map((w) => (
+            <span key={w} className="ddt-display px-6 text-[clamp(1.8rem,1rem+2.4vw,3.2rem)]">
+              {w} <span aria-hidden>✶</span>
+            </span>
+          ))}
+        </Marquee>
+      </div>
+
+      {/* Đội hình */}
+      <section id="doi-hinh" aria-labelledby="ddt-lineup" className="py-28">
+        <div className="container-page">
+          <div className="flex items-end justify-between">
+            <h2 id="ddt-lineup" className="ddt-display text-[clamp(3rem,1rem+6vw,7rem)]">
+              Đội hình
+            </h2>
+            <p className="ddt-label text-(--t-muted)">06 nghệ sĩ · tên giả định</p>
+          </div>
+          <ul className="mt-10 border-t border-(--t-line)">
+            {lineup.map((artist, i) => (
+              <li
+                key={artist.name}
+                className="ddt-row flex flex-wrap items-baseline justify-between gap-4 border-b border-(--t-line) px-2 py-4"
+                style={{ "--row-color": artist.color } as CSSProperties}
+              >
+                <span className="ddt-display text-[clamp(2.6rem,1rem+5vw,6rem)]">
+                  <span className="ddt-label mr-4 align-top">{String(i + 1).padStart(2, "0")}</span>
+                  {artist.name}
+                </span>
+                <span className="ddt-row-meta ddt-label text-(--t-muted) transition-colors">
+                  {artist.stage} · {artist.time}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Lịch trình dạng tab */}
+      <section id="lich-trinh" aria-labelledby="ddt-schedule" className="bg-(--t-violet) py-28 text-(--t-bg)">
+        <div className="container-page grid gap-10 lg:grid-cols-12">
+          <h2 id="ddt-schedule" className="ddt-display text-[clamp(3rem,1rem+6vw,7rem)] lg:col-span-5">
+            Lịch trình
+          </h2>
+          <div className="lg:col-span-7">
+            <div ref={tabsRef} role="tablist" aria-label="Chọn ngày" className="flex gap-2">
+              {schedule.map((d, i) => (
+                <button
+                  key={d.day}
+                  id={`ddt-tab-${i}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={day === i}
+                  aria-controls={`ddt-panel-${i}`}
+                  tabIndex={day === i ? 0 : -1}
+                  onClick={() => setDay(i)}
+                  onKeyDown={onTabKey}
+                  className="ddt-tab ddt-label border-2 border-(--t-bg) px-4 py-2.5 transition-colors"
+                >
+                  {d.day}
+                </button>
+              ))}
+            </div>
+            {schedule.map((d, i) => (
+              <ul key={d.day} id={`ddt-panel-${i}`} role="tabpanel" aria-labelledby={`ddt-tab-${i}`} hidden={day !== i} className="mt-8 border-t-2 border-(--t-bg)">
+                {d.items.map(([time, text]) => (
+                  <li key={time} className="flex gap-8 border-b-2 border-(--t-bg) py-5">
+                    <span className="ddt-display w-24 text-3xl">{time}</span>
+                    <span className="text-lg font-medium">{text}</span>
+                  </li>
+                ))}
+              </ul>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Vé */}
+      <section id="ve" aria-labelledby="ddt-tickets" className="py-28">
+        <div className="container-page">
+          <h2 id="ddt-tickets" className="ddt-display text-[clamp(3rem,1rem+6vw,7rem)]">
+            Chọn vé
+          </h2>
+          <ul className="mt-12 grid gap-6 md:grid-cols-3">
+            {tickets.map((ticket, i) => (
+              <li key={ticket.name} className="ddt-ticket flex min-h-80 flex-col justify-between p-7">
+                <div>
+                  <p className="ddt-label">Loại {String(i + 1).padStart(2, "0")}</p>
+                  <h3 className="ddt-display mt-4 text-4xl">{ticket.name}</h3>
+                </div>
+                <ul className="mt-8 space-y-2">
+                  {ticket.perks.map((perk) => (
+                    <li key={perk} className="flex gap-3">
+                      <span aria-hidden>✶</span>
+                      {perk}
+                    </li>
+                  ))}
+                </ul>
+                <a href="#demo-ket" className="ddt-label mt-8 self-start border-b-2 border-current pb-1">
+                  Chọn vé này →
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    </div>
+  );
+}

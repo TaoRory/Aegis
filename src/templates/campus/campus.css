@@ -1,0 +1,105 @@
+/* CAMPUS: token riêng. Công thức: .claude/skills/style-library/styles/campus.md */
+@layer components {
+  .tpl-campus {
+    --t-bg: #f5f1e8;
+    --t-fg: #1b1f1a;
+    --t-muted: #5f665c;
+    --t-accent: #1d4a33;
+    --t-brass: #b8932f;
+    --t-line: rgb(27 31 26 / 0.16);
+    --t-paper: #fbf9f3;
+    --marker: #e9dcae;
+    --t-font-display: var(--font-campus-display), Georgia, serif;
+    --t-font-body: var(--font-campus-body), system-ui, sans-serif;
+    --t-display-weight: 400;
+  }
+
+  .tpl-campus h1,
+  .tpl-campus h2,
+  .tpl-campus h3 {
+    letter-spacing: -0.025em;
+    line-height: 1.02;
+  }
+
+  .tpl-campus em {
+    color: var(--t-accent);
+  }
+
+  .tpl-campus .cp-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* Chú thích bên lề kiểu sách */
+  .tpl-campus .cp-note {
+    font-family: var(--t-font-display);
+    font-style: italic;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--t-muted);
+    border-left: 1px solid var(--t-brass);
+    padding-left: 0.9rem;
+  }
+
+  .tpl-campus .cp-rule {
+    border-top: 3px double var(--t-line);
+  }
+
+  .tpl-campus .cp-chapter {
+    font-family: var(--t-font-display);
+    color: var(--t-brass);
+    font-style: italic;
+  }
+
+  /* Accordion cấp học: mở bằng grid-template-rows */
+  .tpl-campus .cp-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .tpl-campus .cp-panel[data-open="true"] {
+    grid-template-rows: 1fr;
+  }
+
+  .tpl-campus .cp-panel > div {
+    overflow: hidden;
+  }
+
+  .tpl-campus .cp-chip {
+    border: 1px solid var(--t-line);
+    border-radius: 999px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .tpl-campus .cp-chip:hover {
+    border-color: var(--t-accent);
+  }
+
+  .tpl-campus .cp-chip:has(input:checked) {
+    background: var(--t-accent);
+    border-color: var(--t-accent);
+    color: var(--t-paper);
+  }
+
+  .tpl-campus .cp-chip:has(input:focus-visible) {
+    outline: 2px solid var(--t-brass);
+    outline-offset: 2px;
+  }
+
+  .tpl-campus [role="tab"][aria-selected="true"] {
+    color: var(--t-accent);
+    border-color: var(--t-accent);
+  }
+}
+
+:root:has(.tpl-campus) {
+  --tpl-cursor: #1d4a33;
+  --tpl-cursor-ink: #fbf9f3;
+}

@@ -1,0 +1,260 @@
+"use client";
+
+import { useRef } from "react";
+
+import { SplitReveal } from "@/components/motion/SplitReveal";
+import { gsap, MQ, useGSAP } from "@/lib/motion";
+import { ShaderCanvas } from "@/templates/_kit/ShaderCanvas";
+import "@/templates/quy-hanh/quy-hanh.css";
+
+/** Khối điêu khắc cẩm thạch: raymarching một mặt cầu biến dạng mềm, có vân đá, xoay theo chuột */
+const SCULPTURE = `#version 300 es
+precision highp float;
+uniform float uTime; uniform vec2 uRes; uniform vec2 uMouse; uniform float uScroll;
+out vec4 outColor;
+mat2 rot(float a){ float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
+float map(vec3 p){
+  p.xz *= rot(uTime * 0.12 + (uMouse.x - 0.5) * 1.4 + uScroll * 2.0);
+  p.yz *= rot((uMouse.y - 0.5) * 0.9);
+  float d = length(p) - 1.0;
+  d += 0.16 * sin(p.x * 2.3 + uTime * 0.5) * sin(p.y * 2.7 + uTime * 0.35) * sin(p.z * 2.1 + 1.3);
+  d -= 0.05 * sin(p.y * 9.0 + p.x * 3.0);
+  return d * 0.6;
+}
+vec3 calcNormal(vec3 p){
+  vec2 e = vec2(0.0015, 0.0);
+  return normalize(vec3(map(p + e.xyy) - map(p - e.xyy), map(p + e.yxy) - map(p - e.yxy), map(p + e.yyx) - map(p - e.yyx)));
+}
+void main(){
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  vec3 ro = vec3(0.0, 0.0, 3.3);
+  vec3 rd = normalize(vec3(uv, -1.55));
+  float t = 0.0; bool hit = false;
+  for (int i = 0; i < 90; i++) {
+    float d = map(ro + rd * t);
+    if (d < 0.0008) { hit = true; break; }
+    t += d;
+    if (t > 7.0) break;
+  }
+  if (!hit) { outColor = vec4(0.0); return; }
+  vec3 p = ro + rd * t;
+  vec3 n = calcNormal(p);
+  vec3 l = normalize(vec3(-0.5, 0.85, 0.55));
+  float diff = clamp(dot(n, l), 0.0, 1.0);
+  float amb = 0.55 + 0.45 * n.y;
+  float fres = pow(1.0 - max(dot(n, -rd), 0.0), 3.0);
+  float spec = pow(max(dot(reflect(-l, n), -rd), 0.0), 40.0);
+  float vein = smoothstep(0.9, 1.0, sin((p.x + p.y * 0.7) * 6.5 + sin(p.z * 4.0) * 1.8) * 0.5 + 0.5);
+  vec3 stone = vec3(0.93, 0.93, 0.91);
+  vec3 shade = vec3(0.66, 0.70, 0.69);
+  vec3 col = mix(shade, stone, diff * 0.65 + amb * 0.35);
+  col = mix(col, vec3(0.16, 0.32, 0.29), vein * 0.28);
+  col += spec * 0.22 + fres * vec3(0.10, 0.14, 0.13);
+  outColor = vec4(col, 1.0);
+}`;
+
+const stats = [
+  { label: "Năm hoạt động", value: 7, suffix: "" },
+  { label: "Chuyên gia", value: 18, suffix: "" },
+  { label: "Văn phòng", value: 3, suffix: "" },
+  { label: "Danh mục theo dõi", value: 240, suffix: "+" },
+];
+
+const principles = [
+  { title: "Kỷ luật trước cảm xúc", text: "Mọi quyết định đi qua một quy trình đã được viết ra từ trước, không phải từ tiêu đề tin tức trong ngày." },
+  { title: "Đa dạng hóa có chủ đích", text: "Phân bổ theo mức độ rủi ro và thời gian nắm giữ, không phân tán chỉ để cho có." },
+  { title: "Báo cáo minh bạch", text: "Nhà đầu tư nhận báo cáo định kỳ, dễ đọc, nói rõ điều gì hiệu quả và điều gì chưa." },
+  { title: "Quản trị rủi ro liên tục", text: "Giới hạn tổn thất được theo dõi mỗi ngày, có kịch bản xử lý cho từng tình huống thị trường." },
+];
+
+const insights = [
+  { date: "Tháng 09", title: "Ba câu hỏi trước khi bắt đầu đầu tư dài hạn" },
+  { date: "Tháng 08", title: "Lãi kép: vì sao thời gian quan trọng hơn thời điểm" },
+  { date: "Tháng 07", title: "Đọc báo cáo quỹ trong năm phút" },
+];
+
+/** Đường biểu đồ minh họa (không phải dữ liệu thật) */
+const CHART = "M0,250 C60,240 90,210 140,215 S230,180 280,170 S360,190 410,150 S500,120 550,128 S640,90 690,80 S780,70 830,48 S920,40 960,30";
+
+export function QuyHanh() {
+  const root = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add(MQ.anyMotion, () => {
+        // Số liệu đếm lên khi vào khung nhìn
+        root.current?.querySelectorAll<HTMLElement>("[data-count]").forEach((el) => {
+          const target = Number(el.dataset.count);
+          const obj = { v: 0 };
+          gsap.to(obj, {
+            v: target,
+            duration: 1.8,
+            ease: "power3.out",
+            onUpdate: () => (el.textContent = String(Math.round(obj.v))),
+            scrollTrigger: { trigger: el, start: "top 85%", once: true },
+          });
+        });
+        // Biểu đồ tự vẽ theo cuộn
+        const line = root.current?.querySelector<SVGPathElement>("[data-chart-line]");
+        const area = root.current?.querySelector<SVGPathElement>("[data-chart-area]");
+        if (line && area) {
+          const length = line.getTotalLength();
+          gsap.set(line, { strokeDasharray: length, strokeDashoffset: length });
+          const tl = gsap.timeline({ scrollTrigger: { trigger: line, start: "top 80%", end: "bottom 40%", scrub: 1 } });
+          tl.to(line, { strokeDashoffset: 0, ease: "none" }).from(area, { opacity: 0, ease: "none" }, 0.3);
+        }
+      });
+      return () => mm.revert();
+    },
+    { scope: root },
+  );
+
+  return (
+    <div ref={root} className="tpl tpl-quy-hanh">
+      <header className="absolute inset-x-0 top-0 z-20">
+        <div className="container-page flex h-20 items-center justify-between">
+          <a href="#dau-trang" className="flex items-center gap-2 text-lg font-medium">
+            <span aria-hidden className="size-4 rounded-full border-[3px] border-(--t-accent)" />
+            Quỹ Hành
+          </a>
+          <nav aria-label="Điều hướng Quỹ Hành" className="hidden md:block">
+            <ul className="flex gap-8 text-sm text-(--t-muted)">
+              {[
+                ["Chúng tôi làm gì", "#lam-gi"],
+                ["Nguyên tắc", "#nguyen-tac"],
+                ["Góc nhìn", "#goc-nhin"],
+              ].map(([label, href]) => (
+                <li key={href}>
+                  <a href={href} className="hover:text-(--t-fg)">
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <a href="#demo-ket" className="quy-hanh-pill">
+            Đăng nhập
+          </a>
+        </div>
+      </header>
+
+      {/* Hero với khối điêu khắc */}
+      <section id="dau-trang" aria-labelledby="quy-hanh-title" className="relative flex min-h-svh flex-col items-center overflow-hidden pt-24 text-center">
+        <div aria-hidden className="quy-hanh-halo absolute top-[8%] left-1/2 size-[70vmin] -translate-x-1/2 rounded-full" />
+        <div aria-hidden className="relative mt-4 size-[min(56vmin,30rem)]">
+          <ShaderCanvas fragment={SCULPTURE} maxDpr={1.25} />
+        </div>
+        <SplitReveal as="h1" id="quy-hanh-title" trigger="intro" className="relative mt-2 text-[clamp(2.6rem,1rem+4.8vw,6rem)] leading-[1.02] tracking-[-0.035em]">
+          <span className="block">Đầu tư đúng lúc,</span>
+          <span className="block">
+            với <em>góc nhìn dài hạn</em>
+          </span>
+        </SplitReveal>
+        <p className="relative mt-6 max-w-[34rem] px-6 leading-relaxed text-(--t-muted)">
+          Quỹ Hành là đơn vị quản lý tài sản theo hướng dữ liệu, giúp nhà đầu tư cá nhân tiếp cận chiến lược của tổ chức.
+        </p>
+        <a href="#lam-gi" className="quy-hanh-pill relative mt-8 mb-16">
+          Tìm hiểu thêm
+        </a>
+      </section>
+
+      {/* Chúng tôi làm gì + số liệu */}
+      <section id="lam-gi" aria-labelledby="quy-hanh-what" className="py-28">
+        <div className="container-page grid gap-12 lg:grid-cols-12">
+          <div className="lg:col-span-5">
+            <span className="rounded-full bg-(--t-accent) px-3 py-1 text-xs text-(--t-bg)">Về Quỹ Hành</span>
+            <h2 id="quy-hanh-what" className="mt-6 text-[clamp(2.2rem,1rem+3vw,4rem)] leading-[1.05] tracking-[-0.03em]">
+              Chúng tôi <em>làm gì</em>
+            </h2>
+            <p className="mt-6 max-w-[30rem] leading-relaxed text-(--t-muted)">
+              Nghiên cứu, phân bổ và theo dõi danh mục đầu tư bằng mô hình định lượng, kết hợp đánh giá của đội ngũ chuyên gia.
+            </p>
+          </div>
+          <div className="lg:col-span-7">
+            <ul className="grid grid-cols-2 gap-4">
+              {stats.map((stat) => (
+                <li key={stat.label} className="quy-hanh-stat flex aspect-[4/3] flex-col justify-between p-5 md:p-7">
+                  <span className="text-sm text-(--t-muted)">{stat.label}:</span>
+                  <span className="text-[clamp(2.6rem,1rem+3.6vw,4.5rem)] leading-none tracking-[-0.04em]">
+                    <span data-count={stat.value}>{stat.value}</span>
+                    {stat.suffix}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-xs text-(--t-muted)">* Số liệu minh họa cho mẫu giao diện, không phải dữ liệu thật.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Biểu đồ vẽ nét */}
+      <section aria-labelledby="quy-hanh-chart" className="pb-28">
+        <div className="container-page">
+          <div className="quy-hanh-stat p-6 md:p-10">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <h2 id="quy-hanh-chart" className="text-[clamp(1.6rem,1rem+1.6vw,2.6rem)] tracking-[-0.03em]">
+                Tăng trưởng <em>bền bỉ</em>, không vội vàng
+              </h2>
+              <p className="text-xs text-(--t-muted)">Biểu đồ minh họa — không phải kết quả đầu tư thực tế</p>
+            </div>
+            <svg viewBox="0 0 960 280" className="quy-hanh-chart mt-10 w-full" aria-hidden>
+              {[60, 120, 180, 240].map((y) => (
+                <line key={y} x1="0" x2="960" y1={y} y2={y} style={{ stroke: "var(--t-line)" }} />
+              ))}
+              <path data-chart-area d={`${CHART} L960,280 L0,280 Z`} style={{ fill: "var(--t-accent-soft)" }} />
+              <path data-chart-line d={CHART} style={{ stroke: "var(--t-accent)" }} strokeWidth="2" />
+            </svg>
+            <div className="mt-3 flex justify-between text-xs text-(--t-muted)">
+              {["Q1", "Q2", "Q3", "Q4", "Q1", "Q2", "Q3", "Q4"].map((q, i) => (
+                <span key={i}>{q}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Nguyên tắc */}
+      <section id="nguyen-tac" aria-labelledby="quy-hanh-principles" className="pb-28">
+        <div className="container-page grid gap-12 lg:grid-cols-12">
+          <h2 id="quy-hanh-principles" className="text-[clamp(2.2rem,1rem+3vw,4rem)] leading-[1.05] tracking-[-0.03em] lg:col-span-5">
+            Bốn nguyên tắc <em>không đổi</em>
+          </h2>
+          <div className="lg:col-span-7">
+            {principles.map((item, i) => (
+              <details key={item.title} className="quy-hanh-item border-b border-(--t-line) py-6" open={i === 0}>
+                <summary className="flex items-center justify-between gap-6 text-xl">
+                  <span>
+                    <span className="mr-4 text-sm text-(--t-muted)">0{i + 1}</span>
+                    {item.title}
+                  </span>
+                  <span aria-hidden className="quy-hanh-toggle grid size-9 shrink-0 place-items-center rounded-full border border-(--t-line)">
+                    +
+                  </span>
+                </summary>
+                <p className="mt-4 max-w-[36rem] pl-9 leading-relaxed text-(--t-muted)">{item.text}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Góc nhìn */}
+      <section id="goc-nhin" aria-labelledby="quy-hanh-insights" className="pb-32">
+        <div className="container-page">
+          <h2 id="quy-hanh-insights" className="text-[clamp(2.2rem,1rem+3vw,4rem)] leading-[1.05] tracking-[-0.03em]">
+            Góc <em>nhìn</em>
+          </h2>
+          <ul className="mt-12 grid gap-4 md:grid-cols-3">
+            {insights.map((item) => (
+              <li key={item.title} className="quy-hanh-stat flex min-h-56 flex-col justify-between p-7 transition-colors hover:bg-(--t-surface)">
+                <span className="text-xs text-(--t-muted)">{item.date}</span>
+                <span className="text-xl leading-snug tracking-[-0.02em]">{item.title}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    </div>
+  );
+}

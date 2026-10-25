@@ -1,0 +1,134 @@
+/*
+ * DESIGN TOKENS — nguồn duy nhất cho màu, font, cỡ chữ, spacing, bo góc, chuyển động.
+ * Theme TẠM THỜI theo art direction "Bản vẽ nền móng" (.claude/skills/aegis-context/references/art-direction.md).
+ * Khi có bộ nhận diện chính thức: cập nhật file này và src/styles/fonts.ts.
+ *
+ * Màu đặt theo VAI TRÒ (bg, fg, accent…). Nền mặc định là giấy vẽ (sáng);
+ * vùng nền mực dùng data-surface="dark" để gán lại các biến vai trò.
+ */
+
+:root {
+  /* ---- Palette gốc ---- */
+  --palette-paper: #eceae4;
+  --palette-paper-deep: #e2dfd7;
+  --palette-paper-light: #f5f3ee;
+  --palette-ink: #0d0e11;
+  --palette-ink-raised: #15171c;
+  --palette-ink-surface: #1d2027;
+  --palette-graphite: #55595f;
+  --palette-graphite-light: #a3a6ae;
+  --palette-graphite-mid: #7d818b;
+  --palette-ultramarine: #3b3fff;
+  --palette-ultramarine-deep: #2a2ed6;
+  --palette-ultramarine-light: #8c8fff;
+  --palette-ultramarine-pale: #b5b7ff;
+  --palette-white: #f7f6f2;
+  --palette-danger: #c2362f;
+  --palette-danger-light: #ff8a80;
+  --palette-success: #1d7a4f;
+  --palette-success-light: #6fdcaa;
+  --palette-warning: #8a5a00;
+  --palette-warning-light: #f5c66b;
+}
+
+/* ---- Vai trò màu: nền giấy (mặc định, và vùng data-surface="light") ---- */
+:root,
+[data-surface="light"] {
+  --bg: var(--palette-paper);
+  --bg-elevated: var(--palette-paper-deep);
+  --surface: var(--palette-paper-light);
+  --fg: var(--palette-ink);
+  --fg-muted: var(--palette-graphite);
+  --fg-subtle: var(--palette-graphite-mid);
+  --border: color-mix(in oklab, var(--palette-ink) 13%, transparent);
+  --border-strong: color-mix(in oklab, var(--palette-ink) 30%, transparent);
+  --accent: var(--palette-ultramarine);
+  --accent-strong: var(--palette-ultramarine-deep);
+  --accent-soft: color-mix(in oklab, var(--palette-ultramarine) 10%, transparent);
+  --accent-glow: var(--palette-ultramarine);
+  --on-accent: var(--palette-white);
+  --focus-ring: var(--palette-ultramarine);
+  --danger: var(--palette-danger);
+  --success: var(--palette-success);
+  --warning: var(--palette-warning);
+  color-scheme: light;
+}
+
+:root {
+  /* Màu cho chữ/cursor dùng mix-blend-mode: difference (luôn tương phản trên cả giấy lẫn mực) */
+  --blend-fg: var(--palette-white);
+
+  /* ---- Typography ---- */
+  --font-family-sans: var(--font-brand-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-family-serif: var(--font-brand-serif), ui-serif, Georgia, serif;
+  --font-family-mono: var(--font-brand-mono), ui-monospace, monospace;
+  --type-hero: clamp(3.4rem, 0.9rem + 8.8vw, 11.5rem);
+  --type-mega: clamp(3rem, 1rem + 8.6vw, 11rem);
+  --type-h2: clamp(2.4rem, 1.2rem + 4.4vw, 6.25rem);
+  --type-h3: clamp(1.7rem, 1.2rem + 1.9vw, 3.25rem);
+  --type-statement: clamp(1.75rem, 1.05rem + 2.75vw, 4rem);
+  --type-lead: clamp(1.05rem, 0.98rem + 0.32vw, 1.3rem);
+  --type-label: 0.6875rem;
+  --type-tracking-hero: -0.045em;
+  --type-tracking-heading: -0.035em;
+  --type-tracking-label: 0.12em;
+  --type-leading-hero: 0.98;
+
+  /* ---- Layout ---- */
+  --layout-max: 96rem;
+  --gutter: clamp(1rem, 0.4rem + 2.6vw, 3rem);
+  --section-y: clamp(6rem, 4rem + 8vw, 12rem);
+  --header-h: 4.75rem;
+
+  /* ---- Bo góc (gần như vuông: ngôn ngữ bản vẽ) ---- */
+  --corner-sm: 2px;
+  --corner-md: 4px;
+  --corner-lg: 6px;
+  --corner-pill: 999px;
+
+  /* ---- Chuyển động ---- */
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --motion-fast: 180ms;
+  --motion-base: 420ms;
+  --motion-slow: 900ms;
+}
+
+/* ---- Vai trò màu: vùng nền mực ---- */
+[data-surface="dark"] {
+  --bg: var(--palette-ink);
+  --bg-elevated: var(--palette-ink-raised);
+  --surface: var(--palette-ink-surface);
+  --fg: var(--palette-paper);
+  --fg-muted: var(--palette-graphite-light);
+  --fg-subtle: var(--palette-graphite-mid);
+  --border: color-mix(in oklab, var(--palette-paper) 11%, transparent);
+  --border-strong: color-mix(in oklab, var(--palette-paper) 24%, transparent);
+  --accent: var(--palette-ultramarine-light);
+  --accent-strong: var(--palette-ultramarine-pale);
+  --accent-soft: color-mix(in oklab, var(--palette-ultramarine-light) 14%, transparent);
+  --on-accent: var(--palette-ink);
+  --focus-ring: var(--palette-ultramarine-light);
+  --danger: var(--palette-danger-light);
+  --success: var(--palette-success-light);
+  --warning: var(--palette-warning-light);
+  color-scheme: dark;
+}
+
+/* ---- Vai trò màu: vùng nền accent (màn kết kiểu "tấm bản vẽ xanh") ---- */
+[data-surface="accent"] {
+  --bg: var(--palette-ultramarine);
+  --bg-elevated: var(--palette-ultramarine-deep);
+  --surface: var(--palette-ultramarine-deep);
+  --fg: var(--palette-white);
+  --fg-muted: var(--palette-ultramarine-pale);
+  --fg-subtle: var(--palette-ultramarine-light);
+  --border: color-mix(in oklab, var(--palette-white) 22%, transparent);
+  --border-strong: color-mix(in oklab, var(--palette-white) 45%, transparent);
+  --accent: var(--palette-white);
+  --accent-strong: var(--palette-white);
+  --accent-soft: color-mix(in oklab, var(--palette-white) 14%, transparent);
+  --on-accent: var(--palette-ultramarine-deep);
+  --focus-ring: var(--palette-white);
+  color-scheme: dark;
+}

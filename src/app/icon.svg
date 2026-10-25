@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Favicon TẠM THỜI (chữ A), thay khi có logo chính thức -->
+  <rect width="32" height="32" rx="8" fill="#060a14"/>
+  <path fill="#9db1ff" fill-rule="evenodd" d="M14.1 7h3.8l7.6 18h-3.9l-1.6-4h-8l-1.6 4H6.5zm1.9 4.4L13.2 18h5.6z"/>
+</svg>
