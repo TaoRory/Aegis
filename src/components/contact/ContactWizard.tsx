@@ -117,7 +117,7 @@ function branchOf(question: ChoiceQuestion) {
   return entry?.[0];
 }
 
-export function ContactWizard({ isConfigured }: { isConfigured: boolean }) {
+export function ContactWizard({ isConfigured, scrollMode = "window" }: { isConfigured: boolean; scrollMode?: "window" | "element" }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
   const startedAt = useRef(0);
@@ -179,7 +179,12 @@ export function ContactWizard({ isConfigured }: { isConfigured: boolean }) {
     step.querySelector<HTMLElement>("[data-step-title]")?.focus({ preventScroll: true });
     // Câu mới ngắn hơn câu cũ: đưa đầu form về tầm mắt (chừa chỗ cho header)
     const top = root!.getBoundingClientRect().top;
-    if (top < 0 || top > window.innerHeight * 0.4) scrollToTarget(window.scrollY + top - 112, { immediate: true });
+    if (top < 0 || top > window.innerHeight * 0.4) {
+      // "element": form nằm trong vùng cuộn riêng của Panel (Xưởng Aegis), không cuộn cửa sổ
+      const scroller = scrollMode === "element" ? root!.closest<HTMLElement>("[data-panel-scroll]") : null;
+      if (scroller) scroller.scrollBy({ top: top - (scroller.getBoundingClientRect().top + 24) });
+      else scrollToTarget(window.scrollY + top - 112, { immediate: true });
+    }
     if (window.matchMedia(MQ.anyMotion).matches) {
       gsap.fromTo(
         step.querySelectorAll("[data-anim]"),
@@ -187,7 +192,7 @@ export function ContactWizard({ isConfigured }: { isConfigured: boolean }) {
         { y: 0, autoAlpha: 1, duration: 0.7, ease: "expo.out", stagger: 0.045, clearProps: "transform,opacity,visibility" },
       );
     }
-  }, [currentKey]);
+  }, [currentKey, scrollMode]);
 
   /** service: truyền vào khi vừa đổi dịch vụ (state chưa kịp cập nhật trong lần gọi hẹn giờ) */
   const go = (target: number, service: string = draft.service) => {
