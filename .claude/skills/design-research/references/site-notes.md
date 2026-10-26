@@ -99,3 +99,16 @@ Công cụ: `scripts/record-interactions.mjs` (quay video + tách khung + đo Δ
 | **Aura** | Link chữ hover mạnh (Δ 118: đổi nền cả khối) | Hover đảo màu cả hàng |
 
 **Không ghi hình được** (ghi lại để lần sau khỏi thử): santionispirits.com (báo "trình duyệt không hỗ trợ" với headless), format.obys.agency (403), immersivebags.miumiu.com (kẹt ở màn bật âm thanh dù đã `--click`), otsuka-air.jp (pha hover quá dài; dùng `--quick`).
+
+---
+
+## Rao Muhammad Hamza (raomuhammadhamza.tech): phòng 3D đo bằng thao tác chạm (2026-10)
+
+Nghiên cứu để dựng bản mobile của Xưởng Aegis. Dựng bằng Astro + Three.js, model Blender bake sẵn (`room-lit.glb`, `lightmap-*.ktx2`, `desk/monitor/chair…glb`); **không dùng lại asset của họ**, Aegis dựng vật thể riêng bằng code.
+
+- **Chụp được bản 3D:** site chặn GPU phần mềm bằng `detect-gpu` (báo "Flat version / WebGL isn't available"). Trình duyệt thử nghiệm phải chạy `--use-angle=swiftshader` và đổi tên `UNMASKED_RENDERER_WEBGL` thành tên GPU di động (Adreno…) bằng `addInitScript`. Cần bấm "Enter without sound" ở màn boot (giả lập huấn luyện mô hình, có thanh tiến độ).
+- **Mobile = cảnh toàn màn hình, camera áp sát.** Không có sheet nội dung che cảnh: chọn mục thì camera **bay sát vật thể và vật thể chính là nội dung** (màn hình hiện dự án, thẻ tên treo bảng ghim lật được, robot là khung chat, điện thoại là trang liên hệ).
+- **HUD tối giản:** tên góc trái (đổi thành "◂ Back to the room" khi vào mục), một nút menu "····" góc phải, bộ chuyển mục `‹ 01 / 05 ›` nổi phía trên, thanh nav kính 4 mục có icon + nhãn, mục đang chọn tô đặc màu accent.
+- **Kéo quanh rất rộng:** giới hạn yaw `[-0.8, 1.3]` rad khi màn dọc (≈120°), pitch cho phép nhìn từ trên xuống; có gợi ý "Drag to look around" kèm chevron. Camera tự căn để bounding box của vật thể nằm trong vùng trống giữa các HUD (margin 32px phải, 128px trên, 88px dưới trên điện thoại).
+- **Sống động nhỏ:** xe chạy ngoài cửa sổ, ánh đèn bàn, loa rung, hotspot hình thoi nhấp nháy.
+- **Áp dụng cho Aegis:** `references/spatial-site.md` mục "Điện thoại kiểu game".

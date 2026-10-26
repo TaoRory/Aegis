@@ -44,6 +44,7 @@ async function LabItem({ params }: { params: Promise<Params> }) {
       eyebrow={`${spaceCopy.lab.label} /${item.index}`}
       title={item.name}
       closeHref={`${SPACE_BASE}/thi-nghiem`}
+      step={{ index: index + 1, total: labItems.length }}
       prev={prev && { href: `${SPACE_BASE}/thi-nghiem/${prev.id}`, label: prev.name }}
       next={next && { href: `${SPACE_BASE}/thi-nghiem/${next.id}`, label: next.name }}
     >

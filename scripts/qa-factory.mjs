@@ -102,6 +102,7 @@ try {
     check("[3d] tam giác ≤ 150k", stats.triangles <= 150000, `${stats.triangles}`);
   } else check("[3d] đọc được thống kê (?debug-space)", false);
   check("[3d] khu mặc định là hub", (await zone()) === "hub", await zone());
+  await page.waitForSelector(".space-hotspot", { timeout: 20000 }).catch(() => {});
   check("[3d] hotspot hiện ở tổng mặt bằng", (await page.locator(".space-hotspot").count()) === 7, `${await page.locator(".space-hotspot").count()}`);
   await page.screenshot({ path: `${outDir}/3d-hub.jpg`, type: "jpeg", quality: 70 });
 
@@ -195,6 +196,42 @@ try {
   });
   check("[mobile] khung nội dung chừa ≥ 35% màn hình cho cảnh", free !== null && free >= 0.35, `${free?.toFixed?.(2)}`);
   await page.screenshot({ path: `${outDir}/mobile-3d-core.jpg`, type: "jpeg", quality: 70 });
+
+  // Giao diện điện thoại kiểu game: thanh trên gọn, nav có biểu tượng, sheet mặc định "nhô"
+  check("[mobile] có nút menu gọn ở thanh trên", (await page.getByRole("button", { name: "Menu" }).count()) === 1);
+  check("[mobile] nút 'Bản phẳng' gom vào menu, không chiếm thanh trên", (await page.locator(".space-top-phone >> text=Bản phẳng").count()) === 0);
+  check("[mobile] thanh nav có 6 biểu tượng", (await page.locator(".space-nav .space-nav-icon:visible").count()) === 6);
+  check("[mobile] sheet mặc định ở nấc nhô", (await page.locator(".space-panel").getAttribute("data-snap")) === "peek");
+  // Bấm tay nắm mở sheet vừa, bấm lại mở hết cỡ
+  await page.locator(".space-handle").tap();
+  await page.waitForTimeout(400);
+  check("[mobile] chạm tay nắm mở sheet", (await page.locator(".space-panel").getAttribute("data-snap")) === "mid");
+  await page.locator(".space-handle").tap();
+  await page.locator(".space-handle").tap();
+  await page.waitForTimeout(300);
+  // Bộ chuyển mục ‹ 01/07 › trên trang sản phẩm
+  await page.goto(`${baseUrl}/factory/trung-bay/vidi26?debug-space`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.dataset.spaceLive === "on", null, { timeout: 90000 }).catch(() => {});
+  await page.waitForTimeout(3500);
+  check("[mobile] có bộ chuyển mục 01 / 07", (await page.locator(".space-stepper-count").innerText().catch(() => "")).includes("01 / 07"));
+  await page.getByRole("link", { name: /Mục sau/ }).tap();
+  await page.waitForURL("**/factory/trung-bay/handle-vietnam", { timeout: 15000 }).catch(() => {});
+  check("[mobile] chạm › chuyển sang sản phẩm kế tiếp", page.url().endsWith("/trung-bay/handle-vietnam"), page.url());
+  // Kéo quanh rất rộng (desktop chỉ ±0,45 rad)
+  await page.goto(`${baseUrl}/factory?debug-space`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.dataset.spaceLive === "on", null, { timeout: 90000 }).catch(() => {});
+  await page.waitForTimeout(4000);
+  const cdp = await context.newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 340, y: 300 }] });
+  for (let i = 1; i <= 16; i++) {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 340 - i * 20, y: 300 }] });
+    await page.waitForTimeout(16);
+  }
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await page.waitForTimeout(600);
+  const look = await page.evaluate(() => window.__aegisSpace?.info?.() ?? null);
+  check("[mobile] vuốt quay camera quanh xưởng (>0,6 rad)", Boolean(look) && Math.abs(look.yaw) > 0.6, `yaw ${look?.yaw}`);
+  check("[mobile] gợi ý kéo biến mất sau lần kéo đầu", (await page.locator(".space-drag-hint").count()) === 0);
   check("[mobile] không lỗi console", errors.length === 0, errors.slice(0, 2).join(" | "));
   await context.close();
 } catch (e) {

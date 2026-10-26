@@ -29,6 +29,8 @@ interface SpaceState {
   bootProgress: number;
   /** Tạm dừng render 3D (thí nghiệm dùng GPU, sheet mobile mở hết cỡ…) */
   paused: boolean;
+  /** Người dùng đã kéo để nhìn quanh ít nhất một lần (ẩn gợi ý "Kéo để nhìn quanh") */
+  dragged: boolean;
   /** Điểm màn hình của nút vừa bấm (panel thu về đó khi đóng) */
   lastTrigger: { x: number; y: number } | null;
 }
@@ -46,6 +48,7 @@ const state: SpaceState = {
   bootPhase: "idle",
   bootProgress: -1,
   paused: false,
+  dragged: false,
   lastTrigger: null,
 };
 

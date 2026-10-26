@@ -84,5 +84,11 @@ export const spaceCopy = {
     threeD: "Bản 3D",
     flatNotice: "Thiết bị chưa hỗ trợ không gian 3D, Xưởng đang hiển thị bản phẳng.",
     shortcuts: "Phím tắt",
+    details: "Chi tiết",
+    toHub: "Về xưởng",
+    menu: "Menu",
+    menuClose: "Đóng menu",
+    dragHint: "Kéo để nhìn quanh",
+    stepOf: "Mục",
   },
 } as const;

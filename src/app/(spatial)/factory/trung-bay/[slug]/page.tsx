@@ -62,6 +62,7 @@ async function ProjectDossier({ params }: { params: Promise<Params> }) {
       eyebrow={`${copy.label} /${String(index + 1).padStart(2, "0")} · ${project.type.toUpperCase()}`}
       title={project.name}
       closeHref={`${SPACE_BASE}/trung-bay`}
+      step={{ index: index + 1, total: projects.length }}
       prev={prev && { href: `${SPACE_BASE}/trung-bay/${prev.slug}`, label: prev.name }}
       next={next && { href: `${SPACE_BASE}/trung-bay/${next.slug}`, label: next.name }}
     >

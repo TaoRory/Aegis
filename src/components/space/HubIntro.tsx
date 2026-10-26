@@ -24,10 +24,10 @@ export function HubIntro() {
       <h1 id="space-hub-title" data-panel-in className="mt-4 text-h3 font-semibold">
         <Lines lines={[...hub.lines]} />
       </h1>
-      <p data-panel-in className="mt-5 text-[0.95rem] leading-relaxed text-muted">
+      <p data-panel-in className="space-hub-lead mt-5 text-[0.95rem] leading-relaxed text-muted">
         {hub.lead}
       </p>
-      <nav data-panel-in aria-label={hub.legend} className="mt-6 border-t border-line pt-4">
+      <nav data-panel-in aria-label={hub.legend} className="space-hub-legend mt-6 border-t border-line pt-4">
         <ol className="space-legend">
           {zones
             .filter((z) => z.id !== "hub")

@@ -35,6 +35,18 @@ Dùng khi người dùng muốn bỏ bố cục một trang dài, thay bằng m�
 - Mỗi rig khai báo `span` (bề rộng) và `spanV` (chiều cao) cần thấy; engine lùi camera theo phần khung còn trống cả hai chiều, có trần 2.6×. Cảnh nhìn ngang từ trên cao thì lùi cũng làm camera tiến vào phòng kế bên: góc nhìn phải đủ cao để vượt đỉnh tường (2,4 m).
 - Bottom sheet vừa (52svh) và thấp (30svh) để cảnh còn ≥ 35% màn hình. Nhãn điểm chạm chỉ còn số thứ tự trên màn hẹp; vùng chạm ≥ 44px bằng `::after` ở `pointer: coarse`.
 
+## Điện thoại kiểu game (học từ raomuhammadhamza.tech, đã làm ở Xưởng)
+
+Sheet che nửa màn hình + camera lùi ra xem cả sa bàn làm cảnh "tù". Cách làm đúng:
+
+- **Cảnh toàn màn hình.** Sheet mặc định ở nấc `peek` (6rem: tay nắm "Chi tiết" + tiêu đề); chạm tay nắm mở `mid` (52svh), `full` (tạm dừng 3D). Thanh trên chỉ có tên/"◂ Về xưởng" và một nút menu; mọi nút phụ (về trang chính, 3D/phẳng, cài đặt) gom vào menu. Nav dưới đáy là viên kính 6 icon, mục đang chọn bung thành viên đặc có nhãn (nhãn mục khác ẩn bằng clip, vẫn là tên truy cập).
+- **Camera áp sát vật thể** (`phoneRig` trong `camera-rig.ts`): mỗi khu có điểm nhìn riêng cho điện thoại. Camera phải nằm trong phòng hoặc cao hơn đỉnh tường 2,4 m của phòng phía trước, nếu không tường che mất vật thể (kể cả sau khi `fitPullback` đẩy camera lùi). Kiểm bằng ảnh, không đoán.
+- **Bộ chuyển mục `‹ 01 / 07 ›`** là `<Link>` thật tới route kế/trước, nổi trên sheet; mỗi lần chuyển camera bay sang vật kế tiếp (đây là phần "di chuyển nhiều").
+- **Kéo quanh rất rộng:** yaw ±1.15 rad ở hub, ±0.75 ở khu, pitch ±0.3 (máy tính chỉ ±0.45/±0.14). Gợi ý "Kéo để nhìn quanh" chỉ hiện ở màn đầu, ẩn sau lần kéo/chuyển trang đầu tiên hoặc khi sheet mở.
+- **Tự trôi khi nhàn rỗi** (`drift` yaw, `pan` trượt dọc dãy vật thể): chỉ chạy khi người dùng yên ≥ 2,5 giây, chạm là dừng ngay; ~30 fps; giảm chuyển động thì tắt.
+- **Sống động rẻ:** xe là một `Points` chạy hai làn ngược chiều quanh xưởng (đúng một lệnh vẽ), bong bóng trong ống nghiệm, vòng quét.
+- **Thử bằng thao tác chạm thật** (`hasTouch`, CDP `Input.dispatchTouchEvent`), đo `yaw` qua `?debug-space`. `pnpm qa:factory` có nhóm kiểm tra `[mobile]` cho các điểm này.
+
 ## Nội dung
 
 Khu "phòng thí nghiệm" và "nhật ký" chỉ ghi điều code thật sự làm; bài nhật ký phải có `confirmed: true` và cần chủ dự án duyệt. Không ngày tháng, số liệu hay khách hàng bịa.

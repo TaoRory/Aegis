@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, ty
 import { spaceCopy } from "@/content/space";
 import { zoneById, type ZoneId } from "@/config/space";
 import { spaceStore } from "@/components/space/space-store";
+import { useSpace } from "@/components/space/useSpace";
 import { Rich } from "@/components/ui/Rich";
 import { gsap, MQ, useGSAP } from "@/lib/motion";
 
@@ -39,6 +40,10 @@ export interface PanelLink {
   label: string;
 }
 
+/** Nấc cao của sheet điện thoại; "auto" = mặc định theo chế độ (3D: chỉ nhô tiêu đề để cảnh chiếm màn hình, phẳng: vừa) */
+type Snap = "auto" | "peek" | "low" | "mid" | "full";
+const SNAP_ORDER = ["peek", "low", "mid", "full"] as const;
+
 /**
  * Cửa sổ nội dung của một khu: "khung tên" kiểu bản vẽ ở đầu, vùng cuộn riêng, nút đóng, trước/sau.
  * Là nội dung của route (không phải dialog): không khóa focus. Esc về route cha; khi điều hướng phía client,
@@ -51,6 +56,7 @@ export function Panel({
   closeHref,
   prev,
   next,
+  step,
   children,
 }: {
   zone: ZoneId;
@@ -61,19 +67,23 @@ export function Panel({
   closeHref: string;
   prev?: PanelLink;
   next?: PanelLink;
+  /** Vị trí trong danh sách (hiện ở bộ chuyển mục nổi trên điện thoại): index tính từ 1 */
+  step?: { index: number; total: number };
   children: ReactNode;
 }) {
   const ref = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const router = useRouter();
   usePanelEnter(ref);
-  // Sheet mobile có 3 nấc cao (thấp / vừa / hết cỡ); ở nấc hết cỡ cảnh 3D phía sau được tạm dừng
-  const [snap, setSnap] = useState<"low" | "mid" | "full">("mid");
+  // Sheet điện thoại có nhiều nấc cao (nhô / thấp / vừa / hết cỡ); ở nấc hết cỡ cảnh 3D phía sau được tạm dừng.
+  // Mặc định ở chế độ 3D là "nhô": cảnh chiếm gần cả màn hình, người dùng kéo/chạm tay nắm để đọc chi tiết.
+  const mode = useSpace("mode");
+  const [chosen, setChosen] = useState<Snap>("auto");
+  const snap: Exclude<Snap, "auto"> = chosen === "auto" ? (mode === "3d" ? "peek" : "mid") : chosen;
   const dragStart = useRef<number | null>(null);
 
   const cycle = (direction: 1 | -1) => {
-    const order = ["low", "mid", "full"] as const;
-    setSnap((current) => order[Math.max(0, Math.min(order.length - 1, order.indexOf(current) + direction))]);
+    setChosen(SNAP_ORDER[Math.max(0, Math.min(SNAP_ORDER.length - 1, SNAP_ORDER.indexOf(snap) + direction))]);
   };
   const onHandleDown = (event: ReactPointerEvent) => {
     dragStart.current = event.clientY;
@@ -83,7 +93,7 @@ export function Panel({
     if (dragStart.current === null) return;
     const dy = event.clientY - dragStart.current;
     dragStart.current = null;
-    if (Math.abs(dy) < 12) cycle(snap === "full" ? -1 : 1);
+    if (Math.abs(dy) < 12) setChosen(snap === "peek" || snap === "low" ? "mid" : snap === "mid" ? "full" : "mid");
     else cycle(dy < 0 ? 1 : -1);
   };
 
@@ -123,6 +133,7 @@ export function Panel({
         }}
       >
         <span aria-hidden />
+        <span className="space-handle-label label">{snap === "peek" ? spaceCopy.hud.details : ""}</span>
       </button>
       <header className="space-panel-bar">
         <p className="space-eyebrow label text-muted">
@@ -140,6 +151,32 @@ export function Panel({
         </h1>
         {children}
       </div>
+
+      {step && (
+        <nav className="space-stepper md:hidden" aria-label="Chuyển mục">
+          {prev ? (
+            <Link href={prev.href} className="space-stepper-btn" aria-label={`Mục trước: ${prev.label}`} data-cursor="link">
+              <span aria-hidden>‹</span>
+            </Link>
+          ) : (
+            <span className="space-stepper-btn" aria-hidden data-off="true">
+              ‹
+            </span>
+          )}
+          <span className="space-stepper-count label" aria-label={`${spaceCopy.hud.stepOf} ${step.index} / ${step.total}`}>
+            {String(step.index).padStart(2, "0")} / {String(step.total).padStart(2, "0")}
+          </span>
+          {next ? (
+            <Link href={next.href} className="space-stepper-btn" aria-label={`Mục sau: ${next.label}`} data-cursor="link">
+              <span aria-hidden>›</span>
+            </Link>
+          ) : (
+            <span className="space-stepper-btn" aria-hidden data-off="true">
+              ›
+            </span>
+          )}
+        </nav>
+      )}
 
       {(prev || next) && (
         <nav className="space-panel-foot" aria-label="Chuyển mục">

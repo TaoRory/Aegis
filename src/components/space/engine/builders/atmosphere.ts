@@ -122,6 +122,50 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
+// ---------- Xe chạy trên đường vành đai quanh xưởng ----------
+
+const TRAFFIC_VERT = /* glsl */ `
+attribute vec3 aCar;
+uniform float uTime;
+uniform float uPixelRatio;
+varying float vTint;
+vec3 rectPos(float t, float hx, float hz) {
+  float w = 2.0 * hx;
+  float h = 2.0 * hz;
+  float d = fract(t) * 2.0 * (w + h);
+  vec2 p;
+  if (d < w) p = vec2(-hx + d, -hz);
+  else if (d < w + h) p = vec2(hx, -hz + (d - w));
+  else if (d < 2.0 * w + h) p = vec2(hx - (d - w - h), hz);
+  else p = vec2(-hx, hz - (d - 2.0 * w - h));
+  return vec3(p.x, 0.14, p.y);
+}
+void main() {
+  float lane = aCar.x;
+  float dir = lane < 0.5 ? 1.0 : -1.0;
+  float hx = lane < 0.5 ? 12.4 : 13.6;
+  float hz = lane < 0.5 ? 9.7 : 10.9;
+  float len = 4.0 * (hx + hz);
+  vec3 p = rectPos(aCar.y + dir * uTime * aCar.z / len, hx, hz);
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  vTint = lane;
+  gl_PointSize = (2.2 + aCar.z * 0.25) * uPixelRatio * (30.0 / max(-mv.z, 0.5));
+}`;
+
+const TRAFFIC_FRAG = /* glsl */ `
+uniform vec3 uHead;
+uniform vec3 uTail;
+varying float vTint;
+void main() {
+  float d = length(gl_PointCoord - 0.5);
+  if (d > 0.5) discard;
+  float soft = 1.0 - d * 2.0;
+  gl_FragColor = vec4(mix(uHead, uTail, vTint), soft * soft * 0.95);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}`;
+
 // ---------- Xung năng lượng chạy quanh các phòng ----------
 
 const PULSE_VERT = /* glsl */ `
@@ -317,6 +361,26 @@ export function buildAtmosphere(ctx: BuildContext): Atmosphere {
   pulses.frustumCulled = false;
   group.add(pulses);
 
+  // Xe: hai làn ngược chiều, đèn pha sáng trắng (làn ngoài) và đèn hậu ấm (làn trong)
+  const carCount = mobile ? 26 : 56;
+  const cars = new Float32Array(carCount * 3);
+  const cr = rng(4242);
+  for (let i = 0; i < carCount; i++) cars.set([i % 2, cr(), 1.2 + cr() * 2.2], i * 3);
+  const carGeo = new BufferGeometry();
+  carGeo.setAttribute("position", new BufferAttribute(new Float32Array(carCount * 3), 3));
+  carGeo.setAttribute("aCar", new BufferAttribute(cars, 3));
+  const carMat = new ShaderMaterial({
+    vertexShader: TRAFFIC_VERT,
+    fragmentShader: TRAFFIC_FRAG,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    uniforms: { uTime: { value: 0 }, uPixelRatio: { value: pixelRatio }, uHead: { value: palette.paper.clone() }, uTail: { value: palette.danger.clone() } },
+  });
+  const traffic = new Points(carGeo, carMat);
+  traffic.frustumCulled = false;
+  group.add(traffic);
+
   const roomIndex = (zone: ZoneId | "hub" | null) => (zone && zone !== "hub" ? rooms.findIndex((r) => r.zone === zone) : -1);
 
   return {
@@ -334,6 +398,7 @@ export function buildAtmosphere(ctx: BuildContext): Atmosphere {
       cityMat.uniforms.uTime.value = time;
       moteMat.uniforms.uTime.value = time;
       pulseMat.uniforms.uTime.value = time;
+      carMat.uniforms.uTime.value = time;
     },
     dispose() {
       disposeGroup(group);

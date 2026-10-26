@@ -31,6 +31,10 @@ function buildManifest(): SceneManifest {
 }
 
 /** Khoảng chừa cho khung nội dung / HUD, tính theo CSS của space.css (px) */
+/** Chiều cao sheet ở nấc "nhô" và vùng thanh điều hướng dưới đáy (rem), khớp space.css */
+const PEEK_REM = 6;
+const NAV_REM = 4.6;
+
 function computeInsets() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -43,9 +47,11 @@ function computeInsets() {
   if (panel) {
     if (desktop) insets.right = vw - panel.getBoundingClientRect().left;
     else {
+      // Chiều cao theo nấc (không đo trực tiếp: sheet đang chạy transition chiều cao khi đổi nấc)
       const snap = panel.dataset.snap;
-      const height = snap === "low" ? vh * 0.3 : snap === "full" ? vh - 136 : vh * 0.52;
-      insets.bottom = height + 68;
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const height = snap === "peek" ? PEEK_REM * rem : snap === "low" ? vh * 0.3 : snap === "full" ? vh - 136 : vh * 0.52;
+      insets.bottom = height + NAV_REM * rem;
     }
   } else if (hub) {
     const rect = hub.getBoundingClientRect();
@@ -97,6 +103,7 @@ export function SceneCanvas() {
                 reduced: window.matchMedia(MQ.reduced).matches,
                 onProgress: (p) => spaceStore.set("bootProgress", p),
                 onHover: (id) => spaceStore.set("hover", id),
+                onDrag: () => spaceStore.set("dragged", true),
                 onPick: (id) => {
                   const el = document.querySelector<HTMLElement>(`[data-hotspot="${id}"]`);
                   if (el) el.click();

@@ -5,6 +5,7 @@ import { Suspense, useEffect, type ReactNode } from "react";
 import { FlatMap } from "@/components/space/FlatMap";
 import { Hotspots } from "@/components/space/Hotspots";
 import { RouteSync } from "@/components/space/RouteSync";
+import { DragHint } from "@/components/space/DragHint";
 import { SceneCanvas } from "@/components/space/SceneCanvas";
 import { SpaceBoot } from "@/components/space/SpaceBoot";
 import { SpaceHud } from "@/components/space/SpaceHud";
@@ -38,6 +39,7 @@ export function SpaceShell({ children }: { children: ReactNode }) {
       <FlatMap />
       <SceneCanvas />
       <Hotspots />
+      <DragHint />
       <SpaceHud />
       <SpaceKeys />
       <main id="noi-dung" tabIndex={-1} className="space-main">

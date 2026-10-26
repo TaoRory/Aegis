@@ -3,11 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
+import { setSpaceMode } from "@/components/space/SceneCanvas";
+import { spaceStore } from "@/components/space/space-store";
 import { navZones, SPACE_BASE } from "@/config/space";
 import { spaceCopy } from "@/content/space";
 
 /**
- * Phím tắt toàn Xưởng: 1–6 mở khu, M về tổng mặt bằng, ? mở bảng phím tắt. (Esc do Panel xử lý; B đổi 3D/phẳng do SpaceMode.)
+ * Phím tắt toàn Xưởng: 1–6 mở khu, M về tổng mặt bằng, ? mở bảng phím tắt. B đổi 3D/phẳng. (Esc do Panel xử lý.)
  * Tắt khi đang gõ vào ô nhập hoặc khi focus đang nằm trong nội dung <main> (tránh đụng phím số của form liên hệ).
  */
 export function SpaceKeys() {
@@ -24,6 +26,7 @@ export function SpaceKeys() {
         return;
       }
       if (event.key.toLowerCase() === "m") router.push(SPACE_BASE);
+      if (event.key.toLowerCase() === "b") setSpaceMode(spaceStore.get().mode === "3d" ? "flat" : "3d");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);

@@ -34,6 +34,7 @@ import { buildDoor, buildJournal } from "@/components/space/engine/builders/prop
 import { buildShelf } from "@/components/space/engine/builders/shelf";
 import { buildShowroom } from "@/components/space/engine/builders/showroom";
 import { fitPullback, INTRO_RIG, pullback, rigFor, type Rig } from "@/components/space/engine/camera-rig";
+import type { Vec3 } from "@/components/space/engine/layout";
 import { readPalette } from "@/components/space/engine/palette";
 import type { BuildContext, SceneManifest, ZoneBuild } from "@/components/space/engine/types";
 import { gsap } from "@/lib/motion";
@@ -44,6 +45,8 @@ export interface EngineOptions {
   reduced: boolean;
   onProgress: (p: number) => void;
   onHover: (id: string | null) => void;
+  /** Người dùng bắt đầu kéo để nhìn quanh (lần đầu) */
+  onDrag?: () => void;
   onPick: (id: string) => void;
   onContextLost: () => void;
 }
@@ -75,6 +78,11 @@ export class SpaceEngine {
   private sceneCalls = 0;
   private sceneTriangles = 0;
   private parallax = { x: 0, y: 0, tx: 0, ty: 0 };
+  /** Lắc/trượt nhàn rỗi của điểm nhìn hiện tại (điện thoại) và mức độ đang áp dụng (0 khi người dùng vừa chạm) */
+  private driftRig: { drift: number; pan: Vec3 | null } = { drift: 0, pan: null };
+  private driftAmt = 0;
+  private lastTouch = 0;
+  private dragNotified = false;
   private readonly zones: { key: string; zone: ZoneId; build: ZoneBuild }[] = [];
   private readonly pickables: Mesh[] = [];
   private readonly anchors = new Map<string, Vector3>();
@@ -108,6 +116,8 @@ export class SpaceEngine {
   private flight: gsap.core.Tween | null = null;
   private viewTween: gsap.core.Tween | null = null;
   private readonly tmp = new Vector3();
+  private readonly focusPoint = new Vector3();
+  private readonly panVec = new Vector3();
   private readonly spherical = new Spherical();
   private readonly options: EngineOptions;
 
@@ -356,7 +366,8 @@ export class SpaceEngine {
   // ---------- Camera ----------
 
   private targetRig(): Rig {
-    const base = rigFor(this.zone, this.focus, this.options.manifest);
+    const base = rigFor(this.zone, this.focus, this.options.manifest, this.options.mobile);
+    this.driftRig = { drift: base.drift ?? 0, pan: base.pan ?? null };
     const free = this.freeSize();
     const tgt = new Vector3(...base.target);
     let pb = pullback(free.w / free.h);
@@ -455,7 +466,9 @@ export class SpaceEngine {
     if (this.disposed || this.paused || document.hidden || !this.host) return;
     const now = performance.now();
     const busy = now < this.busyUntil;
-    if (!busy && now - this.lastRender < (this.options.mobile ? 50 : 33)) return; // nhàn rỗi: ~20 (di động) / ~30 (máy tính) khung/giây
+    const drifting = this.driftAmt > 0.01 || (this.options.mobile && !this.options.reduced && (this.driftRig.drift > 0 || this.driftRig.pan !== null));
+    // nhàn rỗi: ~20 (di động) / ~30 (máy tính) khung/giây; đang tự trôi: ~30 khung/giây
+    if (!busy && now - this.lastRender < (drifting ? 33 : this.options.mobile ? 50 : 33)) return;
     this.lastRender = now;
     const dt = Math.min(0.1, deltaMs / 1000);
     if (!this.options.reduced) this.time += dt; // giảm chuyển động: đóng băng mọi hiệu ứng nền
@@ -468,13 +481,21 @@ export class SpaceEngine {
     this.parallax.x += (this.parallax.tx - this.parallax.x) * pk;
     this.parallax.y += (this.parallax.ty - this.parallax.y) * pk;
     const sway = this.options.reduced ? 0 : Math.sin(this.time * 0.17) * 0.012;
+    // Tự trôi (điện thoại): chỉ khi người dùng đã yên ≥ 2,5 giây; chạm vào là dừng ngay và êm dần quay lại
+    const wantDrift = this.options.mobile && !this.options.reduced && this.introDone && !this.flight?.isActive() && now - this.lastTouch > 2500 ? 1 : 0;
+    this.driftAmt += (wantDrift - this.driftAmt) * (1 - Math.exp(-dt * (wantDrift ? 0.8 : 5)));
+    const wave = Math.sin(this.time * 0.21) * this.driftAmt;
+    const driftYaw = this.driftRig.drift * wave;
     this.tmp.copy(this.curPos).sub(this.curTarget);
     this.spherical.setFromVector3(this.tmp);
-    this.spherical.theta += this.looking.yaw + this.parallax.x + sway;
+    this.spherical.theta += this.looking.yaw + this.parallax.x + sway + driftYaw;
     this.spherical.phi = MathUtils.clamp(this.spherical.phi - this.looking.pitch - this.parallax.y, 0.12, 1.5);
     this.tmp.setFromSpherical(this.spherical);
-    this.camera.position.copy(this.curTarget).add(this.tmp);
-    this.camera.lookAt(this.curTarget);
+    const pan = this.driftRig.pan;
+    this.focusPoint.copy(this.curTarget);
+    if (pan) this.focusPoint.addScaledVector(this.panVec.set(pan[0], pan[1], pan[2]), wave);
+    this.camera.position.copy(this.focusPoint).add(this.tmp);
+    this.camera.lookAt(this.focusPoint);
     if (this.camera.fov !== this.curFov) {
       this.camera.fov = this.curFov;
     }
@@ -533,6 +554,7 @@ export class SpaceEngine {
   }
 
   private readonly onDown = (event: PointerEvent) => {
+    this.lastTouch = performance.now();
     this.drag = { x: event.clientX, y: event.clientY, moved: 0 };
     this.canvas.setPointerCapture(event.pointerId);
   };
@@ -545,8 +567,16 @@ export class SpaceEngine {
       this.drag.x = event.clientX;
       this.drag.y = event.clientY;
       if (this.drag.moved > 6) {
-        this.looking.ty = MathUtils.clamp(this.looking.ty - dx * 0.0035, -0.45, 0.45);
-        this.looking.tp = MathUtils.clamp(this.looking.tp + dy * 0.002, -0.14, 0.14);
+        // Điện thoại: quay quanh rất rộng (như đi vòng quanh căn phòng); máy tính: chỉ liếc nhẹ
+        const yawMax = this.options.mobile ? (this.zone === "hub" ? 1.15 : 0.75) : 0.45;
+        const pitchMax = this.options.mobile ? 0.3 : 0.14;
+        this.looking.ty = MathUtils.clamp(this.looking.ty - dx * (this.options.mobile ? 0.0042 : 0.0035), -yawMax, yawMax);
+        this.looking.tp = MathUtils.clamp(this.looking.tp + dy * (this.options.mobile ? 0.0024 : 0.002), -pitchMax, pitchMax);
+        this.lastTouch = performance.now();
+        if (!this.dragNotified) {
+          this.dragNotified = true;
+          this.options.onDrag?.();
+        }
         this.markBusy(300);
       }
       return;
@@ -600,6 +630,8 @@ export class SpaceEngine {
       textures: this.renderer.info.memory.textures,
       geometries: this.renderer.info.memory.geometries,
       fov: this.curFov,
+      yaw: Math.round(this.looking.ty * 1000) / 1000,
+      pitch: Math.round(this.looking.tp * 1000) / 1000,
     };
   }
 
