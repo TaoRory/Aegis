@@ -19,7 +19,7 @@ import {
 } from "three";
 
 import { mergeAll } from "@/components/space/engine/builders/merge";
-import { LAB, labZ } from "@/components/space/engine/layout";
+import { LAB, labX } from "@/components/space/engine/layout";
 import type { BuildContext, ZoneBuild } from "@/components/space/engine/types";
 import { disposeGroup } from "@/components/space/engine/types";
 
@@ -89,9 +89,9 @@ export function buildLab(ctx: BuildContext): ZoneBuild {
   const anchors: Record<string, Vector3> = {};
 
   const bodyMat = new MeshStandardMaterial({ color: palette.inkSurface, roughness: 0.55, metalness: 0.45 });
-  const bench = new Mesh(new BoxGeometry(1.15, 0.86, 4.1), bodyMat);
+  const bench = new Mesh(new BoxGeometry(4.1, 0.86, 1.15), bodyMat);
   bench.position.set(LAB.x, 0.43, LAB.z);
-  const top = new Mesh(new BoxGeometry(1.25, 0.05, 4.2), new MeshBasicMaterial({ color: palette.accentLight, transparent: true, opacity: 0.35 }));
+  const top = new Mesh(new BoxGeometry(4.2, 0.05, 1.25), new MeshBasicMaterial({ color: palette.accentLight, transparent: true, opacity: 0.35 }));
   top.position.set(LAB.x, 0.885, LAB.z);
   group.add(bench, top);
 
@@ -106,9 +106,9 @@ export function buildLab(ctx: BuildContext): ZoneBuild {
   }
   const capGeos: BufferGeometry[] = [];
   const capsules: Capsule[] = manifest.lab.map((item, i) => {
-    const z = labZ(i);
+    const x = labX(i);
     const root = new Group();
-    root.position.set(LAB.x, 0.91, z);
+    root.position.set(x, 0.91, LAB.z);
 
     const glass = new Mesh(
       new CylinderGeometry(0.34, 0.34, 1.05, 32, 1, true),
@@ -123,7 +123,7 @@ export function buildLab(ctx: BuildContext): ZoneBuild {
     );
     glass.position.y = 0.55;
     glass.userData.pick = `lab:${item.id}`;
-    capGeos.push(new CylinderGeometry(0.38, 0.4, 0.06, 32).translate(LAB.x, 0.91 + 0.03, z), new CylinderGeometry(0.38, 0.36, 0.06, 32).translate(LAB.x, 0.91 + 1.1, z));
+    capGeos.push(new CylinderGeometry(0.38, 0.4, 0.06, 32).translate(x, 0.91 + 0.03, LAB.z), new CylinderGeometry(0.38, 0.36, 0.06, 32).translate(x, 0.91 + 1.1, LAB.z));
 
     const inner = new Group();
     inner.position.y = 0.56;
@@ -172,7 +172,7 @@ export function buildLab(ctx: BuildContext): ZoneBuild {
     root.add(glass, inner);
     group.add(root);
     pickables.push(glass);
-    anchors[`lab:${item.id}`] = new Vector3(LAB.x, 2.25, z);
+    anchors[`lab:${item.id}`] = new Vector3(x, 2.25, LAB.z);
     return { id: item.id, root, glass, inner, spin: 0, glow: 0, target: 0 };
   });
 
@@ -186,7 +186,7 @@ export function buildLab(ctx: BuildContext): ZoneBuild {
   const bCap = new Float32Array(bubbleCount);
   for (let i = 0; i < bubbleCount; i++) {
     const c = Math.floor(i / bubblesPer);
-    bPos.set([LAB.x, 0.91 + 0.06, labZ(c)], i * 3);
+    bPos.set([labX(c), 0.91 + 0.06, LAB.z], i * 3);
     for (let k = 0; k < 4; k++) bSeed[i * 4 + k] = Math.random();
     bCap[i] = c;
   }
@@ -245,7 +245,7 @@ export function buildLab(ctx: BuildContext): ZoneBuild {
       const scanOpacity = Math.min(0.9, lead.glow * 1.2);
       (scanner.material as MeshBasicMaterial).opacity = scanOpacity;
       scanner.visible = scanOpacity > 0.03;
-      if (scanner.visible) scanner.position.set(LAB.x, 0.91 + 0.12 + (0.5 + 0.5 * Math.sin(time * 1.6)) * 0.95, lead.root.position.z);
+      if (scanner.visible) scanner.position.set(lead.root.position.x, 0.91 + 0.12 + (0.5 + 0.5 * Math.sin(time * 1.6)) * 0.95, LAB.z);
       capsules.forEach((c, i) => {
         c.glow += (c.target - c.glow) * k;
         c.spin += dt * (0.4 + c.glow * 1.6);

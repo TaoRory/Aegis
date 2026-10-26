@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { spaceStore } from "@/components/space/space-store";
-import { spaceCopy } from "@/content/space";
+import { useFactory } from "@/components/space/factory-context";
 import { gsap } from "@/lib/motion";
 
 const MIN_MS = 1800;
@@ -18,6 +18,7 @@ const MAX_MS = 3200;
  * Link sâu (/factory/trung-bay…) không có màn này: nội dung hiện ngay, cảnh dựng phía sau.
  */
 export function SpaceBoot() {
+  const { ui } = useFactory();
   const ref = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
   const pctRef = useRef<HTMLSpanElement>(null);
@@ -84,11 +85,11 @@ export function SpaceBoot() {
   }, []);
 
   return (
-    <div ref={ref} className="space-boot" role="status" aria-label="Đang khởi động Xưởng Aegis">
+    <div ref={ref} className="space-boot" role="status" aria-label={ui.hud.bootLabel}>
       <div aria-hidden className="blueprint-grid space-boot-grid" />
       <div className="space-boot-inner">
         <ul aria-hidden className="space-boot-log">
-          {spaceCopy.boot.lines.map((line) => (
+          {ui.boot.lines.map((line) => (
             <li key={line} data-boot-line data-on="false">
               {line}
             </li>
@@ -101,7 +102,7 @@ export function SpaceBoot() {
           <span ref={pctRef}>000%</span>
         </p>
         <button type="button" className="space-boot-skip label" onClick={(event) => event.stopPropagation()}>
-          {spaceCopy.boot.skip}
+          {ui.boot.skip}
         </button>
       </div>
     </div>

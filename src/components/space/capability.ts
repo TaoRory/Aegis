@@ -1,4 +1,3 @@
-import { spaceCopy } from "@/content/space";
 import type { SpaceMode } from "@/components/space/space-store";
 
 export const SPACE_MODE_KEY = "aegis-space-mode";
@@ -13,7 +12,7 @@ export interface ModeDecision {
  * Chọn 3D hay bản phẳng khi vào Xưởng. Bản phẳng khi: người dùng đã chọn bản phẳng, chất lượng thấp trong Cài đặt,
  * thiết bị báo tiết kiệm dữ liệu / ít RAM, hoặc không có WebGL2. Chỉ trường hợp tự động mới kèm thông báo.
  */
-export function detectMode(): ModeDecision {
+export function detectMode(notice: string): ModeDecision {
   const root = document.documentElement;
   try {
     if (localStorage.getItem(SPACE_MODE_KEY) === "flat") return { mode: "flat", reason: null };
@@ -22,12 +21,12 @@ export function detectMode(): ModeDecision {
   }
   if (root.dataset.quality === "low") return { mode: "flat", reason: null };
   const nav = navigator as Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number };
-  if (nav.connection?.saveData || (nav.deviceMemory !== undefined && nav.deviceMemory <= 2)) return { mode: "flat", reason: spaceCopy.hud.flatNotice };
+  if (nav.connection?.saveData || (nav.deviceMemory !== undefined && nav.deviceMemory <= 2)) return { mode: "flat", reason: notice };
   try {
     const probe = document.createElement("canvas");
-    if (!probe.getContext("webgl2")) return { mode: "flat", reason: spaceCopy.hud.flatNotice };
+    if (!probe.getContext("webgl2")) return { mode: "flat", reason: notice };
   } catch {
-    return { mode: "flat", reason: spaceCopy.hud.flatNotice };
+    return { mode: "flat", reason: notice };
   }
   return { mode: "3d", reason: null };
 }

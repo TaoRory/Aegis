@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 
 import { experiments } from "@/components/space/lab/registry";
-import { spaceCopy } from "@/content/space";
+import { useFactory } from "@/components/space/factory-context";
 import type { LabItem } from "@/content/lab";
 
 /**
  * Khung "sản phẩm thử" cho một nguyên mẫu: sân chơi (có nút toàn màn hình), cách chơi, ghi chú kỹ thuật, nơi đang dùng.
  */
 export function LabFrame({ item }: { item: LabItem }) {
-  const copy = spaceCopy.lab;
+  const { ui } = useFactory();
+  const copy = ui.lab;
   const Experiment = experiments[item.id];
   const stageRef = useRef<HTMLDivElement>(null);
   const [full, setFull] = useState(false);
@@ -36,7 +37,7 @@ export function LabFrame({ item }: { item: LabItem }) {
   return (
     <div data-panel-in className="space-lab">
       <div ref={stageRef} className="space-lab-stage" data-lenis-prevent="" data-surface="dark">
-        {Experiment ? <Experiment /> : <p className="label text-muted">Nguyên mẫu đang được lắp vào xưởng.</p>}
+        {Experiment ? <Experiment /> : <p className="label text-muted">{copy.missing}</p>}
         {canFullscreen && (
           <button type="button" onClick={toggleFullscreen} className="space-lab-full label">
             {full ? copy.exitFullscreen : copy.fullscreen}

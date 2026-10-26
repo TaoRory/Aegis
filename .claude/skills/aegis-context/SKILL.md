@@ -30,10 +30,14 @@ description: Ngữ cảnh doanh nghiệp Aegis (dữ kiện đã xác nhận, 4 
 - Trang `/mau-giao-dien` và 6 mẫu `/mau-giao-dien/<slug>` (`src/content/templates.ts`). Đây là **mẫu demo do Aegis tự thiết kế**, thương hiệu và số liệu là **giả định**, phải luôn ghi rõ (DemoBar, DemoClosing, nhãn thư viện). Không trộn với 7 dự án thật.
 - Thêm/sửa mẫu: skill `template-gallery`, agent `template-builder`.
 
-## Xưởng Aegis (`/factory`, phiên bản UI 2, chạy song song)
+## Factory "Aegis Foundation" (`/factory`, `/en/factory`; phiên bản UI 2, chạy song song)
 
-- Cảnh 3D nhiều khu thay cho trang cuộn dài: tổng mặt bằng, trưng bày dự án, phòng thí nghiệm, kệ 8 style, bàn bản vẽ dịch vụ, về Aegis, nhật ký, cửa liên hệ. Nội dung ở `src/config/space.ts`, `src/content/space.ts|lab.ts|journal.ts`. noindex, không vào sitemap. Bản cũ ở `/` giữ nguyên (tag `option-1`).
-- Phòng thí nghiệm chỉ mô tả điều code làm thật; mục `usedIn` không được ghi chỗ không dùng. Nhật ký chỉ hiện bài `confirmed: true` và kể về cách dựng website, không số liệu hay ngày tháng.
+- Không gian 3D nhiều khu thay cho trang cuộn dài: **Lõi Aegis ở giữa, 4 khu dịch vụ NGANG HÀNG** (AI, Phần mềm quản trị, Web, Marketing) toả ra bốn hướng, Gallery (dự án thật), Studio (thí nghiệm + kệ 8 style + ghi chép) và Gate (liên hệ). Dòng năng lượng nối mọi khu về lõi.
+- **Bốn dịch vụ không bao giờ đánh số hay xếp thứ tự "bước"**: cùng cỡ, cùng kiến trúc, nav theo vị trí. Không dùng mã "BV-xx". Trước/sau giữa dịch vụ đi vòng tròn, không có bộ đếm.
+- Song ngữ VI + EN: tiếng Việt ở `/factory/...` (rewrite sang `/vi/factory/...` trong `next.config.ts`), tiếng Anh ở `/en/factory/...`. Slug tiếng Anh cho cả hai (`services/ai`, `work/<slug>`, `studio/lab/<id>`, `contact`). Slug cũ (`trung-bay`, `thi-nghiem`…) chuyển hướng 308.
+- Nội dung: `src/config/space.ts` (khu, route, `servicesWithDemo`), `src/content/factory/{vi,en}.ts` (chữ giao diện + nội dung theo ngôn ngữ; EN dịch sát nội dung đã xác nhận, không thêm tuyên bố), `src/content/demos.ts` (3 demo), `lab.ts`, `journal.ts`. noindex, không vào sitemap. Trang chủ cũ ở `/` giữ nguyên (tag `option-1`).
+- **Demo minh họa** cho 3 dịch vụ chưa có dự án thật (AI, Phần mềm, Marketing): thương hiệu "Minh Phát" và mọi dữ liệu là GIẢ ĐỊNH, luôn có nhãn `demoBadge`; demo AI là kịch bản soạn sẵn (không gọi mô hình), demo Marketing không có số liệu hiệu quả. Web dùng dự án thật (`Project.services`).
+- Phòng thí nghiệm chỉ mô tả điều code làm thật; `usedIn` không được ghi chỗ không dùng. Ghi chép chỉ hiện bài `confirmed: true`, kể về cách dựng website, không số liệu hay ngày tháng.
 - Kỹ thuật và bài học: skill `webgl-experiences`, `references/spatial-site.md`.
 
 ## Nhận diện

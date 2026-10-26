@@ -1,13 +1,16 @@
 import type { Group, Mesh, Vector3, WebGLRenderer } from "three";
 
+import type { ZoneId } from "@/config/space";
 import type { Palette } from "@/components/space/engine/palette";
+import type { RoomZone } from "@/components/space/plan";
 
-/** Dữ liệu cảnh do React cung cấp (chuỗi/URL thuần), để engine không import trực tiếp nội dung */
+/** Dữ liệu cảnh do React cung cấp (chuỗi/URL thuần, đã theo ngôn ngữ), để engine không import trực tiếp nội dung */
 export interface SceneManifest {
   projects: { slug: string; name: string; cover: string }[];
   templates: { slug: string; name: string; cover: string; stage: string; accent: string }[];
   lab: { id: string; name: string }[];
-  services: { id: string; shortTitle: string }[];
+  /** Nhãn bảng tên của từng khu (theo ngôn ngữ) */
+  zones: Record<RoomZone, { name: string; tag: string }>;
 }
 
 export interface BuildContext {
@@ -20,7 +23,7 @@ export interface BuildContext {
   textureWidth: number;
 }
 
-/** Một khu của cảnh (showroom, lab, kệ…) */
+/** Một khu của cảnh (gallery, studio, khu dịch vụ…) */
 export interface ZoneBuild {
   group: Group;
   /** Vị trí thế giới của các điểm chạm; khóa trùng id hotspot (vd "project:vidi26") */
@@ -30,6 +33,8 @@ export interface ZoneBuild {
   update(time: number, dt: number): void;
   /** active: khu đang được xem; focus: mục con được chọn (slug / id) */
   setState(active: boolean, focus: string | null): void;
+  /** Khu đang mở (cho các phần cần biết toàn cảnh: bảng tên, hologram lõi) */
+  setZone?(zone: ZoneId): void;
   /** id hotspot đang được rê chuột tới (hoặc null) */
   setHover?(id: string | null): void;
   /** Nạp lười các texture (trả về số texture đã xong qua callback để tính tiến độ) */

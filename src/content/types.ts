@@ -34,6 +34,8 @@ export interface Project {
   /** Loại dự án hiển thị trên card */
   type: string;
   category: ProjectCategory;
+  /** Nhóm dịch vụ mà dự án là bằng chứng (dùng để nối khu dịch vụ ↔ Gallery) */
+  services: ServiceId[];
   description: string;
   /** Chỉ ghi tính năng đã được xác nhận */
   highlights?: string[];

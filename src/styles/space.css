@@ -414,8 +414,8 @@ html[data-space="on"] body {
 
   .space-legend-link {
     display: grid;
-    grid-template-columns: 3rem 1fr auto;
-    align-items: baseline;
+    grid-template-columns: 1.5rem 1fr auto;
+    align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--border);
@@ -1317,6 +1317,20 @@ html[data-space="on"] body {
     display: none;
   }
 
+  /* Máy tính: bộ chuyển mục nằm cạnh khung nội dung, ngay trên cảnh (không phải bấm nút nhỏ ở cuối khung) */
+  @media (min-width: 64rem) {
+    .space-stepper {
+      left: auto;
+      right: calc(100% + 1.25rem);
+      bottom: 0.5rem;
+      transform: none;
+    }
+
+    .space-panel[data-snap="full"] .space-stepper {
+      display: flex;
+    }
+  }
+
   /* Gợi ý "Kéo để nhìn quanh" */
   .space-drag-hint {
     position: absolute;
@@ -1369,5 +1383,525 @@ html[data-space="on"] body {
   }
   50% {
     transform: translateX(5px);
+  }
+}
+
+@layer components {
+  /* ================= Factory 2.0: bốn dịch vụ ngang hàng, đổi ngôn ngữ, dòng nối ================= */
+
+  /* Mặt bằng phẳng: dòng năng lượng nối các khu về lõi */
+  .space-links polyline {
+    fill: none;
+    stroke: var(--border-strong);
+    stroke-width: 1.2;
+    stroke-dasharray: 2 5;
+    vector-effect: non-scaling-stroke;
+    transition: stroke 0.4s ease;
+  }
+
+  .space-links polyline[data-active="true"] {
+    stroke: var(--accent);
+    stroke-dasharray: none;
+    stroke-width: 2;
+  }
+
+  .space-room[data-kind="service"] .space-room-box {
+    stroke: color-mix(in oklab, var(--accent) 55%, var(--border-strong));
+  }
+
+  /* Thanh điều hướng (máy tính): bốn dịch vụ | các khu còn lại; nút gom dịch vụ chỉ dùng ở điện thoại */
+  .space-nav-divider {
+    align-self: center;
+    width: 1px;
+    height: 1.4rem;
+    margin-inline: 0.4rem;
+    background: var(--border-strong);
+  }
+
+  .space-nav-services-toggle,
+  .space-services-sheet {
+    display: none;
+  }
+
+  .space-nav-services-toggle button {
+    display: flex;
+    gap: 0.45rem;
+    align-items: baseline;
+    padding: 0.62rem 1rem;
+    border-radius: 999px;
+    font-family: var(--font-family-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  /* Ô dịch vụ (bảng chọn nhanh, thẻ tổng quan): cùng cỡ, biểu tượng + tên */
+  .space-service-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+    justify-content: space-between;
+    min-height: 4.6rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 0.9rem;
+    color: var(--fg);
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease;
+  }
+
+  .space-service-tile svg {
+    color: var(--accent);
+  }
+
+  .space-service-tile:hover,
+  .space-service-tile:focus-visible,
+  .space-service-tile[aria-current="page"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .space-service-tile-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .space-hub-services,
+  .space-services-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+  }
+
+  /* Lưới dịch vụ trong trang (đều nhau, không số thứ tự) */
+  .space-service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: 0.9rem;
+    margin-top: 1.75rem;
+  }
+
+  .space-service-grid[data-compact="true"] {
+    margin-top: 0.9rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  }
+
+  .space-service-card {
+    display: grid;
+    gap: 0.55rem;
+    align-content: start;
+    height: 100%;
+    padding: 1rem;
+    border: 1px solid var(--border-strong);
+    transition:
+      border-color 0.35s ease,
+      background-color 0.35s ease;
+  }
+
+  .space-service-card:hover,
+  .space-service-card:focus-visible {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .space-service-card-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    color: var(--accent);
+  }
+
+  .space-service-card-name {
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+
+  .space-demo-card {
+    margin-top: 2rem;
+    padding: 1.1rem 1.25rem 1.4rem;
+    border: 1px solid var(--accent);
+    background: var(--accent-soft);
+  }
+
+  /* Nút đổi ngôn ngữ VI / EN */
+  .space-lang {
+    display: inline-flex;
+    height: 2.5rem;
+    border: 1px solid var(--border-strong);
+    background: color-mix(in oklab, var(--bg) 80%, transparent);
+    backdrop-filter: blur(10px);
+  }
+
+  .space-lang-link {
+    display: inline-flex;
+    align-items: center;
+    padding-inline: 0.8rem;
+    color: var(--fg-muted);
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+
+  .space-lang-link:hover {
+    color: var(--fg);
+  }
+
+  .space-lang-link[aria-current="true"] {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .space-lang-menu {
+    display: flex;
+    height: 2.75rem;
+    border-radius: 0.8rem;
+    overflow: hidden;
+  }
+
+  .space-lang-menu .space-lang-link {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* Điện thoại: nav còn 5 mục (Dịch vụ · Dự án · Studio · Về Aegis · Liên hệ), "Dịch vụ" mở bảng 2 × 2 */
+  @media (max-width: 47.99rem) {
+    .space-nav .space-nav-service,
+    .space-nav .space-nav-divider {
+      display: none;
+    }
+
+    .space-nav .space-nav-services-toggle {
+      display: flex;
+    }
+
+    .space-nav-services-toggle button {
+      position: relative;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      min-width: 2.9rem;
+      height: 2.9rem;
+      padding: 0 0.7rem;
+      border-radius: 1.1rem;
+      font-size: 0.68rem;
+      white-space: nowrap;
+    }
+
+    .space-nav-services-toggle button[data-active="true"],
+    .space-nav-services-toggle button[aria-expanded="true"] {
+      background: var(--accent);
+      color: var(--on-accent);
+      padding: 0 1rem 0 0.85rem;
+    }
+
+    .space-nav-services-toggle button:not([data-active="true"]):not([aria-expanded="true"]) .space-nav-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .space-services-sheet:not([hidden]) {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: calc(100% + 0.6rem);
+      display: block;
+      padding: 0.9rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 1.25rem;
+      background: color-mix(in oklab, var(--bg-elevated) 94%, transparent);
+      backdrop-filter: blur(18px);
+    }
+
+    .space-services-grid {
+      margin-top: 0.6rem;
+    }
+  }
+}
+
+@layer components {
+  /* ================= Demo minh họa (AI · Phần mềm quản trị · Marketing) ================= */
+  .space-demo-badge {
+    display: inline-block;
+    margin-top: 1.25rem;
+    padding: 0.4rem 0.7rem;
+    border: 1px dashed var(--accent);
+    color: var(--accent);
+    line-height: 1.4;
+  }
+
+  .space-demo-reset {
+    justify-self: start;
+    margin-top: 1.25rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid var(--border-strong);
+    color: var(--fg-muted);
+    transition:
+      border-color 0.3s ease,
+      color 0.3s ease;
+  }
+
+  .space-demo-reset:hover {
+    border-color: var(--fg);
+    color: var(--fg);
+  }
+
+  .space-chip-btn {
+    display: grid;
+    gap: 0.2rem;
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 0.75rem;
+    text-align: left;
+    line-height: 1.4;
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease;
+  }
+
+  .space-chip-btn:hover:not(:disabled),
+  .space-chip-btn[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .space-chip-btn:disabled {
+    opacity: 0.5;
+    cursor: progress;
+  }
+
+  .space-mini-btn {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2.4rem;
+    height: 2.4rem;
+    padding-inline: 0.5rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 0.6rem;
+    font-size: 1.1rem;
+    line-height: 1;
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease;
+  }
+
+  .space-mini-btn-wide {
+    padding-inline: 0.9rem;
+    font-family: var(--font-family-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .space-mini-btn:hover:not(:disabled),
+  .space-mini-btn[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .space-mini-btn:disabled {
+    opacity: 0.3;
+  }
+
+  /* AI */
+  .space-demo-split {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 0.9rem;
+  }
+
+  @media (min-width: 52rem) {
+    .space-demo-split {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .space-demo-doc,
+  .space-demo-chat {
+    padding: 1rem;
+    border: 1px solid var(--border-strong);
+  }
+
+  .space-demo-passage {
+    margin-top: 0.9rem;
+    padding: 0.65rem 0.75rem;
+    border-left: 2px solid var(--border-strong);
+    transition:
+      border-color 0.4s ease,
+      background-color 0.4s ease;
+  }
+
+  .space-demo-passage[data-cited="true"] {
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .space-demo-log {
+    display: grid;
+    gap: 0.9rem;
+    align-content: start;
+    min-height: 9rem;
+    max-height: 18rem;
+    overflow-y: auto;
+  }
+
+  .space-bubble {
+    padding: 0.7rem 0.85rem;
+    border-radius: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .space-bubble[data-from="you"] {
+    justify-self: end;
+    max-width: 90%;
+    border: 1px solid var(--border-strong);
+  }
+
+  .space-bubble[data-from="assistant"] {
+    justify-self: start;
+    max-width: 95%;
+    background: var(--accent-soft);
+  }
+
+  /* Phần mềm quản trị */
+  .space-board {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(11.5rem, 1fr);
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+
+  .space-board-col {
+    min-height: 8rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    background: color-mix(in oklab, var(--surface) 40%, transparent);
+  }
+
+  .space-order {
+    padding: 0.7rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 0.7rem;
+    background: var(--bg-elevated);
+  }
+
+  .space-approval {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 0.75rem;
+  }
+
+  .space-approval[data-decision="approved"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .space-approval[data-decision="rejected"] {
+    opacity: 0.6;
+  }
+
+  .space-stock {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+  }
+
+  .space-stock[data-low="true"] {
+    border-color: var(--danger);
+  }
+
+  .space-stock-bar {
+    display: block;
+    height: 0.3rem;
+    margin-top: 0.5rem;
+    border-radius: 999px;
+    background: var(--border);
+  }
+
+  .space-stock-bar i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+
+  .space-stock[data-low="true"] .space-stock-bar i {
+    background: var(--danger);
+  }
+
+  /* Marketing */
+  .space-cal {
+    display: grid;
+    grid-template-columns: 4.6rem repeat(7, minmax(2.6rem, 1fr));
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding-bottom: 0.4rem;
+  }
+
+  .space-cal-cell {
+    display: grid;
+    place-items: center;
+    min-height: 2.9rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease;
+  }
+
+  .space-cal-cell:not(:disabled):hover,
+  .space-cal-cell[data-suggested="true"] {
+    border-color: var(--accent);
+  }
+
+  .space-cal-cell[data-filled="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .space-cal-cell[data-selected="true"] {
+    background: var(--accent);
+  }
+
+  .space-cal-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .space-cal-cell[data-selected="true"] .space-cal-dot {
+    background: var(--on-accent);
+  }
+
+  .space-cal-cell:disabled:not([data-filled="true"]) {
+    cursor: default;
+    opacity: 0.55;
+  }
+
+  .space-post {
+    padding: 1rem 1.1rem 1.2rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 0.9rem;
+    background: var(--bg-elevated);
   }
 }

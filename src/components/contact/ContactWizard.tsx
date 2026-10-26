@@ -117,7 +117,11 @@ function branchOf(question: ChoiceQuestion) {
   return entry?.[0];
 }
 
-export function ContactWizard({ isConfigured, scrollMode = "window" }: { isConfigured: boolean; scrollMode?: "window" | "element" }) {
+/**
+ * `sheetCode`: mã tờ in trên "phiếu" (trang liên hệ cũ dùng "BV-06", chương cuối của trang cuộn dài). Factory truyền chuỗi
+ * rỗng vì không dùng mã tờ bản vẽ.
+ */
+export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode = "BV-06" }: { isConfigured: boolean; scrollMode?: "window" | "element"; sheetCode?: string }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
   const startedAt = useRef(0);
@@ -366,7 +370,7 @@ export function ContactWizard({ isConfigured, scrollMode = "window" }: { isConfi
       <div role="status" className="wizard-done">
         <div aria-hidden className="wizard-stamp label">
           Đã nhận
-          <span>BV-06</span>
+          {sheetCode && <span>{sheetCode}</span>}
         </div>
         <h2 className="mt-10 text-h2 font-semibold">
           Aegis đã nhận <em>phiếu của bạn.</em>
@@ -434,7 +438,7 @@ export function ContactWizard({ isConfigured, scrollMode = "window" }: { isConfi
           </div>
         </div>
 
-        <BriefSheet draft={draft} />
+        <BriefSheet draft={draft} sheetCode={sheetCode} />
       </form>
     </div>
   );
@@ -658,7 +662,7 @@ export function ContactWizard({ isConfigured, scrollMode = "window" }: { isConfi
 
       case "review":
         return (
-          <StepFrame id="review" label="Phiếu BV-06" title={reviewStep.title} hint={reviewStep.hint}>
+          <StepFrame id="review" label={sheetCode ? `Phiếu ${sheetCode}` : "Phiếu yêu cầu"} title={reviewStep.title} hint={reviewStep.hint}>
             <dl className="wizard-review" data-anim>
               {draft.service && (
                 <ReviewRow term="Hạng mục" onEdit={() => go(0)}>
@@ -864,7 +868,7 @@ function TextField({
 }
 
 /** Phiếu bản vẽ thu nhỏ bên cạnh: mỗi câu trả lời được "đóng" vào phiếu ngay khi chọn (desktop) */
-function BriefSheet({ draft }: { draft: Draft }) {
+function BriefSheet({ draft, sheetCode }: { draft: Draft; sheetCode: string }) {
   const rows = draft.service
     ? questionsFor(draft.service)
         .map((question) => ({ id: question.id, title: question.title, value: answerLabels(question, draft).join(" · ") }))
@@ -875,7 +879,7 @@ function BriefSheet({ draft }: { draft: Draft }) {
       <div className="wizard-sheet-inner">
         <div className="flex items-center justify-between border-b border-line pb-3">
           <span className="label text-muted">Phiếu yêu cầu</span>
-          <span className="label text-accent">BV-06</span>
+          {sheetCode && <span className="label text-accent">{sheetCode}</span>}
         </div>
         <dl className="mt-4 space-y-4">
           <div>

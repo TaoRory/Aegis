@@ -3,9 +3,14 @@
 import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
 
+import { useFactory } from "@/components/space/factory-context";
 import type { LabId } from "@/content/lab";
 
-const loading = () => <p className="label text-muted">Đang lắp nguyên mẫu…</p>;
+function Loading() {
+  const { ui } = useFactory();
+  return <p className="label text-muted">{ui.lab.loading}</p>;
+}
+const loading = () => <Loading />;
 
 /**
  * Bản đồ id → thành phần thí nghiệm. Mỗi thí nghiệm là một chunk riêng, chỉ tải khi mở trang của nó

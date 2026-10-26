@@ -2,7 +2,6 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 
 import type { PreviewImage } from "@/content/types";
-import { spaceCopy } from "@/content/space";
 
 /** Bảng thông số kiểu hồ sơ (khung tên bản vẽ): mỗi hàng một cặp nhãn mono / giá trị */
 export function SpecTable({ rows }: { rows: { label: string; value: ReactNode }[] }) {
@@ -22,7 +21,7 @@ export function SpecTable({ rows }: { rows: { label: string; value: ReactNode }[
  * "Sân khấu thiết bị": ảnh toàn trang đặt trong khung trình duyệt trên nền accent; cuộn trong khung để xem hết.
  * Ảnh là ảnh chụp tĩnh (không phải website sống) nên ghi chú rõ ở chú thích.
  */
-export function DeviceStage({ full, alt }: { full: PreviewImage; alt: string }) {
+export function DeviceStage({ full, alt, shot, fullShot }: { full: PreviewImage; alt: string; shot: string; fullShot: string }) {
   return (
     <figure data-panel-in className="space-stage">
       <div className="space-device">
@@ -31,12 +30,12 @@ export function DeviceStage({ full, alt }: { full: PreviewImage; alt: string }) 
           <span />
           <span />
         </div>
-        <div className="space-device-screen" data-lenis-prevent="" tabIndex={0} role="region" aria-label={spaceCopy.product.fullShot}>
+        <div className="space-device-screen" data-lenis-prevent="" tabIndex={0} role="region" aria-label={fullShot}>
           <Image src={full.src} width={full.width} height={full.height} alt={alt} sizes="(min-width: 64rem) 40rem, 90vw" className="w-full" />
         </div>
       </div>
       <figcaption className="label mt-3 text-muted">
-        {spaceCopy.product.shot} · {spaceCopy.product.fullShot}
+        {shot} · {fullShot}
       </figcaption>
     </figure>
   );

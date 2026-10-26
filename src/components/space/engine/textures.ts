@@ -16,6 +16,7 @@ export async function loadImageTexture(url: string, maxWidth: number, renderer: 
     probe.close();
     const bitmap = await createImageBitmap(blob, { resizeWidth: width, resizeHeight: height, resizeQuality: "high", imageOrientation: "flipY" });
     const texture = new Texture(bitmap);
+    texture.userData.luma = averageLuma(bitmap);
     texture.colorSpace = SRGBColorSpace;
     texture.flipY = false;
     texture.generateMipmaps = true;
@@ -27,6 +28,35 @@ export async function loadImageTexture(url: string, maxWidth: number, renderer: 
   } catch {
     return null;
   }
+}
+
+/** Độ sáng trung bình (tuyến tính, 0..1) của ảnh, đo trên bản thu nhỏ 24 × 24 */
+function averageLuma(bitmap: ImageBitmap): number {
+  try {
+    const size = 24;
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = size;
+    const g = canvas.getContext("2d", { willReadFrequently: true });
+    if (!g) return 0.3;
+    g.drawImage(bitmap, 0, 0, size, size);
+    const data = g.getImageData(0, 0, size, size).data;
+    let sum = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      sum += 0.2126 * (data[i] / 255) ** 2.2 + 0.7152 * (data[i + 1] / 255) ** 2.2 + 0.0722 * (data[i + 2] / 255) ** 2.2;
+    }
+    return sum / (size * size);
+  } catch {
+    return 0.3;
+  }
+}
+
+/**
+ * Hệ số độ sáng để màn hình hiển thị ảnh KHÔNG bị cháy: ảnh nền trắng (vd trang web sáng) bị nhân nhỏ lại cho độ sáng
+ * trung bình về quanh 0,42, ảnh tối giữ nguyên. Màn hình không qua tone mapping và có bloom nên ảnh sáng sẽ chói nếu để nguyên.
+ */
+export function exposureFor(texture: Texture): number {
+  const luma = (texture.userData.luma as number | undefined) ?? 0.3;
+  return Math.min(1, Math.max(0.45, 0.42 / Math.max(luma, 0.01)));
 }
 
 const grey = (v: number) => {

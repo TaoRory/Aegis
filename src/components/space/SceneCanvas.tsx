@@ -6,27 +6,29 @@ import { useEffect, useRef } from "react";
 import { detectMode, rememberMode } from "@/components/space/capability";
 import { engineRef } from "@/components/space/engine-ref";
 import type { SceneManifest } from "@/components/space/engine/types";
+import { useFactory } from "@/components/space/factory-context";
 import { hrefForId } from "@/components/space/hotspot-data";
+import { rooms } from "@/components/space/plan";
 import { spaceStore } from "@/components/space/space-store";
 import { useSpace } from "@/components/space/useSpace";
+import type { FactoryUi } from "@/content/factory/types";
 import { labItems } from "@/content/lab";
 import previews from "@/content/project-previews.json";
 import { projects } from "@/content/projects";
-import { services } from "@/content/services";
 import templatePreviews from "@/content/template-previews.json";
 import { templates } from "@/content/templates";
 import { MQ } from "@/lib/motion";
 
 type Previews = Record<string, { cover: { src: string } }>;
 
-function buildManifest(): SceneManifest {
+function buildManifest(ui: FactoryUi): SceneManifest {
   const p = previews as Previews;
   const t = templatePreviews as Previews;
   return {
     projects: projects.map((x) => ({ slug: x.slug, name: x.name, cover: p[x.slug]?.cover.src ?? "" })),
     templates: templates.map((x) => ({ slug: x.slug, name: x.name, cover: t[x.slug]?.cover.src ?? "", stage: x.stage, accent: x.palette[2] ?? x.stageInk })),
-    lab: labItems.map((x) => ({ id: x.id, name: x.name })),
-    services: services.map((x) => ({ id: x.id, shortTitle: x.shortTitle })),
+    lab: labItems.map((x) => ({ id: x.id, name: ui.labNames[x.id] })),
+    zones: Object.fromEntries(rooms.map((r) => [r.zone, { name: ui.zones[r.zone].name, tag: ui.zones[r.zone].tag }])) as SceneManifest["zones"],
   };
 }
 
@@ -72,10 +74,16 @@ export function SceneCanvas() {
   const paused = useSpace("paused");
   const zone = useSpace("zone");
   const focus = useSpace("focus");
+  const { ui } = useFactory();
+  // Bản ghi mới nhất của chữ giao diện, đọc trong callback của engine (không làm effect chạy lại)
+  const uiRef = useRef(ui);
+  useEffect(() => {
+    uiRef.current = ui;
+  }, [ui]);
 
   // 1) Chọn chế độ khi mount
   useEffect(() => {
-    const decision = detectMode();
+    const decision = detectMode(uiRef.current.hud.flatNotice);
     spaceStore.set("flatReason", decision.reason);
     spaceStore.set("mode", decision.mode);
     if (decision.mode === "3d") spaceStore.set("bootProgress", 0);
@@ -98,22 +106,26 @@ export function SceneCanvas() {
           if (!engineRef.creating) {
             const creating = import("@/components/space/engine/space-engine").then(({ SpaceEngine }) =>
               SpaceEngine.create({
-                manifest: buildManifest(),
+                manifest: buildManifest(uiRef.current),
                 mobile: window.innerWidth < 768,
                 reduced: window.matchMedia(MQ.reduced).matches,
                 onProgress: (p) => spaceStore.set("bootProgress", p),
                 onHover: (id) => spaceStore.set("hover", id),
                 onDrag: () => spaceStore.set("dragged", true),
+                onStep: (delta) => {
+                  const link = [...document.querySelectorAll<HTMLElement>(`.space-panel [data-step="${delta === 1 ? "next" : "prev"}"]`)].find((el) => el.getClientRects().length > 0);
+                  link?.click();
+                },
                 onPick: (id) => {
                   const el = document.querySelector<HTMLElement>(`[data-hotspot="${id}"]`);
                   if (el) el.click();
                   else {
-                    const href = hrefForId(id);
+                    const href = hrefForId(id, uiRef.current.lang);
                     if (href) router.push(href);
                   }
                 },
                 onContextLost: () => {
-                  spaceStore.set("flatReason", "Trình duyệt vừa mất bối cảnh đồ họa, Xưởng chuyển sang bản phẳng.");
+                  spaceStore.set("flatReason", uiRef.current.hud.contextLost);
                   spaceStore.set("mode", "flat");
                 },
               }),
@@ -126,7 +138,7 @@ export function SceneCanvas() {
       } catch {
         engineRef.setCreating(null);
         if (!cancelled) {
-          spaceStore.set("flatReason", "Không dựng được cảnh 3D trên thiết bị này, Xưởng đang hiển thị bản phẳng.");
+          spaceStore.set("flatReason", uiRef.current.hud.noWebgl);
           spaceStore.set("mode", "flat");
         }
         return;

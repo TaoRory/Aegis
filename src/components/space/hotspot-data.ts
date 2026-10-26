@@ -1,4 +1,5 @@
-import { SPACE_BASE, zones, type ZoneId } from "@/config/space";
+import { factoryHref, isServiceZone, servicesWithDemo, zones, type Locale, type ZoneId } from "@/config/space";
+import type { FactoryUi } from "@/content/factory/types";
 import { labItems } from "@/content/lab";
 import { projects } from "@/content/projects";
 import { templates } from "@/content/templates";
@@ -8,35 +9,52 @@ export interface Hotspot {
   id: string;
   href: string;
   label: string;
-  /** Nhãn mono nhỏ phía trước (số thứ tự) */
+  /** Nhãn mono nhỏ phía trước (loại khu, hoặc số thứ tự trong một danh sách) */
   tag: string;
 }
 
-/** Danh sách điểm chạm (kim cương) hiển thị cho khu đang xem. Đều là liên kết thật. */
-export function hotspotsFor(zone: ZoneId): Hotspot[] {
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * Danh sách điểm chạm (kim cương) hiển thị cho khu đang xem. Đều là liên kết thật.
+ * Bốn khu dịch vụ không đánh số: nhãn là loại khu ("DỊCH VỤ"), không phải thứ tự.
+ */
+export function hotspotsFor(zone: ZoneId, lang: Locale, ui: FactoryUi): Hotspot[] {
+  const href = (sub: string) => factoryHref(lang, sub);
   if (zone === "hub") {
-    return zones
-      .filter((z) => z.id !== "hub")
-      .map((z) => ({ id: `zone:${z.id}`, href: z.route, label: z.name, tag: z.index ?? z.sheet }));
+    return zones.filter((z) => z.id !== "hub").map((z) => ({ id: `zone:${z.id}`, href: href(z.path), label: ui.zones[z.id].name, tag: ui.zones[z.id].tag }));
   }
-  if (zone === "trung-bay") {
-    return projects.map((p, i) => ({ id: `project:${p.slug}`, href: `${SPACE_BASE}/trung-bay/${p.slug}`, label: p.name, tag: String(i + 1).padStart(2, "0") }));
+  if (isServiceZone(zone)) {
+    const primary = servicesWithDemo.includes(zone)
+      ? { id: `demo:${zone}`, href: href(`services/${zone}/demo`), label: ui.hotspotLabels.demo, tag: "" }
+      : { id: `proof:${zone}`, href: href("work"), label: ui.hotspotLabels.proof, tag: "" };
+    return [primary, { id: `start:${zone}`, href: `${href("contact")}?dv=${zone}`, label: ui.hotspotLabels.start, tag: "" }];
   }
-  if (zone === "thi-nghiem") {
-    return labItems.map((l) => ({ id: `lab:${l.id}`, href: `${SPACE_BASE}/thi-nghiem/${l.id}`, label: l.name, tag: l.index }));
+  if (zone === "work") {
+    return projects.map((p, i) => ({ id: `project:${p.slug}`, href: href(`work/${p.slug}`), label: p.name, tag: pad(i + 1) }));
   }
-  if (zone === "mau-giao-dien") {
-    return templates.map((t, i) => ({ id: `template:${t.slug}`, href: `/mau-giao-dien/${t.slug}`, label: t.name, tag: String(i + 1).padStart(2, "0") }));
+  if (zone === "studio") {
+    return [
+      ...labItems.map((l) => ({ id: `lab:${l.id}`, href: href(`studio/lab/${l.id}`), label: ui.labNames[l.id], tag: l.index })),
+      ...templates.map((t, i) => ({ id: `template:${t.slug}`, href: `/mau-giao-dien/${t.slug}`, label: t.name, tag: pad(i + 1) })),
+    ];
   }
   return [];
 }
 
 /** Đích điều hướng của một id hotspot (cho thao tác bấm vào vật thể 3D khi không có phần tử DOM tương ứng) */
-export function hrefForId(id: string): string | null {
+export function hrefForId(id: string, lang: Locale): string | null {
   const [kind, key] = id.split(":");
-  if (kind === "zone") return zones.find((z) => z.id === key)?.route ?? null;
-  if (kind === "project") return `${SPACE_BASE}/trung-bay/${key}`;
-  if (kind === "lab") return `${SPACE_BASE}/thi-nghiem/${key}`;
+  const href = (sub: string) => factoryHref(lang, sub);
+  if (kind === "zone") {
+    const zone = zones.find((z) => z.id === key);
+    return zone ? href(zone.path) : null;
+  }
+  if (kind === "demo") return href(`services/${key}/demo`);
+  if (kind === "proof") return href("work");
+  if (kind === "start") return `${href("contact")}?dv=${key}`;
+  if (kind === "project") return href(`work/${key}`);
+  if (kind === "lab") return href(`studio/lab/${key}`);
   if (kind === "template") return `/mau-giao-dien/${key}`;
   return null;
 }

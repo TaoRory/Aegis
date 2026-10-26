@@ -1,8 +1,8 @@
 "use client";
 
+import { useFactory } from "@/components/space/factory-context";
 import { setSpaceMode } from "@/components/space/SceneCanvas";
 import { useSpace } from "@/components/space/useSpace";
-import { spaceCopy } from "@/content/space";
 
 /**
  * Nút đổi Bản 3D / Bản phẳng (phím B nằm ở SpaceKeys). Lựa chọn "phẳng" của người dùng được nhớ (localStorage),
@@ -10,9 +10,10 @@ import { spaceCopy } from "@/content/space";
  */
 export function SpaceMode({ className = "space-home label" }: { className?: string }) {
   const mode = useSpace("mode");
+  const { ui } = useFactory();
   return (
     <button type="button" className={className} aria-pressed={mode === "3d"} onClick={() => setSpaceMode(mode === "3d" ? "flat" : "3d")}>
-      {mode === "3d" ? spaceCopy.hud.flat : spaceCopy.hud.threeD}
+      {mode === "3d" ? ui.hud.flat : ui.hud.threeD}
     </button>
   );
 }

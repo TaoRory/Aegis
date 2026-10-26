@@ -19,7 +19,7 @@ export const journalEntries: JournalEntry[] = [
     title: "Nền móng dựng từ hạt",
     body: [
       "Hình nền móng ở trang chủ không phải ảnh hay video. Đó là khoảng 18 nghìn điểm sáng trên máy tính (10 nghìn trên điện thoại), mỗi điểm có một vị trí đích cho từng hình: nền móng, mạng nơ-ron, lưới mô-đun, khung trình duyệt, sóng lan tỏa.",
-      "Khi người xem cuộn qua mục dịch vụ, các điểm tự di chuyển từ hình này sang hình kế tiếp, và việc đó được tính trên GPU. Bạn có thể tự chơi với engine này trong Phòng thí nghiệm.",
+      "Khi người xem cuộn qua mục dịch vụ, các điểm tự di chuyển từ hình này sang hình kế tiếp, và việc đó được tính trên GPU. Bạn có thể tự chơi với engine này trong Studio.",
     ],
     confirmed: true,
   },
@@ -38,7 +38,7 @@ export const journalEntries: JournalEntry[] = [
     index: "03",
     title: "Xưởng này dựng bằng code",
     body: [
-      "Không gian 3D bạn đang xem không dùng model dựng sẵn. Tường, sàn, bệ và màn hình đều là hình khối sinh bằng mã (Three.js); ảnh các dự án được dán lên màn hình làm texture.",
+      "Không gian 3D bạn đang xem không dùng model dựng sẵn. Sàn, bệ, khung các khu và màn hình đều là hình khối sinh bằng mã (Three.js); ảnh các dự án được dán lên màn hình làm texture.",
       "Nếu thiết bị không chạy được 3D, xưởng chuyển sang bản mặt bằng phẳng với cùng các đường dẫn.",
     ],
     confirmed: true,

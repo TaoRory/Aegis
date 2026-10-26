@@ -11,6 +11,7 @@ export const projects: Project[] = [
     name: "VIDI26",
     type: "Website tuyển sinh",
     category: "education",
+    services: ["web"],
     description:
       "Website cho chương trình VinUni Discovery 2026 của văn phòng tuyển sinh Trường Đại học VinUni. Có cơ sở dữ liệu và phân quyền quản trị để đội ngũ tự cập nhật nội dung blog.",
     highlights: ["Cơ sở dữ liệu", "Phân quyền admin", "Quản lý nội dung blog"],
@@ -21,6 +22,7 @@ export const projects: Project[] = [
     name: "Handle Vietnam",
     type: "Website doanh nghiệp",
     category: "business",
+    services: ["web"],
     description:
       "Website cho Handle, dịch vụ hỗ trợ chăm sóc sức khỏe và du lịch y tế tại Việt Nam. Có cơ sở dữ liệu để thu thập thông tin cơ bản.",
     highlights: ["Cơ sở dữ liệu thu thập thông tin"],
@@ -31,6 +33,7 @@ export const projects: Project[] = [
     name: "Integritas Vu Legal",
     type: "Website doanh nghiệp",
     category: "business",
+    services: ["web"],
     description:
       "Website giới thiệu cho Integritas Vu Legal, công ty luật tại Việt Nam, trình bày lĩnh vực hành nghề, đội ngũ và bài viết chuyên môn.",
     url: "https://www.integritasvulegal.com/",
@@ -40,6 +43,7 @@ export const projects: Project[] = [
     name: "TEDxVinUniversity 2026",
     type: "Website sự kiện",
     category: "event",
+    services: ["web"],
     description:
       "Website cho sự kiện TEDxVinUniversity 2026 với chủ đề “The Limitless Decade”, giới thiệu diễn giả và lịch trình sự kiện.",
     url: "https://v0-tedxvinuni.vercel.app/",
@@ -49,6 +53,7 @@ export const projects: Project[] = [
     name: "ReThink",
     type: "Website tổ chức",
     category: "education",
+    services: ["web"],
     description:
       "Website cho ReThink, tổ chức sinh viên thuộc Trường Đại học VinUni.",
     url: "https://rethinkorg.com",
@@ -58,6 +63,7 @@ export const projects: Project[] = [
     name: "TEDxVinUniversity 2025",
     type: "Website sự kiện",
     category: "event",
+    services: ["web"],
     description: "Website cho sự kiện TEDxVinUniversity 2025.",
     url: "https://rethinkorg.com/tedx",
   },
@@ -66,6 +72,7 @@ export const projects: Project[] = [
     name: "ReThink Halloween",
     type: "Website sự kiện",
     category: "event",
+    services: ["web"],
     description:
       "Website cho sự kiện Halloween của hội đồng học sinh, phối hợp cùng ReThink, tổ chức sinh viên thuộc Trường Đại học VinUni.",
     url: "https://rethinkorg.com/halloween",

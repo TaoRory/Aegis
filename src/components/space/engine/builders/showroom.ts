@@ -5,7 +5,7 @@ import { createPools } from "@/components/space/engine/builders/pools";
 import { addSheen, type Sheen } from "@/components/space/engine/builders/sheen";
 
 import { SHOWROOM, showroomX } from "@/components/space/engine/layout";
-import { gradientTexture, loadImageTexture } from "@/components/space/engine/textures";
+import { exposureFor, gradientTexture, loadImageTexture } from "@/components/space/engine/textures";
 import type { BuildContext, ZoneBuild } from "@/components/space/engine/types";
 import { disposeGroup } from "@/components/space/engine/types";
 
@@ -31,6 +31,8 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
     screen: Mesh;
     reflection: Mesh;
     bright: number;
+    /** Hệ số chống cháy sáng theo ảnh bìa (1 = ảnh tối, giữ nguyên) */
+    exposure: number;
     target: number;
     texture: Texture | null;
     sheen: Sheen;
@@ -66,7 +68,7 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
     group.add(unit);
     pickables.push(screen);
     anchors[`project:${project.slug}`] = new Vector3(x, SHOWROOM.y + SHOWROOM.h / 2 + 0.38, SHOWROOM.z + 0.1);
-    return { slug: project.slug, screen, reflection, bright: 0.5, target: 0.5, texture: null, sheen };
+    return { slug: project.slug, screen, reflection, bright: 0.5, exposure: 1, target: 0.5, texture: null, sheen };
   });
 
   group.add(new Mesh(mergeAll(bodyGeos), bodyMat), new Mesh(mergeAll(bezelGeos), bezelMat));
@@ -110,12 +112,12 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
         item.bright += (item.target - item.bright) * k;
         const sm = item.screen.material as MeshBasicMaterial;
         const rm = item.reflection.material as MeshBasicMaterial;
-        if (sm.map) sm.color.setScalar(item.bright);
+        if (sm.map) sm.color.setScalar(item.bright * item.exposure);
         else sm.color.copy(palette.inkSurface).multiplyScalar(item.bright);
-        if (rm.map) rm.color.setScalar(item.bright);
+        if (rm.map) rm.color.setScalar(item.bright * item.exposure);
         else rm.color.copy(palette.inkSurface).multiplyScalar(item.bright);
         item.sheen.uniforms.uSheenT.value = time;
-        item.sheen.uniforms.uAmt.value = 0.15 * Math.max(0, item.bright - 0.4);
+        item.sheen.uniforms.uAmt.value = 0.15 * item.exposure * Math.max(0, item.bright - 0.4);
         pools.set(items.indexOf(item), (item.bright - 0.4) * 1.1);
         const lift = focus === item.slug ? 1.04 : 1;
         item.screen.scale.setScalar(item.screen.scale.x + (lift - item.screen.scale.x) * k);
@@ -129,9 +131,10 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
           const texture = await loadImageTexture(manifest.projects[i].cover, ctx.textureWidth, ctx.renderer);
           if (texture) {
             item.texture = texture;
+            item.exposure = exposureFor(texture);
             const screenMat = item.screen.material as MeshBasicMaterial;
             screenMat.map = texture;
-            screenMat.color.setScalar(item.bright);
+            screenMat.color.setScalar(item.bright * item.exposure);
             screenMat.needsUpdate = true;
             const reflMat = item.reflection.material as MeshBasicMaterial;
             reflMat.map = texture;

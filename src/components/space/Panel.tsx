@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
 
-import { spaceCopy } from "@/content/space";
-import { zoneById, type ZoneId } from "@/config/space";
+import type { ZoneId } from "@/config/space";
+import { useFactory } from "@/components/space/factory-context";
 import { spaceStore } from "@/components/space/space-store";
 import { useSpace } from "@/components/space/useSpace";
 import { Rich } from "@/components/ui/Rich";
@@ -118,13 +118,14 @@ export function Panel({
     return () => window.removeEventListener("keydown", onKey);
   }, [router, closeHref]);
 
-  const z = zoneById[zone];
+  const { ui } = useFactory();
+  const z = ui.zones[zone];
   return (
     <section ref={ref} className="space-panel" aria-label={z.name} data-zone={zone} data-snap={snap}>
       <button
         type="button"
         className="space-handle"
-        aria-label="Đổi độ cao khung nội dung"
+        aria-label={ui.hud.resize}
         onPointerDown={onHandleDown}
         onPointerUp={onHandleUp}
         onKeyDown={(event) => {
@@ -133,14 +134,14 @@ export function Panel({
         }}
       >
         <span aria-hidden />
-        <span className="space-handle-label label">{snap === "peek" ? spaceCopy.hud.details : ""}</span>
+        <span className="space-handle-label label">{snap === "peek" ? ui.hud.details : ""}</span>
       </button>
       <header className="space-panel-bar">
         <p className="space-eyebrow label text-muted">
-          <span className="text-accent">{z.sheet}</span> · {eyebrow ?? z.name}
+          <span className="text-accent">{z.tag}</span> · {eyebrow ?? z.name}
         </p>
-        <Link href={closeHref} className="space-close label" aria-label={spaceCopy.hud.close} data-cursor="link">
-          {spaceCopy.hud.close} ✕
+        <Link href={closeHref} className="space-close label" aria-label={ui.hud.close} data-cursor="link">
+          {ui.hud.close} ✕
         </Link>
         <span aria-hidden data-panel-line className="space-line" />
       </header>
@@ -153,9 +154,9 @@ export function Panel({
       </div>
 
       {step && (
-        <nav className="space-stepper md:hidden" aria-label="Chuyển mục">
+        <nav className="space-stepper" aria-label={ui.hud.switchItem}>
           {prev ? (
-            <Link href={prev.href} className="space-stepper-btn" aria-label={`Mục trước: ${prev.label}`} data-cursor="link">
+            <Link href={prev.href} data-step="prev" className="space-stepper-btn" aria-label={`${ui.hud.stepPrev}: ${prev.label}`} data-cursor="link">
               <span aria-hidden>‹</span>
             </Link>
           ) : (
@@ -163,11 +164,11 @@ export function Panel({
               ‹
             </span>
           )}
-          <span className="space-stepper-count label" aria-label={`${spaceCopy.hud.stepOf} ${step.index} / ${step.total}`}>
+          <span className="space-stepper-count label" aria-label={`${ui.hud.stepOf} ${step.index} / ${step.total}`}>
             {String(step.index).padStart(2, "0")} / {String(step.total).padStart(2, "0")}
           </span>
           {next ? (
-            <Link href={next.href} className="space-stepper-btn" aria-label={`Mục sau: ${next.label}`} data-cursor="link">
+            <Link href={next.href} data-step="next" className="space-stepper-btn" aria-label={`${ui.hud.stepNext}: ${next.label}`} data-cursor="link">
               <span aria-hidden>›</span>
             </Link>
           ) : (
@@ -179,16 +180,16 @@ export function Panel({
       )}
 
       {(prev || next) && (
-        <nav className="space-panel-foot" aria-label="Chuyển mục">
+        <nav className="space-panel-foot" aria-label={ui.hud.switchItem}>
           {prev ? (
-            <Link href={prev.href} className="space-step label">
+            <Link href={prev.href} data-step="prev" className="space-step label">
               <span aria-hidden>←</span> {prev.label}
             </Link>
           ) : (
             <span />
           )}
           {next ? (
-            <Link href={next.href} className="space-step label">
+            <Link href={next.href} data-step="next" className="space-step label">
               {next.label} <span aria-hidden>→</span>
             </Link>
           ) : (

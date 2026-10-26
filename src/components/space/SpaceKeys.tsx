@@ -5,32 +5,48 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { setSpaceMode } from "@/components/space/SceneCanvas";
 import { spaceStore } from "@/components/space/space-store";
-import { navZones, SPACE_BASE } from "@/config/space";
-import { spaceCopy } from "@/content/space";
+import { useFactory } from "@/components/space/factory-context";
+import { navOthers, navServices } from "@/config/space";
 
 /**
- * Phím tắt toàn Xưởng: 1–6 mở khu, M về tổng mặt bằng, ? mở bảng phím tắt. B đổi 3D/phẳng. (Esc do Panel xử lý.)
+ * Phím tắt toàn Xưởng: 1–8 mở khu theo thanh điều hướng, M về tổng quan, ? mở bảng phím tắt. B đổi 3D/phẳng. (Esc do Panel xử lý.)
  * Tắt khi đang gõ vào ô nhập hoặc khi focus đang nằm trong nội dung <main> (tránh đụng phím số của form liên hệ).
  */
+/** Thứ tự phím số theo thanh điều hướng: bốn dịch vụ rồi các khu còn lại */
+const keyZones = [...navServices, ...navOthers];
+
 export function SpaceKeys() {
   const router = useRouter();
+  const { href } = useFactory();
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
-      if (target?.closest("input, textarea, select, [contenteditable='true'], main, [role='dialog']")) return;
-      const index = Number(event.key);
-      if (index >= 1 && index <= navZones.length) {
-        router.push(navZones[index - 1].route);
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        // Chuyển giữa các mục (dự án, nguyên mẫu). Khác phím số: vẫn dùng được khi focus đang ở trong khung nội dung,
+        // nhưng nhường cho ô nhập, thanh trượt và sân chơi của nguyên mẫu (chúng tự dùng phím mũi tên).
+        if (target?.closest("input, textarea, select, [contenteditable='true'], [role='slider'], [role='dialog'], .space-lab-stage")) return;
+        const want = event.key === "ArrowRight" ? "next" : "prev";
+        const link = [...document.querySelectorAll<HTMLElement>(`.space-panel [data-step="${want}"]`)].find((el) => el.getClientRects().length > 0);
+        if (link) {
+          event.preventDefault();
+          link.click();
+        }
         return;
       }
-      if (event.key.toLowerCase() === "m") router.push(SPACE_BASE);
+      if (target?.closest("input, textarea, select, [contenteditable='true'], main, [role='dialog']")) return;
+      const index = Number(event.key);
+      if (index >= 1 && index <= keyZones.length) {
+        router.push(href(keyZones[index - 1].path));
+        return;
+      }
+      if (event.key.toLowerCase() === "m") router.push(href());
       if (event.key.toLowerCase() === "b") setSpaceMode(spaceStore.get().mode === "3d" ? "flat" : "3d");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router]);
+  }, [router, href]);
 
   return null;
 }
@@ -61,13 +77,8 @@ export function ShortcutsHelp() {
     };
   }, [open]);
 
-  const rows: [string, string][] = [
-    ["1 – 6", "Mở khu tương ứng trên thanh điều hướng"],
-    ["M", "Về tổng mặt bằng"],
-    ["Esc", "Đóng khung nội dung"],
-    ["B", `Đổi ${spaceCopy.hud.threeD} / ${spaceCopy.hud.flat}`],
-    ["Kéo chuột", "Nhìn quanh trong cảnh 3D"],
-  ];
+  const { ui } = useFactory();
+  const rows = ui.hud.shortcutRows;
 
   return (
     <div ref={rootRef} className="relative hidden lg:block">
@@ -79,9 +90,9 @@ export function ShortcutsHelp() {
         onClick={() => setOpen((v) => !v)}
         className="space-home label"
       >
-        {spaceCopy.hud.shortcuts}
+        {ui.hud.shortcuts}
       </button>
-      <div id={panelId} role="dialog" aria-label={spaceCopy.hud.shortcuts} hidden={!open} className="space-shortcuts">
+      <div id={panelId} role="dialog" aria-label={ui.hud.shortcuts} hidden={!open} className="space-shortcuts">
         <dl>
           {rows.map(([key, text]) => (
             <div key={key}>

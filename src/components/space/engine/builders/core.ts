@@ -2,7 +2,9 @@ import { AdditiveBlending, BufferAttribute, BufferGeometry, CylinderGeometry, Do
 
 import { BASE_ROTATION, createShapes } from "@/components/webgl/shapes";
 import { CORE } from "@/components/space/engine/layout";
+import { SERVICE_SHAPE } from "@/components/space/engine/builders/pavilion";
 import type { BuildContext, ZoneBuild } from "@/components/space/engine/types";
+import { isServiceZone } from "@/config/space";
 import { disposeGroup } from "@/components/space/engine/types";
 
 const VERT = /* glsl */ `
@@ -146,6 +148,8 @@ export function buildCore(ctx: BuildContext): ZoneBuild {
   let morphing = 1; // 1 = đứng yên ở hình hiện tại
   let since = 0;
   let active = false;
+  // Đang xem một khu dịch vụ: lõi giữ hình của dịch vụ đó (lõi "chứa" cả bốn dịch vụ); null = tự đổi hình lần lượt
+  let pinned: number | null = null;
   const morphTo = (index: number) => {
     aFrom.array.set(shapes[current]);
     aTo.array.set(shapes[index]);
@@ -163,6 +167,10 @@ export function buildCore(ctx: BuildContext): ZoneBuild {
     setState(a) {
       active = a;
     },
+    setZone(zone) {
+      pinned = isServiceZone(zone) ? SERVICE_SHAPE[zone] : null;
+      if (pinned !== null && pinned !== current && !reduced) morphTo(pinned);
+    },
     update(time, dt) {
       material.uniforms.uTime.value = time;
       for (const m of orbitMats) m.uniforms.uTime.value = time;
@@ -179,7 +187,7 @@ export function buildCore(ctx: BuildContext): ZoneBuild {
       }
       since += dt;
       // Khu đang xem thì đổi hình nhanh hơn
-      if (morphing >= 1 && since > (active ? 4.2 : 7)) morphTo((current + 1) % shapes.length);
+      if (pinned === null && morphing >= 1 && since > (active ? 4.2 : 7)) morphTo((current + 1) % shapes.length);
     },
     dispose() {
       disposeGroup(group);

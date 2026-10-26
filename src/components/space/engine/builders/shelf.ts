@@ -5,7 +5,7 @@ import { createPools } from "@/components/space/engine/builders/pools";
 import { addSheen, type Sheen } from "@/components/space/engine/builders/sheen";
 
 import { SHELF, shelfX, shelfY } from "@/components/space/engine/layout";
-import { gradientTexture, loadImageTexture } from "@/components/space/engine/textures";
+import { exposureFor, gradientTexture, loadImageTexture } from "@/components/space/engine/textures";
 import type { BuildContext, ZoneBuild } from "@/components/space/engine/types";
 import { disposeGroup } from "@/components/space/engine/types";
 
@@ -35,6 +35,7 @@ export function buildShelf(ctx: BuildContext): ZoneBuild {
     glow: Mesh;
     stage: Color;
     bright: number;
+    exposure: number;
     target: number;
     loaded: boolean;
     sheen: Sheen;
@@ -73,7 +74,7 @@ export function buildShelf(ctx: BuildContext): ZoneBuild {
     group.add(unit);
     pickables.push(screen);
     anchors[`template:${tpl.slug}`] = new Vector3(x, y + SHELF.h / 2 + 0.28, SHELF.z + 0.15);
-    return { slug: tpl.slug, screen, reflection, glow, stage, bright: 0.55, target: 0.55, loaded: false, sheen };
+    return { slug: tpl.slug, screen, reflection, glow, stage, bright: 0.55, exposure: 1, target: 0.55, loaded: false, sheen };
   });
 
   group.add(new Mesh(mergeAll(frameGeos), frameMat));
@@ -112,13 +113,13 @@ export function buildShelf(ctx: BuildContext): ZoneBuild {
         item.bright += (item.target - item.bright) * k;
         const screenMat = item.screen.material as MeshBasicMaterial;
         // Chưa có ảnh: giữ màu sân khấu của style (nhân độ sáng), có ảnh: chỉ điều chỉnh độ sáng
-        if (item.loaded) screenMat.color.setScalar(item.bright);
+        if (item.loaded) screenMat.color.setScalar(item.bright * item.exposure);
         else screenMat.color.copy(item.stage).multiplyScalar(0.5 + item.bright * 0.5);
         const glowOpacity = Math.max(0, (item.bright - 0.82) * 1.6);
         (item.glow.material as MeshBasicMaterial).opacity = glowOpacity;
         item.glow.visible = glowOpacity > 0.01; // quầng viền chỉ vẽ khi khung đang được rê tới
         item.sheen.uniforms.uSheenT.value = time;
-        item.sheen.uniforms.uAmt.value = 0.15 * Math.max(0, item.bright - 0.4);
+        item.sheen.uniforms.uAmt.value = 0.15 * item.exposure * Math.max(0, item.bright - 0.4);
         const col = items.indexOf(item) % SHELF.cols;
         colGlow[col] = Math.max(colGlow[col], item.bright - 0.4);
       }
@@ -133,7 +134,8 @@ export function buildShelf(ctx: BuildContext): ZoneBuild {
           if (texture) {
             const mat = item.screen.material as MeshBasicMaterial;
             mat.map = texture;
-            mat.color.setScalar(item.bright);
+            item.exposure = exposureFor(texture);
+            mat.color.setScalar(item.bright * item.exposure);
             mat.needsUpdate = true;
             const reflMat = item.reflection.material as MeshBasicMaterial;
             reflMat.map = texture;

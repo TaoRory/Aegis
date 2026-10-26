@@ -28,11 +28,12 @@ import type { ZoneId } from "@/config/space";
 import { buildArchitecture, type Architecture } from "@/components/space/engine/builders/architecture";
 import { buildAtmosphere, type Atmosphere } from "@/components/space/engine/builders/atmosphere";
 import { buildCore } from "@/components/space/engine/builders/core";
-import { buildDrafting } from "@/components/space/engine/builders/drafting";
 import { buildLab } from "@/components/space/engine/builders/lab";
-import { buildDoor, buildJournal } from "@/components/space/engine/builders/props";
+import { buildPavilions } from "@/components/space/engine/builders/pavilion";
+import { buildDoor } from "@/components/space/engine/builders/props";
 import { buildShelf } from "@/components/space/engine/builders/shelf";
 import { buildShowroom } from "@/components/space/engine/builders/showroom";
+import { buildSignage } from "@/components/space/engine/builders/signage";
 import { fitPullback, INTRO_RIG, pullback, rigFor, type Rig } from "@/components/space/engine/camera-rig";
 import type { Vec3 } from "@/components/space/engine/layout";
 import { readPalette } from "@/components/space/engine/palette";
@@ -47,6 +48,8 @@ export interface EngineOptions {
   onHover: (id: string | null) => void;
   /** Người dùng bắt đầu kéo để nhìn quanh (lần đầu) */
   onDrag?: () => void;
+  /** Vuốt ngang trên cảnh khi đang xem một mục (dự án / nguyên mẫu): 1 = mục kế, -1 = mục trước */
+  onStep?: (delta: 1 | -1) => void;
   onPick: (id: string) => void;
   onContextLost: () => void;
 }
@@ -58,7 +61,6 @@ export interface Insets {
   bottom: number;
 }
 
-const ZONE_BUILD_KEYS: Record<string, ZoneId> = { showroom: "trung-bay", lab: "thi-nghiem", shelf: "mau-giao-dien", drafting: "dich-vu", core: "ve-aegis", journal: "nhat-ky", door: "lien-he" };
 
 /**
  * Engine 3D của Xưởng Aegis (Three.js, tải lười). Đây là nơi DUY NHẤT import `three`.
@@ -94,7 +96,7 @@ export class SpaceEngine {
 
   private host: HTMLElement | null = null;
   private resizeObserver: ResizeObserver | null = null;
-  private zone: ZoneId | "hub" = "hub";
+  private zone: ZoneId = "hub";
   private focus: string | null = null;
   private insets: Insets = { left: 0, right: 0, top: 0, bottom: 0 };
   private paused = false;
@@ -105,7 +107,7 @@ export class SpaceEngine {
   private hoverId: string | null = null;
   private introDone = false;
   private looking = { yaw: 0, pitch: 0, ty: 0, tp: 0 };
-  private drag: { x: number; y: number; moved: number } | null = null;
+  private drag: { x: number; y: number; moved: number; sx: number; sy: number } | null = null;
   private view = { x: 0, y: 0 };
   private width = 1;
   private height = 1;
@@ -158,7 +160,7 @@ export class SpaceEngine {
     const target = new WebGLRenderTarget(size.x, size.y, { type: HalfFloatType, samples: 4 });
     const composer = new EffectComposer(renderer, target);
     const renderPass = new RenderPass(this.scene, this.camera);
-    const bloom = new UnrealBloomPass(new Vector2(size.x, size.y), 0.4, 0.55, 0.6);
+    const bloom = new UnrealBloomPass(new Vector2(size.x, size.y), 0.4, 0.55, 0.7);
     composer.addPass(renderPass);
     composer.addPass(bloom);
     composer.addPass(new OutputPass());
@@ -201,24 +203,25 @@ export class SpaceEngine {
     const engine = new SpaceEngine(options, ctx, canvas, renderer);
     options.onProgress(0.2);
 
-    const builds: [string, ZoneBuild][] = [
-      ["showroom", buildShowroom(ctx)],
-      ["lab", buildLab(ctx)],
-      ["shelf", buildShelf(ctx)],
-      ["drafting", buildDrafting(ctx)],
-      ["core", buildCore(ctx)],
-      ["journal", buildJournal(ctx)],
-      ["door", buildDoor(ctx)],
+    // Mỗi phần cảnh gắn với khu sáng lên khi khu đó được mở ("hub" = không thuộc khu nào, luôn ở trạng thái nền)
+    const builds: [string, ZoneId, ZoneBuild][] = [
+      ["showroom", "work", buildShowroom(ctx)],
+      ["lab", "studio", buildLab(ctx)],
+      ["shelf", "studio", buildShelf(ctx)],
+      ["core", "about", buildCore(ctx)],
+      ["door", "contact", buildDoor(ctx)],
+      ...buildPavilions(ctx).map(({ zone, build }): [string, ZoneId, ZoneBuild] => [`pavilion-${zone}`, zone, build]),
+      ["signage", "hub", buildSignage(ctx)],
     ];
-    for (const [key, build] of builds) {
+    for (const [key, zone, build] of builds) {
       engine.scene.add(build.group);
-      engine.zones.push({ key, zone: ZONE_BUILD_KEYS[key], build });
+      engine.zones.push({ key, zone, build });
       engine.collect(build.anchors, build.pickables);
     }
     options.onProgress(0.35);
 
     // Texture khởi động: chỉ phòng trưng bày (ảnh dự án). Kệ mẫu nạp lười.
-    const showroom = builds[0][1];
+    const showroom = builds[0][2];
     let loaded = 0;
     const total = Math.max(1, showroom.loadCount ?? 1);
     await showroom.load?.(() => {
@@ -309,16 +312,24 @@ export class SpaceEngine {
   }
 
   setRoute(zone: ZoneId, focus: string | null, instant = false) {
+    const from = this.zone;
+    const hop = from === zone && this.focus !== null && focus !== null && this.focus !== focus;
     this.zone = zone;
     this.focus = focus;
     this.looking.ty = this.looking.tp = 0;
     this.architecture.setZone(zone);
     this.atmosphere.setZone(zone);
-    if (!instant && !this.options.reduced) this.architecture.ripple(zone);
-    for (const z of this.zones) z.build.setState(z.zone === zone, z.zone === zone ? focus : null);
+    if (!instant && !this.options.reduced && from !== zone) {
+      this.architecture.ripple(zone);
+      this.atmosphere.transfer(from, zone);
+    }
+    for (const z of this.zones) {
+      z.build.setState(z.zone === zone, z.zone === zone ? focus : null);
+      z.build.setZone?.(zone);
+    }
     // Kệ mẫu: nạp ảnh khi lần đầu tới gần
-    if (zone === "mau-giao-dien") void this.loadShelf();
-    this.retarget(instant, 1.5);
+    if (zone === "studio") void this.loadShelf();
+    this.retarget(instant, hop ? 0.95 : 1.5);
   }
 
   private shelfLoading = false;
@@ -555,7 +566,7 @@ export class SpaceEngine {
 
   private readonly onDown = (event: PointerEvent) => {
     this.lastTouch = performance.now();
-    this.drag = { x: event.clientX, y: event.clientY, moved: 0 };
+    this.drag = { x: event.clientX, y: event.clientY, moved: 0, sx: event.clientX, sy: event.clientY };
     this.canvas.setPointerCapture(event.pointerId);
   };
 
@@ -599,6 +610,14 @@ export class SpaceEngine {
     if (drag && drag.moved < 6) {
       const id = this.pick(event);
       if (id) this.options.onPick(id);
+    } else if (drag && this.focus && (this.zone === "work" || this.zone === "studio")) {
+      // Vuốt ngang rõ ràng (≥ 70 px, ngang hơn dọc) khi đang xem một mục: sang mục kế/trước thay vì chỉ liếc quanh
+      const dx = event.clientX - drag.sx;
+      const dy = event.clientY - drag.sy;
+      if (Math.abs(dx) >= 70 && Math.abs(dx) > Math.abs(dy) * 1.6) {
+        this.looking.ty = this.looking.tp = 0;
+        this.options.onStep?.(dx < 0 ? 1 : -1);
+      }
     }
   };
 

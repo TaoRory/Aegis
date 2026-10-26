@@ -47,6 +47,16 @@ Sheet che nửa màn hình + camera lùi ra xem cả sa bàn làm cảnh "tù". 
 - **Sống động rẻ:** xe là một `Points` chạy hai làn ngược chiều quanh xưởng (đúng một lệnh vẽ), bong bóng trong ống nghiệm, vòng quét.
 - **Thử bằng thao tác chạm thật** (`hasTouch`, CDP `Input.dispatchTouchEvent`), đo `yaw` qua `?debug-space`. `pnpm qa:factory` có nhóm kiểm tra `[mobile]` cho các điểm này.
 
+## Bố cục đối xứng "Foundation" và song ngữ (Factory 2.0)
+
+- **Mặt bằng một nguồn:** `plan.ts` (khu tròn/chữ nhật + `links` dòng năng lượng) → `engine/layout.ts` (toạ độ vật trưng bày) → FlatMap và mọi builder. Đổi bố cục chỉ sửa `plan.ts` rồi chỉnh rig camera.
+- **Ngang hàng bằng một công thức:** `builders/pavilion.ts` dựng cả 4 khu dịch vụ bằng cùng một hàm (khung kính gộp một mesh, tác phẩm hạt riêng theo `createShapes`, vòng sáng); `camera-rig.ts` dùng cùng một công thức góc nhìn cho cả 4. Khác nhau chỉ ở dữ liệu.
+- **Camera phải vượt đỉnh tường lưng 2,4 m** của dãy khu phía trước: hai khu phía nam nhìn từ phía nam thì tường Studio che mất, nên nhìn chéo từ cao (~47°) với `span` đủ lớn. Kiểm bằng ảnh.
+- **Dòng nối giữa các khu:** `builders/atmosphere.ts` có một mesh cho mọi `links` (vạch sáng trôi từ lõi ra; khu đang xem sáng hơn) và xung `transfer(from, to)` chạy từ khu cũ về lõi rồi tới khu mới (~1,3 s) mỗi lần đổi khu.
+- **Song ngữ trong Next 16:** `next.config.ts` có `rewrites` (`/factory/:path*` → `/vi/factory/:path*`) và `redirects` (`/vi/factory/*` → `/factory/*`, slug cũ → slug mới, 308). Không cần proxy.ts. Route `(spatial)/[lang]/factory/**`, `generateStaticParams` trả `vi`/`en`; `params` chỉ đọc trong `<Suspense>`. Chữ giao diện qua `FactoryProvider`/`useFactory()` (client), nội dung dài qua `getFactoryDict(lang)` (server). Chữ vẽ vào canvas trong cảnh (bảng tên khu) theo ngôn ngữ nên engine được dựng lại khi đổi ngôn ngữ (`engine.lang`).
+- **`html[lang]`:** root layout là `vi`; bootScript đặt `lang="en"` cho `/en/factory` từ khung hình đầu và `SpaceShell` đồng bộ khi chuyển ngôn ngữ.
+- **Bẫy:** trong chuỗi template của bootScript, `\/` mất dấu gạch chéo ngược và làm vỡ regex; dùng so sánh chuỗi. Trang con với tham số không hợp lệ (vd `/factory/services/web/demo`) vẫn trả 200 kèm giao diện 404 vì nội dung đã stream trong `<Suspense>`.
+
 ## Nội dung
 
 Khu "phòng thí nghiệm" và "nhật ký" chỉ ghi điều code thật sự làm; bài nhật ký phải có `confirmed: true` và cần chủ dự án duyệt. Không ngày tháng, số liệu hay khách hàng bịa.

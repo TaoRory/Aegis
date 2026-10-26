@@ -1,7 +1,8 @@
-import type { ZoneId } from "@/config/space";
-import { DOOR, JOURNAL, LAB, SHELF, SHOWROOM, CORE, DRAFT, labZ, showroomX } from "@/components/space/engine/layout";
-import type { SceneManifest, } from "@/components/space/engine/types";
+import { isServiceZone, type ZoneId } from "@/config/space";
+import { DOOR, LAB, SHELF, SHOWROOM, CORE, labX, showroomX } from "@/components/space/engine/layout";
 import type { Vec3 } from "@/components/space/engine/layout";
+import type { SceneManifest } from "@/components/space/engine/types";
+import { roomByZone } from "@/components/space/plan";
 
 export interface Rig {
   pos: Vec3;
@@ -16,47 +17,50 @@ export interface Rig {
   pan?: Vec3;
 }
 
+const studio = roomByZone.studio;
+
 /**
  * Điểm nhìn của camera cho từng khu / mục con (bố cục màn ngang). Màn hẹp hoặc khi khung nội dung che bớt khung hình
- * thì camera lùi ra theo `pullback`. Chiều cao và hướng nhìn chọn để vật trưng bày (quay mặt về +z) luôn thấy chính diện.
+ * thì camera lùi ra theo `pullback` / `span`. Mọi vật trưng bày quay mặt về phía nam (+z) nên camera luôn đứng phía nam
+ * và đủ cao để vượt đỉnh tường lưng (2,4 m) của dãy khu phía trước.
  */
 export function rigFor(zone: ZoneId, focus: string | null, manifest: SceneManifest, phone = false): Rig {
   if (phone) {
     const rig = phoneRig(zone, focus, manifest);
     if (rig) return rig;
   }
+  if (isServiceZone(zone)) {
+    // Bốn khu dịch vụ: cùng một công thức góc nhìn (ngang hàng). Nhìn chéo từ trên cao (~47°) để vượt đỉnh tường lưng
+    // 2,4 m của Studio phía nam, lệch nhẹ về phía lõi để thấy dòng năng lượng nối vào
+    const r = roomByZone[zone];
+    const toward = r.x > 0 ? -1 : 1;
+    return { pos: [r.x + toward * 1.4, 7.4, r.z + 5.4], target: [r.x, 1.3, r.z - 0.1], fov: 40, span: 9.4, spanV: 5.8 };
+  }
   switch (zone) {
-    case "trung-bay": {
+    case "work": {
       const index = focus ? manifest.projects.findIndex((p) => p.slug === focus) : -1;
       if (index >= 0) {
         const x = showroomX(index);
-        // Góc nhìn đủ cao để khi lùi ra (màn hẹp) vẫn nhìn qua đỉnh tường phòng kế bên (cao 2,4 m)
-      return { pos: [x + 0.5, 3.2, SHOWROOM.z + 3.0], target: [x, SHOWROOM.y - 0.05, SHOWROOM.z], fov: 34, span: 2.8, spanV: 2.0 };
+        return { pos: [x + 0.5, 2.7, SHOWROOM.z + 3.2], target: [x, SHOWROOM.y - 0.05, SHOWROOM.z], fov: 34, span: 2.2, spanV: 1.6 };
       }
-      return { pos: [0, 8.4, 6.8], target: [0, 1.25, SHOWROOM.z], fov: 44, span: 17.6, spanV: 4.4 };
+      return { pos: [0, 6.4, SHOWROOM.z + 8.6], target: [0, 1.2, SHOWROOM.z], fov: 44, span: 15, spanV: 4.2 };
     }
-    case "thi-nghiem": {
+    case "studio": {
       const index = focus ? manifest.lab.findIndex((l) => l.id === focus) : -1;
-      if (index >= 0) return { pos: [LAB.x - 2.9, 2.6, labZ(index) + 3.0], target: [LAB.x, LAB.capY, labZ(index)], fov: 32, span: 2.4, spanV: 2.4 };
-      return { pos: [LAB.x - 5.0, 6.4, 6.6], target: [LAB.x, 0.95, LAB.z], fov: 40, span: 5.8, spanV: 3.6 };
+      if (index >= 0) return { pos: [labX(index) + 0.4, 2.5, LAB.z + 3.0], target: [labX(index), LAB.capY, LAB.z], fov: 34, span: 2, spanV: 2.1 };
+      return { pos: [studio.x, 4.6, studio.z + 8.4], target: [studio.x, 1.1, SHELF.z + 0.6], fov: 42, span: 12.8, spanV: 4 };
     }
-    case "mau-giao-dien":
-      return { pos: [SHELF.x, 4.7, 12.6], target: [SHELF.x, 1.2, SHELF.z], fov: 44, span: 8.8, spanV: 3.6 };
-    case "dich-vu":
-      return { pos: [DRAFT.x + 4.4, 5.6, DRAFT.z + 5.4], target: [DRAFT.x, 0.8, DRAFT.z], fov: 40, span: 5.4, spanV: 3.4 };
-    case "ve-aegis":
-      return { pos: [CORE.x, 4.4, 7.3], target: [CORE.x, 1.75, CORE.z], fov: 38, span: 6, spanV: 4.8 };
-    case "nhat-ky":
-      return { pos: [JOURNAL.x, 3.5, JOURNAL.z + 6.6], target: [JOURNAL.x, 0.85, JOURNAL.z], fov: 36, span: 3.8, spanV: 3 };
-    case "lien-he":
-      return { pos: [DOOR.x, 2.9, DOOR.z + 8.3], target: [DOOR.x, 1.2, DOOR.z], fov: 36, span: 3.4, spanV: 3.4 };
+    case "about":
+      return { pos: [CORE.x, 4.6, 7.6], target: [CORE.x, 1.8, CORE.z], fov: 40, span: 6.4, spanV: 5 };
+    case "contact":
+      return { pos: [DOOR.x - 0.4, 3.0, DOOR.z + 8.0], target: [DOOR.x, 1.2, DOOR.z], fov: 36, span: 3.6, spanV: 3.4 };
     default:
-      return { pos: [0, 25, 28], target: [0, 0, 0.6], fov: 34, span: 19, spanV: 14 };
+      return { pos: [0, 28, 31], target: [0, 0, 0.4], fov: 34, span: 24, spanV: 22 };
   }
 }
 
 /** Điểm nhìn mở màn: từ trên cao nhìn thẳng xuống mặt bằng */
-export const INTRO_RIG: Rig = { pos: [0, 34, 0.12], target: [0, 0, 0.1], fov: 32 };
+export const INTRO_RIG: Rig = { pos: [0, 40, 0.12], target: [0, 0, 0.1], fov: 34 };
 
 /**
  * Kéo camera lùi khỏi mục tiêu khi vùng nhìn thấy được hẹp (điện thoại dọc, khung nội dung chiếm một nửa).
@@ -78,29 +82,31 @@ export function fitPullback(span: number, dist: number, fov: number, freePx: num
 /**
  * Điểm nhìn riêng cho điện thoại dọc: cảnh chiếm gần cả màn hình nên camera ÁP SÁT vật thể (như đứng trong xưởng),
  * thay vì lùi ra xem cả sa bàn. Hub và các dãy vật thể có `drift`/`pan` để tự trôi nhẹ khi người dùng chưa chạm.
- * Trả về undefined thì dùng điểm nhìn chung (đã có span để tự lùi vừa khung).
  */
 function phoneRig(zone: ZoneId, focus: string | null, manifest: SceneManifest): Rig | undefined {
+  if (isServiceZone(zone)) {
+    const r = roomByZone[zone];
+    const toward = r.x > 0 ? -1 : 1;
+    return { pos: [r.x + toward * 0.9, 6.6, r.z + 4.4], target: [r.x, 1.5, r.z], fov: 50, span: 6.4, spanV: 5, drift: 0.12 };
+  }
   switch (zone) {
     case "hub":
-      return { pos: [0, 11.5, 15.5], target: [0, 0, 0.8], fov: 50, drift: 0.32 };
-    case "trung-bay": {
+      return { pos: [0, 14, 18], target: [0, 0, 0.8], fov: 52, drift: 0.32 };
+    case "work": {
       const index = focus ? manifest.projects.findIndex((p) => p.slug === focus) : -1;
       if (index >= 0) {
         const x = showroomX(index);
-        // Camera phải ở trên đỉnh tường phía nam (cao 2,4 m) hoặc nằm trong phòng, nếu không tường phòng kế bên che mất màn
-        return { pos: [x + 0.4, 3.1, SHOWROOM.z + 2.5], target: [x, SHOWROOM.y - 0.05, SHOWROOM.z], fov: 44, span: 2.1, spanV: 1.4, drift: 0.05 };
+        return { pos: [x + 0.4, 3.0, SHOWROOM.z + 2.5], target: [x, SHOWROOM.y - 0.05, SHOWROOM.z], fov: 44, span: 1.95, spanV: 1.3, drift: 0.05 };
       }
       return { pos: [0, 4.6, SHOWROOM.z + 5.9], target: [0, 1.25, SHOWROOM.z], fov: 50, pan: [5.6, 0, 0], drift: 0.08 };
     }
-    case "thi-nghiem": {
+    case "studio": {
       const index = focus ? manifest.lab.findIndex((l) => l.id === focus) : -1;
-      // Nhìn từ phía tây (qua tường thấp 1 m của phòng lab), không đứng sau các tường bắc 2,4 m của dãy phòng phía nam
-      if (index >= 0) return { pos: [LAB.x - 2.7, 2.3, labZ(index) + 0.4], target: [LAB.x, LAB.capY - 0.05, labZ(index)], fov: 40, span: 1.7, spanV: 1.9, drift: 0.06 };
-      return { pos: [LAB.x - 4.3, 2.6, LAB.z + 0.5], target: [LAB.x, 1.2, LAB.z], fov: 50, pan: [0, 0, 1.3], drift: 0.14 };
+      if (index >= 0) return { pos: [labX(index) + 0.3, 2.3, LAB.z + 2.6], target: [labX(index), LAB.capY - 0.05, LAB.z], fov: 40, span: 1.7, spanV: 1.9, drift: 0.06 };
+      return { pos: [studio.x, 3.6, studio.z + 6.6], target: [studio.x, 1.15, SHELF.z + 0.6], fov: 50, pan: [4.6, 0, 0], drift: 0.08 };
     }
-    case "mau-giao-dien":
-      return { pos: [SHELF.x, 2.6, SHELF.z + 6.2], target: [SHELF.x, 1.2, SHELF.z], fov: 50, pan: [3.2, 0, 0], drift: 0.06 };
+    case "about":
+      return { pos: [CORE.x, 4.2, 6.4], target: [CORE.x, 1.9, CORE.z], fov: 48, span: 4.6, spanV: 4.6, drift: 0.18 };
     default:
       return undefined;
   }

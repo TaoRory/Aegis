@@ -15,7 +15,7 @@ import {
 } from "three";
 
 import type { ZoneId } from "@/config/space";
-import { roomByZone, rooms } from "@/components/space/plan";
+import { CORE_RADIUS, links, roomByZone, rooms, type Room } from "@/components/space/plan";
 import type { BuildContext } from "@/components/space/engine/types";
 import { disposeGroup } from "@/components/space/engine/types";
 
@@ -143,8 +143,8 @@ vec3 rectPos(float t, float hx, float hz) {
 void main() {
   float lane = aCar.x;
   float dir = lane < 0.5 ? 1.0 : -1.0;
-  float hx = lane < 0.5 ? 12.4 : 13.6;
-  float hz = lane < 0.5 ? 9.7 : 10.9;
+  float hx = lane < 0.5 ? 13.8 : 15.0;
+  float hz = lane < 0.5 ? 14.0 : 15.2;
   float len = 4.0 * (hx + hz);
   vec3 p = rectPos(aCar.y + dir * uTime * aCar.z / len, hx, hz);
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
@@ -166,7 +166,75 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
-// ---------- Xung năng lượng chạy quanh các phòng ----------
+// ---------- Dòng năng lượng nối các khu về lõi ----------
+
+const LINK_VERT = /* glsl */ `
+attribute float aU;
+attribute float aLink;
+attribute float aLen;
+attribute float aSide;
+varying float vU;
+varying float vLink;
+varying float vLen;
+varying float vSide;
+void main() {
+  vU = aU;
+  vLink = aLink;
+  vLen = aLen;
+  vSide = aSide;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+
+/**
+ * aU: 0 ở mép lõi → 1 ở mép khu. Dòng chảy nền: các vạch sáng ngắn trôi từ lõi ra.
+ * Chuyển khu (uTT ≥ 0): 0–0,55 s xung chạy ngược về lõi trên dòng của khu cũ, 0,55–1,3 s chạy ra trên dòng của khu mới.
+ */
+const LINK_FRAG = /* glsl */ `
+uniform vec3 uColor;
+uniform vec3 uHot;
+uniform float uTime;
+uniform float uActive;
+uniform float uFrom;
+uniform float uTo;
+uniform float uTT;
+varying float vU;
+varying float vLink;
+varying float vLen;
+varying float vSide;
+void main() {
+  float isA = 1.0 - step(0.5, abs(vLink - uActive));
+  float dist = vU * vLen;
+  float dash = smoothstep(0.55, 1.0, fract(dist / 1.1 - uTime * 0.7));
+  float base = 0.16 + isA * 0.3 + dash * (0.22 + isA * 0.45);
+  float hot = 0.0;
+  if (uTT >= 0.0) {
+    float isF = 1.0 - step(0.5, abs(vLink - uFrom));
+    float isT = 1.0 - step(0.5, abs(vLink - uTo));
+    float h1 = 1.0 - clamp(uTT / 0.55, 0.0, 1.0);
+    float h2 = clamp((uTT - 0.55) / 0.75, 0.0, 1.0);
+    float a1 = isF * step(uTT, 0.6) * exp(-max(0.0, vU - h1) * vLen * 1.6) * step(h1 - 0.02, vU);
+    float a2 = isT * step(0.5, uTT) * exp(-max(0.0, h2 - vU) * vLen * 1.6) * step(vU, h2 + 0.02);
+    hot = (a1 + a2) * (1.0 - smoothstep(1.25, 1.6, uTT));
+  }
+  float edge = smoothstep(1.0, 0.25, abs(vSide));
+  gl_FragColor = vec4(mix(uColor, uHot, clamp(hot, 0.0, 1.0)), (base + hot * 1.4) * edge);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}`;
+
+/** Đường viền khép kín của một khu (đa giác tròn cho lõi), lùi vào trong một chút */
+function loopOf(r: Room): [number, number][] {
+  const inset = 0.12;
+  if (r.shape === "circle") {
+    const n = 48;
+    const rad = CORE_RADIUS - inset;
+    return Array.from({ length: n + 1 }, (_, i) => [r.x + Math.cos((i / n) * Math.PI * 2) * rad, r.z + Math.sin((i / n) * Math.PI * 2) * rad]);
+  }
+  const x0 = r.x - r.w / 2 + inset, x1 = r.x + r.w / 2 - inset, z0 = r.z - r.d / 2 + inset, z1 = r.z + r.d / 2 - inset;
+  return [[x0, z0], [x1, z0], [x1, z1], [x0, z1], [x0, z0]];
+}
+
+// ---------- Xung năng lượng chạy quanh các khu ----------
 
 const PULSE_VERT = /* glsl */ `
 attribute float aU;
@@ -217,8 +285,10 @@ export interface Atmosphere {
   group: Group;
   /** Khối nhà: co theo trục y khi mở màn */
   city: Group;
-  setZone(zone: ZoneId | "hub"): void;
+  setZone(zone: ZoneId): void;
   setHover(zone: ZoneId | null): void;
+  /** Xung sáng chạy dọc dòng năng lượng: từ khu cũ về lõi, rồi từ lõi tới khu mới */
+  transfer(from: ZoneId, to: ZoneId): void;
   update(time: number): void;
   dispose(): void;
 }
@@ -237,15 +307,15 @@ export function buildAtmosphere(ctx: BuildContext): Atmosphere {
   const m = new Matrix4();
   for (let attempts = 0; matrices.length < count && attempts < count * 12; attempts++) {
     const angle = rand() * Math.PI * 2;
-    const radius = 15 + Math.pow(rand(), 0.8) * 46;
-    const x = Math.cos(angle) * radius * 1.25;
-    const z = Math.sin(angle) * radius * 0.85;
-    if (Math.abs(x) < 14 && Math.abs(z) < 11.5) continue;
-    if (z > 6 && z < 30 && Math.abs(x) < 28) continue;
+    const radius = 18 + Math.pow(rand(), 0.8) * 46;
+    const x = Math.cos(angle) * radius * 1.2;
+    const z = Math.sin(angle) * radius * 0.95;
+    if (Math.abs(x) < 16.5 && Math.abs(z) < 16) continue;
+    if (z > 8 && z < 38 && Math.abs(x) < 30) continue;
     const w = 1 + rand() * 2.6;
     const d = 1 + rand() * 2.6;
     const far = Math.hypot(x, z);
-    const h = 0.5 + rand() * 2.5 + Math.max(0, far - 14) * (0.04 + rand() * 0.14);
+    const h = 0.5 + rand() * 2.5 + Math.max(0, far - 17) * (0.04 + rand() * 0.14);
     m.makeScale(w, h, d).setPosition(x, h / 2, z);
     seeds[matrices.length] = rand();
     matrices.push(m.clone());
@@ -288,7 +358,7 @@ export function buildAtmosphere(ctx: BuildContext): Atmosphere {
       uTime: { value: 0 },
       uPixelRatio: { value: pixelRatio },
       uFocus: { value: [0, 0, 0, 16] },
-      uBox: { value: [14, 6.5, 10] },
+      uBox: { value: [16, 6.5, 14] },
       uColor: { value: palette.paper.clone() },
       uAccent: { value: palette.accentLight.clone() },
     },
@@ -307,12 +377,11 @@ export function buildAtmosphere(ctx: BuildContext): Atmosphere {
   const W = 0.07;
   const Y = 0.045;
   rooms.forEach((r, ri) => {
-    const inset = 0.12;
-    const x0 = r.x - r.w / 2 + inset, x1 = r.x + r.w / 2 - inset, z0 = r.z - r.d / 2 + inset, z1 = r.z + r.d / 2 - inset;
-    const corners: [number, number][] = [[x0, z0], [x1, z0], [x1, z1], [x0, z1], [x0, z0]];
-    const total = 2 * ((x1 - x0) + (z1 - z0));
+    const corners = loopOf(r);
+    let total = 0;
+    for (let e = 0; e < corners.length - 1; e++) total += Math.hypot(corners[e + 1][0] - corners[e][0], corners[e + 1][1] - corners[e][1]);
     let run = 0;
-    for (let e = 0; e < 4; e++) {
+    for (let e = 0; e < corners.length - 1; e++) {
       const [ax, az] = corners[e];
       const [bx, bz] = corners[e + 1];
       const len = Math.hypot(bx - ax, bz - az);
@@ -381,6 +450,73 @@ export function buildAtmosphere(ctx: BuildContext): Atmosphere {
   traffic.frustumCulled = false;
   group.add(traffic);
 
+  // Dòng năng lượng nối mọi khu về lõi (một mesh): dòng chảy chậm từ lõi ra, dòng của khu đang xem sáng hơn,
+  // và xung "chuyển khu" chạy từ khu cũ về lõi rồi tới khu mới
+  const lPos: number[] = [];
+  const lU: number[] = [];
+  const lLink: number[] = [];
+  const lLen: number[] = [];
+  const lSide: number[] = [];
+  const lIndex: number[] = [];
+  const LW = 0.09;
+  links.forEach((link, li) => {
+    let total = 0;
+    for (let e = 0; e < link.points.length - 1; e++) total += Math.hypot(link.points[e + 1][0] - link.points[e][0], link.points[e + 1][1] - link.points[e][1]);
+    let run = 0;
+    for (let e = 0; e < link.points.length - 1; e++) {
+      const [ax, az] = link.points[e];
+      const [bx, bz] = link.points[e + 1];
+      const len = Math.hypot(bx - ax, bz - az);
+      const nx = -(bz - az) / len, nz = (bx - ax) / len;
+      const base = lPos.length / 3;
+      for (const [px, pz, u, side] of [
+        [ax, az, run, -1],
+        [bx, bz, run + len, -1],
+        [bx, bz, run + len, 1],
+        [ax, az, run, 1],
+      ] as const) {
+        lPos.push(px + nx * LW * side, 0.05, pz + nz * LW * side);
+        lU.push(u / total);
+        lLink.push(li);
+        lLen.push(total);
+        lSide.push(side);
+      }
+      lIndex.push(base, base + 1, base + 2, base, base + 2, base + 3);
+      run += len;
+    }
+  });
+  const linkGeo = new BufferGeometry();
+  linkGeo.setAttribute("position", new Float32BufferAttribute(lPos, 3));
+  linkGeo.setAttribute("aU", new Float32BufferAttribute(lU, 1));
+  linkGeo.setAttribute("aLink", new Float32BufferAttribute(lLink, 1));
+  linkGeo.setAttribute("aLen", new Float32BufferAttribute(lLen, 1));
+  linkGeo.setAttribute("aSide", new Float32BufferAttribute(lSide, 1));
+  linkGeo.setIndex(lIndex);
+  const linkMat = new ShaderMaterial({
+    vertexShader: LINK_VERT,
+    fragmentShader: LINK_FRAG,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    side: DoubleSide,
+    uniforms: {
+      uColor: { value: palette.accentLight.clone() },
+      uHot: { value: palette.paper.clone() },
+      uTime: { value: 0 },
+      uActive: { value: -1 },
+      uFrom: { value: -1 },
+      uTo: { value: -1 },
+      uTT: { value: -1 },
+    },
+  });
+  const linkMesh = new Mesh(linkGeo, linkMat);
+  linkMesh.renderOrder = 4;
+  linkMesh.frustumCulled = false;
+  group.add(linkMesh);
+  const linkIndex = (zone: ZoneId | null) => (zone ? links.findIndex((l) => l.zone === zone) : -1);
+  let transferAt = -1;
+  let lastTime = 0;
+
   const roomIndex = (zone: ZoneId | "hub" | null) => (zone && zone !== "hub" ? rooms.findIndex((r) => r.zone === zone) : -1);
 
   return {
@@ -388,17 +524,34 @@ export function buildAtmosphere(ctx: BuildContext): Atmosphere {
     city,
     setZone(zone) {
       pulseMat.uniforms.uActive.value = roomIndex(zone);
+      linkMat.uniforms.uActive.value = linkIndex(zone);
       const c = zone === "hub" ? { x: 0, z: 0, r: 16 } : { x: roomByZone[zone].x, z: roomByZone[zone].z, r: 9 };
       moteMat.uniforms.uFocus.value = [c.x, 0, c.z, c.r];
     },
     setHover(zone) {
       pulseMat.uniforms.uHover.value = roomIndex(zone);
     },
+    transfer(from, to) {
+      linkMat.uniforms.uFrom.value = linkIndex(from);
+      linkMat.uniforms.uTo.value = linkIndex(to);
+      transferAt = lastTime;
+      linkMat.uniforms.uTT.value = 0;
+    },
     update(time) {
       cityMat.uniforms.uTime.value = time;
       moteMat.uniforms.uTime.value = time;
       pulseMat.uniforms.uTime.value = time;
       carMat.uniforms.uTime.value = time;
+      linkMat.uniforms.uTime.value = time;
+      lastTime = time;
+      if (transferAt >= 0) {
+        const tt = time - transferAt;
+        linkMat.uniforms.uTT.value = tt;
+        if (tt > 1.6) {
+          transferAt = -1;
+          linkMat.uniforms.uTT.value = -1;
+        }
+      }
     },
     dispose() {
       disposeGroup(group);
