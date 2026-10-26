@@ -25,7 +25,7 @@ export function buildJournal(ctx: BuildContext): ZoneBuild {
   const group = new Group();
   const anchors: Record<string, Vector3> = {};
   const bodyMat = new MeshStandardMaterial({ color: palette.inkSurface, roughness: 0.55, metalness: 0.35 });
-  const paperMat = new MeshStandardMaterial({ color: palette.paper, roughness: 0.9, metalness: 0 });
+  const paperMat = new MeshStandardMaterial({ color: palette.paper.clone().multiplyScalar(0.55), roughness: 0.9, metalness: 0 });
 
   // Mặt bàn + bốn chân gộp thành một mesh
   const deskGeos = [boxAt(2.2, 0.08, 1.1, JOURNAL.x, 0.78, JOURNAL.z)];
@@ -77,8 +77,8 @@ export function buildJournal(ctx: BuildContext): ZoneBuild {
     },
     update(_time, dt) {
       const k = 1 - Math.exp(-dt * 4);
-      light.intensity += ((active ? 6 : 1.5) - light.intensity) * k;
-      (cone.material as MeshBasicMaterial).opacity += ((active ? 0.12 : 0.05) - (cone.material as MeshBasicMaterial).opacity) * k;
+      light.intensity += ((active ? 3.5 : 1.2) - light.intensity) * k;
+      (cone.material as MeshBasicMaterial).opacity += ((active ? 0.07 : 0.03) - (cone.material as MeshBasicMaterial).opacity) * k;
     },
     dispose() {
       disposeGroup(group);

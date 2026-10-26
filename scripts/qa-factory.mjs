@@ -159,6 +159,48 @@ try {
   check("[3d] phần tương tác chạy hết", false, String(e).slice(0, 200));
 }
 
+// ---------- Phần 2b: điện thoại (3D) ----------
+try {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  page.on("pageerror", (e) => errors.push(String(e)));
+  await page.goto(`${baseUrl}/factory?debug-space`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.dataset.spaceLive === "on", null, { timeout: 90000 }).then(
+    () => check("[mobile] cảnh 3D lên sóng", true),
+    () => check("[mobile] cảnh 3D lên sóng", false, "quá 90 giây"),
+  );
+  await page.waitForTimeout(4000);
+  const stats = await page.evaluate(() => window.__aegisSpace?.info?.() ?? null);
+  if (stats) {
+    check("[mobile] không dùng bloom", stats.bloom === false);
+    check("[mobile] draw call ≤ 80", stats.calls <= 80, `${stats.calls} lệnh vẽ`);
+    check("[mobile] tam giác ≤ 60k", stats.triangles <= 60000, `${stats.triangles}`);
+  } else check("[mobile] đọc được thống kê (?debug-space)", false);
+  // Vùng chạm của điểm tương tác ≥ 44px
+  const target = await page.evaluate(() => {
+    const el = document.querySelector(".space-hotspot");
+    if (!el) return null;
+    const after = getComputedStyle(el, "::after");
+    return { w: parseFloat(after.width), h: parseFloat(after.height) };
+  });
+  check("[mobile] vùng chạm hotspot ≥ 44px", Boolean(target) && target.w >= 44 && target.h >= 44, JSON.stringify(target));
+  // Bottom sheet không che hết cảnh 3D: khi mở một khu, phần cảnh nhìn thấy cao ≥ 25% màn hình
+  await page.goto(`${baseUrl}/factory/ve-aegis`, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(3000);
+  const free = await page.evaluate(() => {
+    const panel = document.querySelector(".space-panel");
+    return panel ? panel.getBoundingClientRect().top / window.innerHeight : null;
+  });
+  check("[mobile] khung nội dung chừa ≥ 35% màn hình cho cảnh", free !== null && free >= 0.35, `${free?.toFixed?.(2)}`);
+  await page.screenshot({ path: `${outDir}/mobile-3d-core.jpg`, type: "jpeg", quality: 70 });
+  check("[mobile] không lỗi console", errors.length === 0, errors.slice(0, 2).join(" | "));
+  await context.close();
+} catch (e) {
+  check("[mobile] phần 3D chạy hết", false, String(e).slice(0, 200));
+}
+
 // ---------- Phần 3: dự phòng ----------
 try {
   const plain = await chromium.launch({ args: ["--disable-3d-apis"] });

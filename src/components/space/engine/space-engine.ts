@@ -1,10 +1,11 @@
 import {
-  ACESFilmicToneMapping,
   CatmullRomCurve3,
   DirectionalLight,
   Fog,
+  HalfFloatType,
   HemisphereLight,
   MathUtils,
+  NoToneMapping,
   PerspectiveCamera,
   PMREMGenerator,
   PointLight,
@@ -14,12 +15,18 @@ import {
   Vector2,
   Vector3,
   WebGLRenderer,
+  WebGLRenderTarget,
   type Mesh,
 } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
 import type { ZoneId } from "@/config/space";
 import { buildArchitecture, type Architecture } from "@/components/space/engine/builders/architecture";
+import { buildAtmosphere, type Atmosphere } from "@/components/space/engine/builders/atmosphere";
 import { buildCore } from "@/components/space/engine/builders/core";
 import { buildDrafting } from "@/components/space/engine/builders/drafting";
 import { buildLab } from "@/components/space/engine/builders/lab";
@@ -61,6 +68,13 @@ export class SpaceEngine {
   private readonly scene = new Scene();
   private readonly camera: PerspectiveCamera;
   private readonly architecture: Architecture;
+  private readonly atmosphere: Atmosphere;
+  /** Hậu kỳ phát sáng (bloom): chỉ trên máy tính, tắt trên điện thoại */
+  private composer: EffectComposer | null = null;
+  private bloom: UnrealBloomPass | null = null;
+  private sceneCalls = 0;
+  private sceneTriangles = 0;
+  private parallax = { x: 0, y: 0, tx: 0, ty: 0 };
   private readonly zones: { key: string; zone: ZoneId; build: ZoneBuild }[] = [];
   private readonly pickables: Mesh[] = [];
   private readonly anchors = new Map<string, Vector3>();
@@ -108,10 +122,10 @@ export class SpaceEngine {
     this.scene.background = palette.ink.clone();
     this.scene.fog = new Fog(palette.ink.clone(), 30, 70);
     this.scene.environment = this.pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    this.scene.environmentIntensity = 0.3;
+    this.scene.environmentIntensity = 0.18;
 
-    const hemi = new HemisphereLight(palette.accentPale, palette.ink, 0.5);
-    const key = new DirectionalLight(palette.paper, 0.9);
+    const hemi = new HemisphereLight(palette.accentPale, palette.ink, 0.32);
+    const key = new DirectionalLight(palette.paper, 0.6);
     key.position.set(-6, 12, 10);
     const fill = new PointLight(palette.accent, 40, 26, 1.6);
     fill.position.set(0, 7, 0);
@@ -121,6 +135,33 @@ export class SpaceEngine {
     this.architecture = buildArchitecture(ctx);
     this.scene.add(this.architecture.group);
     this.collect(this.architecture.anchors, this.architecture.pickables);
+    this.atmosphere = buildAtmosphere(ctx);
+    this.scene.add(this.atmosphere.group);
+
+    if (!options.mobile) this.setupBloom(renderer);
+  }
+
+  /** Bloom nửa độ phân giải trên nền HDR; đếm lệnh vẽ của riêng cảnh (không tính các lượt hậu kỳ) cho QA */
+  private setupBloom(renderer: WebGLRenderer) {
+    if (!renderer.extensions.has("EXT_color_buffer_float") && !renderer.extensions.has("EXT_color_buffer_half_float")) return;
+    const size = renderer.getSize(new Vector2());
+    const target = new WebGLRenderTarget(size.x, size.y, { type: HalfFloatType, samples: 4 });
+    const composer = new EffectComposer(renderer, target);
+    const renderPass = new RenderPass(this.scene, this.camera);
+    const bloom = new UnrealBloomPass(new Vector2(size.x, size.y), 0.4, 0.55, 0.6);
+    composer.addPass(renderPass);
+    composer.addPass(bloom);
+    composer.addPass(new OutputPass());
+    renderer.info.autoReset = false;
+    const original = renderPass.render.bind(renderPass);
+    renderPass.render = (...args: Parameters<RenderPass["render"]>) => {
+      renderer.info.reset();
+      original(...args);
+      this.sceneCalls = renderer.info.render.calls;
+      this.sceneTriangles = renderer.info.render.triangles;
+    };
+    this.composer = composer;
+    this.bloom = bloom;
   }
 
   private collect(anchors: Record<string, Vector3>, pickables: Mesh[]) {
@@ -136,8 +177,8 @@ export class SpaceEngine {
     canvas.className = "space-canvas";
     const renderer = new WebGLRenderer({ canvas, antialias: !options.mobile, powerPreference: "high-performance" });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, options.mobile ? 1.25 : 1.75));
-    renderer.toneMapping = ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    // Không tone mapping: ảnh dự án giữ đúng màu; độ tương phản do chính cảnh quyết định. Bản desktop qua OutputPass.
+    renderer.toneMapping = NoToneMapping;
 
     const ctx: BuildContext = {
       palette,
@@ -227,6 +268,8 @@ export class SpaceEngine {
     this.flight?.kill();
     this.viewTween?.kill();
     this.architecture.dispose();
+    this.atmosphere.dispose();
+    this.composer?.dispose();
     for (const z of this.zones) z.build.dispose();
     this.pmrem.dispose();
     this.renderer.dispose();
@@ -260,6 +303,8 @@ export class SpaceEngine {
     this.focus = focus;
     this.looking.ty = this.looking.tp = 0;
     this.architecture.setZone(zone);
+    this.atmosphere.setZone(zone);
+    if (!instant && !this.options.reduced) this.architecture.ripple(zone);
     for (const z of this.zones) z.build.setState(z.zone === zone, z.zone === zone ? focus : null);
     // Kệ mẫu: nạp ảnh khi lần đầu tới gần
     if (zone === "mau-giao-dien") void this.loadShelf();
@@ -288,12 +333,14 @@ export class SpaceEngine {
     }
     this.setCamera({ pos: INTRO_RIG.pos, target: INTRO_RIG.target, fov: INTRO_RIG.fov });
     this.intro.walls = 0.001;
+    this.atmosphere.city.scale.y = 0.001;
     for (const z of this.zones) z.build.group.scale.y = 0.001;
     this.applyIntro();
     const d = short ? 0.6 : 1;
     const tl = gsap.timeline({ onUpdate: () => this.markBusy(300), onComplete: () => onDone?.() });
     tl.to(this.intro, { walls: 1, duration: 1.5 * d, ease: "expo.out", onUpdate: () => this.applyIntro() }, 0);
     this.zones.forEach((z, i) => tl.to(z.build.group.scale, { y: 1, duration: 1.1 * d, ease: "back.out(1.4)" }, (0.8 + i * 0.09) * d));
+    tl.to(this.atmosphere.city.scale, { y: 1, duration: 2.2 * d, ease: "power3.out" }, 0.9 * d);
     tl.add(() => this.flyTo(this.targetRig(), 2.3 * d), 0.15);
     this.markBusy(4000);
   }
@@ -313,10 +360,9 @@ export class SpaceEngine {
     const free = this.freeSize();
     const tgt = new Vector3(...base.target);
     let pb = pullback(free.w / free.h);
-    if (base.span) {
-      const dist = new Vector3(...base.pos).distanceTo(tgt);
-      pb = Math.max(pb, fitPullback(base.span, dist, base.fov, free.w, this.height));
-    }
+    const dist = new Vector3(...base.pos).distanceTo(tgt);
+    if (base.span) pb = Math.max(pb, fitPullback(base.span, dist, base.fov, free.w, this.height));
+    if (base.spanV) pb = Math.max(pb, fitPullback(base.spanV, dist, base.fov, free.h, this.height));
     const pos = new Vector3(...base.pos).sub(tgt).multiplyScalar(pb).add(tgt);
     return { pos: [pos.x, pos.y, pos.z], target: base.target, fov: base.fov };
   }
@@ -395,6 +441,7 @@ export class SpaceEngine {
     const w = Math.max(1, Math.round(rect.width));
     const h = Math.max(1, Math.round(rect.height));
     this.renderer.setSize(w, h, false);
+    this.composer?.setSize(w, h);
     this.configureViewport(w, h);
     this.retarget(true, 0);
     this.markBusy(400);
@@ -408,19 +455,23 @@ export class SpaceEngine {
     if (this.disposed || this.paused || document.hidden || !this.host) return;
     const now = performance.now();
     const busy = now < this.busyUntil;
-    if (!busy && now - this.lastRender < 50) return; // nhàn rỗi: ~20 khung/giây
+    if (!busy && now - this.lastRender < (this.options.mobile ? 50 : 33)) return; // nhàn rỗi: ~20 (di động) / ~30 (máy tính) khung/giây
     this.lastRender = now;
     const dt = Math.min(0.1, deltaMs / 1000);
-    this.time += dt;
+    if (!this.options.reduced) this.time += dt; // giảm chuyển động: đóng băng mọi hiệu ứng nền
 
     // nhìn quanh (lò xo)
     const k = 1 - Math.exp(-dt * 9);
     this.looking.yaw += (this.looking.ty - this.looking.yaw) * k;
     this.looking.pitch += (this.looking.tp - this.looking.pitch) * k;
+    const pk = 1 - Math.exp(-dt * 3.5);
+    this.parallax.x += (this.parallax.tx - this.parallax.x) * pk;
+    this.parallax.y += (this.parallax.ty - this.parallax.y) * pk;
+    const sway = this.options.reduced ? 0 : Math.sin(this.time * 0.17) * 0.012;
     this.tmp.copy(this.curPos).sub(this.curTarget);
     this.spherical.setFromVector3(this.tmp);
-    this.spherical.theta += this.looking.yaw;
-    this.spherical.phi = MathUtils.clamp(this.spherical.phi - this.looking.pitch, 0.12, 1.5);
+    this.spherical.theta += this.looking.yaw + this.parallax.x + sway;
+    this.spherical.phi = MathUtils.clamp(this.spherical.phi - this.looking.pitch - this.parallax.y, 0.12, 1.5);
     this.tmp.setFromSpherical(this.spherical);
     this.camera.position.copy(this.curTarget).add(this.tmp);
     this.camera.lookAt(this.curTarget);
@@ -432,8 +483,10 @@ export class SpaceEngine {
     this.camera.updateProjectionMatrix();
 
     this.architecture.update(dt);
+    this.atmosphere.update(this.time);
     for (const z of this.zones) z.build.update(this.time, dt);
-    this.renderer.render(this.scene, this.camera);
+    if (this.composer) this.composer.render(dt);
+    else this.renderer.render(this.scene, this.camera);
     this.projectHotspots();
   };
 
@@ -469,7 +522,9 @@ export class SpaceEngine {
   private setHover(id: string | null) {
     if (id === this.hoverId) return;
     this.hoverId = id;
-    this.architecture.setHover(id?.startsWith("zone:") ? (id.slice(5) as ZoneId) : null);
+    const hoverZone = id?.startsWith("zone:") ? (id.slice(5) as ZoneId) : null;
+    this.architecture.setHover(hoverZone);
+    this.atmosphere.setHover(hoverZone);
     for (const z of this.zones) z.build.setHover?.(id);
     this.canvas.dataset.cursor = id ? "link" : "drag";
     this.canvas.dispatchEvent(new PointerEvent("pointerover", { bubbles: true, pointerType: "mouse" }));
@@ -496,7 +551,15 @@ export class SpaceEngine {
       }
       return;
     }
-    if (event.pointerType === "mouse") this.setHover(this.pick(event));
+    if (event.pointerType === "mouse") {
+      this.setHover(this.pick(event));
+      if (!this.options.reduced) {
+        const n = this.ndc(event);
+        this.parallax.tx = n.x * 0.045;
+        this.parallax.ty = n.y * 0.02;
+        this.markBusy(400);
+      }
+    }
   };
 
   private readonly onUp = (event: PointerEvent) => {
@@ -510,6 +573,8 @@ export class SpaceEngine {
   };
 
   private readonly onLeave = () => {
+    this.parallax.tx = this.parallax.ty = 0;
+    this.markBusy(600);
     if (!this.drag) this.setHover(null);
   };
 
@@ -529,8 +594,9 @@ export class SpaceEngine {
       zone: this.zone,
       focus: this.focus,
       flying: this.flight?.isActive() ?? false,
-      calls: this.renderer.info.render.calls,
-      triangles: this.renderer.info.render.triangles,
+      calls: this.composer ? this.sceneCalls : this.renderer.info.render.calls,
+      triangles: this.composer ? this.sceneTriangles : this.renderer.info.render.triangles,
+      bloom: Boolean(this.bloom),
       textures: this.renderer.info.memory.textures,
       geometries: this.renderer.info.memory.geometries,
       fov: this.curFov,

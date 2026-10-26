@@ -1,4 +1,4 @@
-import { AdditiveBlending, BufferAttribute, BufferGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Points, RingGeometry, ShaderMaterial, Vector3 } from "three";
+import { AdditiveBlending, BufferAttribute, BufferGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Points, RingGeometry, ShaderMaterial, TorusGeometry, Vector3 } from "three";
 
 import { BASE_ROTATION, createShapes } from "@/components/webgl/shapes";
 import { CORE } from "@/components/space/engine/layout";
@@ -30,6 +30,27 @@ void main() {
   vNucleus = step(0.94, fract(aSeed * 13.0));
   gl_PointSize = uSize * uPixelRatio * (0.55 + aSeed * 0.9 + vNucleus * 1.4) * (9.0 / max(-mv.z, 0.1));
   vA = 0.35 + 0.65 * fract(aSeed * 7.0);
+}`;
+
+const ORBIT_VERT = /* glsl */ `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+
+/** Vòng quỹ đạo: một vệt sáng sao chổi chạy quanh vòng, phần còn lại mờ */
+const ORBIT_FRAG = /* glsl */ `
+uniform vec3 uColor;
+uniform float uTime;
+uniform float uSpeed;
+uniform float uOpacity;
+varying vec2 vUv;
+void main() {
+  float comet = pow(fract(vUv.x - uTime * uSpeed), 5.0);
+  gl_FragColor = vec4(uColor, (0.1 + comet * 0.9) * uOpacity);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
 }`;
 
 const FRAG = /* glsl */ `
@@ -69,6 +90,23 @@ export function buildCore(ctx: BuildContext): ZoneBuild {
   );
   beam.position.set(CORE.x, 1.15, CORE.z);
   group.add(plinth, ring, beam);
+
+  // Tháp sáng mảnh bắn lên trời (mốc nhìn thấy từ tổng mặt bằng), hai vòng quỹ đạo, vòng sóng lan từ bệ
+  const additive = { transparent: true, blending: AdditiveBlending, depthWrite: false } as const;
+  const tower = new Mesh(new CylinderGeometry(0.03, 0.03, 18, 8, 1, true), new MeshBasicMaterial({ color: palette.accentLight, opacity: 0.2, ...additive }));
+  tower.position.set(CORE.x, 9.3, CORE.z);
+  const orbitMats = [0, 1].map((i) => new ShaderMaterial({ vertexShader: ORBIT_VERT, fragmentShader: ORBIT_FRAG, ...additive, uniforms: { uColor: { value: palette.accentPale.clone() }, uTime: { value: 0 }, uSpeed: { value: i ? -0.1 : 0.14 }, uOpacity: { value: 0.7 } } }));
+  const orbitA = new Mesh(new TorusGeometry(2.3, 0.014, 8, 128), orbitMats[0]);
+  const orbitB = new Mesh(new TorusGeometry(2.75, 0.011, 8, 144), orbitMats[1]);
+  orbitA.position.set(CORE.x, CORE.holoY, CORE.z);
+  orbitB.position.copy(orbitA.position);
+  orbitA.rotation.set(1.15, 0.3, 0);
+  orbitB.rotation.set(0.45, -0.5, 0);
+  const shock = new Mesh(new RingGeometry(1.0, 1.05, 72).rotateX(-Math.PI / 2), new MeshBasicMaterial({ color: palette.accentLight, opacity: 0, ...additive }));
+  shock.position.set(CORE.x, 0.32, CORE.z);
+  // Điện thoại: bỏ vòng quỹ đạo thứ hai và vòng sóng để giữ ngân sách lệnh vẽ
+  orbitB.visible = shock.visible = !mobile;
+  group.add(tower, orbitA, orbitB, shock);
 
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new BufferAttribute(new Float32Array(count * 3), 3));
@@ -127,6 +165,12 @@ export function buildCore(ctx: BuildContext): ZoneBuild {
     },
     update(time, dt) {
       material.uniforms.uTime.value = time;
+      for (const m of orbitMats) m.uniforms.uTime.value = time;
+      orbitA.rotation.z = time * 0.12;
+      orbitB.rotation.z = -time * 0.09;
+      const wave = (time * (active ? 0.5 : 0.3)) % 1;
+      shock.scale.setScalar(1 + wave * 1.6);
+      (shock.material as MeshBasicMaterial).opacity = (1 - wave) * (active ? 0.5 : 0.28);
       material.uniforms.uOpacity.value += ((active ? 0.95 : 0.65) - material.uniforms.uOpacity.value) * (1 - Math.exp(-dt * 4));
       if (reduced) return;
       if (morphing < 1) {

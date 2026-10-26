@@ -44,7 +44,7 @@ function computeInsets() {
     if (desktop) insets.right = vw - panel.getBoundingClientRect().left;
     else {
       const snap = panel.dataset.snap;
-      const height = snap === "low" ? vh * 0.34 : snap === "full" ? vh - 136 : vh * 0.66;
+      const height = snap === "low" ? vh * 0.3 : snap === "full" ? vh - 136 : vh * 0.52;
       insets.bottom = height + 68;
     }
   } else if (hub) {

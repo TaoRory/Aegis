@@ -1,6 +1,8 @@
 import { AdditiveBlending, BoxGeometry, Color, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Vector3, type BufferGeometry } from "three";
 
 import { boxAt, mergeAll } from "@/components/space/engine/builders/merge";
+import { createPools } from "@/components/space/engine/builders/pools";
+import { addSheen, type Sheen } from "@/components/space/engine/builders/sheen";
 
 import { SHELF, shelfX, shelfY } from "@/components/space/engine/layout";
 import { gradientTexture, loadImageTexture } from "@/components/space/engine/textures";
@@ -35,6 +37,7 @@ export function buildShelf(ctx: BuildContext): ZoneBuild {
     bright: number;
     target: number;
     loaded: boolean;
+    sheen: Sheen;
   }
   const frameGeos: BufferGeometry[] = [];
   const items: Item[] = manifest.templates.map((tpl, i) => {
@@ -45,7 +48,9 @@ export function buildShelf(ctx: BuildContext): ZoneBuild {
 
     frameGeos.push(boxAt(SHELF.w + 0.12, SHELF.h + 0.12, 0.05, x, y, SHELF.z + 0.06));
     const stage = new Color(tpl.stage);
-    const screen = new Mesh(new PlaneGeometry(SHELF.w, SHELF.h), new MeshBasicMaterial({ color: stage, toneMapped: false }));
+    const screenMat = new MeshBasicMaterial({ color: stage, toneMapped: false });
+    const sheen = addSheen(screenMat, i * 0.29);
+    const screen = new Mesh(new PlaneGeometry(SHELF.w, SHELF.h), screenMat);
     screen.position.z = 0.03;
     screen.userData.pick = `template:${tpl.slug}`;
     const glow = new Mesh(
@@ -62,21 +67,28 @@ export function buildShelf(ctx: BuildContext): ZoneBuild {
     );
     reflection.position.set(0, -2 * y, 0.03);
     reflection.scale.y = -1;
-    reflection.visible = i >= SHELF.cols;
+    reflection.visible = i >= SHELF.cols && !ctx.mobile;
 
     unit.add(glow, screen, reflection);
     group.add(unit);
     pickables.push(screen);
     anchors[`template:${tpl.slug}`] = new Vector3(x, y + SHELF.h / 2 + 0.28, SHELF.z + 0.15);
-    return { slug: tpl.slug, screen, reflection, glow, stage, bright: 0.55, target: 0.55, loaded: false };
+    return { slug: tpl.slug, screen, reflection, glow, stage, bright: 0.55, target: 0.55, loaded: false, sheen };
   });
 
   group.add(new Mesh(mergeAll(frameGeos), frameMat));
 
+  // Ánh sáng từ các khung loang xuống sàn: một vệt cho mỗi cột
+  const pools = createPools(
+    Array.from({ length: SHELF.cols }, (_, c) => ({ x: shelfX(c), z: SHELF.z + 1.15, w: 2.4, d: 2.2 })),
+    palette.accentLight,
+  );
+  group.add(pools.mesh);
+
   let active = false;
   let hover: string | null = null;
   const recompute = () => {
-    for (const item of items) item.target = !active ? 0.45 : hover === `template:${item.slug}` ? 1 : 0.78;
+    for (const item of items) item.target = !active ? 0.4 : hover === `template:${item.slug}` ? 0.9 : 0.64;
   };
   recompute();
 
@@ -93,8 +105,9 @@ export function buildShelf(ctx: BuildContext): ZoneBuild {
       hover = id;
       recompute();
     },
-    update(_time, dt) {
+    update(time, dt) {
       const k = 1 - Math.exp(-dt * 6);
+      const colGlow = new Array<number>(SHELF.cols).fill(0);
       for (const item of items) {
         item.bright += (item.target - item.bright) * k;
         const screenMat = item.screen.material as MeshBasicMaterial;
@@ -104,7 +117,12 @@ export function buildShelf(ctx: BuildContext): ZoneBuild {
         const glowOpacity = Math.max(0, (item.bright - 0.82) * 1.6);
         (item.glow.material as MeshBasicMaterial).opacity = glowOpacity;
         item.glow.visible = glowOpacity > 0.01; // quầng viền chỉ vẽ khi khung đang được rê tới
+        item.sheen.uniforms.uSheenT.value = time;
+        item.sheen.uniforms.uAmt.value = 0.15 * Math.max(0, item.bright - 0.4);
+        const col = items.indexOf(item) % SHELF.cols;
+        colGlow[col] = Math.max(colGlow[col], item.bright - 0.4);
       }
+      colGlow.forEach((v, c) => pools.set(c, v * 0.9));
     },
     async load(onEach) {
       const queue = [...items.keys()];
@@ -130,6 +148,7 @@ export function buildShelf(ctx: BuildContext): ZoneBuild {
     dispose() {
       disposeGroup(group);
       fade.dispose();
+      pools.dispose();
       frameMat.dispose();
     },
   };

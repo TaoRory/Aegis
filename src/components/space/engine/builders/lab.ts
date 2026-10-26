@@ -47,6 +47,37 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
+const BUBBLE_VERT = /* glsl */ `
+attribute vec4 aSeed;
+attribute float aCap;
+uniform float uTime;
+uniform float uPixelRatio;
+uniform float uGlow[4];
+varying float vA;
+void main() {
+  float glow = uGlow[int(aCap + 0.5)];
+  float a = aSeed.x * 6.2832 + uTime * (0.4 + aSeed.w);
+  float r = (0.04 + 0.22 * aSeed.z) * (0.6 + 0.4 * sin(uTime * 0.7 + aSeed.y * 30.0));
+  float t = fract(aSeed.y + uTime * (0.06 + aSeed.w * 0.1 + glow * 0.16));
+  vec3 p = position + vec3(cos(a) * r, 0.08 + t * 0.92, sin(a) * r);
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  vA = sin(t * 3.1416) * (0.45 + glow * 0.55);
+  gl_PointSize = (1.4 + aSeed.w * 2.2) * uPixelRatio * (34.0 / max(-mv.z, 0.5));
+}`;
+
+const BUBBLE_FRAG = /* glsl */ `
+uniform vec3 uColor;
+varying float vA;
+void main() {
+  float d = length(gl_PointCoord - 0.5);
+  if (d > 0.5) discard;
+  float soft = 1.0 - d * 2.0;
+  gl_FragColor = vec4(uColor, soft * soft * vA);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}`;
+
 /**
  * Phòng thí nghiệm: bàn dài với bốn viên nang thủy tinh, mỗi viên chứa một "mẫu thử" tương ứng một thí nghiệm
  * (hạt, sương, vòng tách màu, dải cong). Viên nang đang chọn sáng hơn và quay nhanh hơn.
@@ -147,6 +178,44 @@ export function buildLab(ctx: BuildContext): ZoneBuild {
 
   group.add(new Mesh(mergeAll(capGeos), bodyMat));
 
+  // Bong bóng nổi trong các viên nang (một Points cho cả bốn) và vòng quét chạy dọc viên nang đang chọn
+  const bubblesPer = ctx.mobile ? 22 : 40;
+  const bubbleCount = capsules.length * bubblesPer;
+  const bPos = new Float32Array(bubbleCount * 3);
+  const bSeed = new Float32Array(bubbleCount * 4);
+  const bCap = new Float32Array(bubbleCount);
+  for (let i = 0; i < bubbleCount; i++) {
+    const c = Math.floor(i / bubblesPer);
+    bPos.set([LAB.x, 0.91 + 0.06, labZ(c)], i * 3);
+    for (let k = 0; k < 4; k++) bSeed[i * 4 + k] = Math.random();
+    bCap[i] = c;
+  }
+  const bubbleGeo = new BufferGeometry();
+  bubbleGeo.setAttribute("position", new Float32BufferAttribute(bPos, 3));
+  bubbleGeo.setAttribute("aSeed", new Float32BufferAttribute(bSeed, 4));
+  bubbleGeo.setAttribute("aCap", new Float32BufferAttribute(bCap, 1));
+  const bubbleMat = new ShaderMaterial({
+    vertexShader: BUBBLE_VERT,
+    fragmentShader: BUBBLE_FRAG,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    uniforms: {
+      uTime: { value: 0 },
+      uPixelRatio: { value: Math.min(window.devicePixelRatio || 1, ctx.mobile ? 1.25 : 1.75) },
+      uGlow: { value: [0, 0, 0, 0] },
+      uColor: { value: palette.accentPale.clone() },
+    },
+  });
+  const bubbles = new Points(bubbleGeo, bubbleMat);
+  bubbles.frustumCulled = false;
+  const scanner = new Mesh(
+    new TorusGeometry(0.37, 0.009, 8, 56).rotateX(Math.PI / 2),
+    new MeshBasicMaterial({ color: palette.paper, transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false }),
+  );
+  scanner.visible = false;
+  group.add(bubbles, scanner);
+
   let active = false;
   let focus: string | null = null;
   let hover: string | null = null;
@@ -169,6 +238,14 @@ export function buildLab(ctx: BuildContext): ZoneBuild {
     },
     update(time, dt) {
       const k = 1 - Math.exp(-dt * 6);
+      bubbleMat.uniforms.uTime.value = time;
+      bubbleMat.uniforms.uGlow.value = capsules.map((c) => c.glow);
+      // Vòng quét bám theo viên nang sáng nhất
+      const lead = capsules.reduce((a, c) => (c.glow > a.glow ? c : a), capsules[0]);
+      const scanOpacity = Math.min(0.9, lead.glow * 1.2);
+      (scanner.material as MeshBasicMaterial).opacity = scanOpacity;
+      scanner.visible = scanOpacity > 0.03;
+      if (scanner.visible) scanner.position.set(LAB.x, 0.91 + 0.12 + (0.5 + 0.5 * Math.sin(time * 1.6)) * 0.95, lead.root.position.z);
       capsules.forEach((c, i) => {
         c.glow += (c.target - c.glow) * k;
         c.spin += dt * (0.4 + c.glow * 1.6);

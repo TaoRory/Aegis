@@ -1,9 +1,11 @@
-import { AdditiveBlending, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Vector3, type BufferGeometry, type Texture } from "three";
+import { DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Vector3, type BufferGeometry, type Texture } from "three";
 
 import { boxAt, mergeAll } from "@/components/space/engine/builders/merge";
+import { createPools } from "@/components/space/engine/builders/pools";
+import { addSheen, type Sheen } from "@/components/space/engine/builders/sheen";
 
 import { SHOWROOM, showroomX } from "@/components/space/engine/layout";
-import { gradientTexture, loadImageTexture, radialTexture } from "@/components/space/engine/textures";
+import { gradientTexture, loadImageTexture } from "@/components/space/engine/textures";
 import type { BuildContext, ZoneBuild } from "@/components/space/engine/types";
 import { disposeGroup } from "@/components/space/engine/types";
 
@@ -21,7 +23,6 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
     [0, 0],
     [1, 1],
   ]);
-  const halo = radialTexture();
   const bodyMat = new MeshStandardMaterial({ color: palette.inkSurface, roughness: 0.6, metalness: 0.4 });
   const bezelMat = new MeshStandardMaterial({ color: palette.ink, roughness: 0.5, metalness: 0.3 });
 
@@ -29,10 +30,10 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
     slug: string;
     screen: Mesh;
     reflection: Mesh;
-    halo: Mesh;
     bright: number;
     target: number;
     texture: Texture | null;
+    sheen: Sheen;
   }
   // Bệ + trụ và khung viền của cả 7 màn hình gộp thành 2 mesh (thay vì 21)
   const bodyGeos: BufferGeometry[] = [];
@@ -47,15 +48,10 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
     bezelGeos.push(boxAt(SHOWROOM.w + 0.1, SHOWROOM.h + 0.1, 0.06, x, SHOWROOM.y, SHOWROOM.z - 0.04));
 
     const screenMat = new MeshBasicMaterial({ color: palette.inkSurface, toneMapped: false });
+    const sheen = addSheen(screenMat, i * 0.37);
     const screen = new Mesh(new PlaneGeometry(SHOWROOM.w, SHOWROOM.h), screenMat);
     screen.position.set(0, SHOWROOM.y, 0.001);
     screen.userData.pick = `project:${project.slug}`;
-
-    const haloMesh = new Mesh(
-      new PlaneGeometry(SHOWROOM.w * 1.9, SHOWROOM.h * 2.2),
-      new MeshBasicMaterial({ color: palette.accent, alphaMap: halo, transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false }),
-    );
-    haloMesh.position.set(0, SHOWROOM.y, -0.2);
 
     const reflection = new Mesh(
       new PlaneGeometry(SHOWROOM.w, SHOWROOM.h),
@@ -64,15 +60,23 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
     reflection.position.set(0, -SHOWROOM.y, 0.001);
     reflection.scale.y = -1;
     reflection.renderOrder = 0;
+    reflection.visible = !ctx.mobile; // điện thoại: bỏ phản chiếu sàn để giữ ngân sách lệnh vẽ
 
-    unit.add(haloMesh, screen, reflection);
+    unit.add(screen, reflection);
     group.add(unit);
     pickables.push(screen);
     anchors[`project:${project.slug}`] = new Vector3(x, SHOWROOM.y + SHOWROOM.h / 2 + 0.38, SHOWROOM.z + 0.1);
-    return { slug: project.slug, screen, reflection, halo: haloMesh, bright: 0.5, target: 0.5, texture: null };
+    return { slug: project.slug, screen, reflection, bright: 0.5, target: 0.5, texture: null, sheen };
   });
 
   group.add(new Mesh(mergeAll(bodyGeos), bodyMat), new Mesh(mergeAll(bezelGeos), bezelMat));
+
+  // Ánh sáng từ màn hình loang xuống sàn trước mặt
+  const pools = createPools(
+    items.map((_, i) => ({ x: showroomX(i), z: SHOWROOM.z + 1.05, w: 2.7, d: 2.4 })),
+    palette.accentLight,
+  );
+  group.add(pools.mesh);
 
   let active = false;
   let focus: string | null = null;
@@ -110,13 +114,12 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
         else sm.color.copy(palette.inkSurface).multiplyScalar(item.bright);
         if (rm.map) rm.color.setScalar(item.bright);
         else rm.color.copy(palette.inkSurface).multiplyScalar(item.bright);
-        const haloOpacity = Math.max(0, (item.bright - 0.45) * 0.45);
-        (item.halo.material as MeshBasicMaterial).opacity = haloOpacity;
-        item.halo.visible = haloOpacity > 0.01; // không vẽ quầng khi gần như vô hình
+        item.sheen.uniforms.uSheenT.value = time;
+        item.sheen.uniforms.uAmt.value = 0.15 * Math.max(0, item.bright - 0.4);
+        pools.set(items.indexOf(item), (item.bright - 0.4) * 1.1);
         const lift = focus === item.slug ? 1.04 : 1;
         item.screen.scale.setScalar(item.screen.scale.x + (lift - item.screen.scale.x) * k);
       }
-      void time;
     },
     async load(onEach) {
       const queue = [...items.keys()];
@@ -142,7 +145,7 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
     dispose() {
       disposeGroup(group);
       fade.dispose();
-      halo.dispose();
+      pools.dispose();
       bodyMat.dispose();
       bezelMat.dispose();
     },

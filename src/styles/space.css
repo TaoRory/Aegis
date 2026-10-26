@@ -291,14 +291,14 @@ html[data-space="on"] body {
       right: 0;
       bottom: 4.25rem;
       width: auto;
-      height: 66svh;
+      height: 52svh;
       border-radius: 1.25rem 1.25rem 0 0;
       border-inline: 0;
       transition: height 0.55s var(--motion-ease-out);
     }
 
     .space-panel[data-snap="low"] {
-      height: 34svh;
+      height: 30svh;
     }
 
     .space-panel[data-snap="full"] {
@@ -311,7 +311,7 @@ html[data-space="on"] body {
       right: 0;
       bottom: 4.25rem;
       width: auto;
-      max-height: 46svh;
+      max-height: 44svh;
       border-radius: 1.25rem 1.25rem 0 0;
       border-inline: 0;
     }
@@ -867,6 +867,31 @@ html[data-space="on"] body {
   .space-hotspot[data-always="true"] .space-hotspot-label {
     opacity: 1;
     transform: none;
+  }
+
+  /* Màn hẹp: nhãn chỉ có số thứ tự (kể cả ở tổng mặt bằng) để bảy nhãn không chồng lên nhau */
+  @media (max-width: 40rem) {
+    .space-hotspot .space-hotspot-label {
+      opacity: 1;
+      transform: none;
+      padding: 0.2rem 0.4rem;
+    }
+
+    .space-hotspot .space-hotspot-name {
+      display: none;
+    }
+  }
+
+  /* Cảm ứng: vùng chạm tối thiểu 44px quanh mỗi điểm */
+  @media (pointer: coarse) {
+    .space-hotspot::after {
+      content: "";
+      position: absolute;
+      left: -1.4rem;
+      top: -1.4rem;
+      width: 2.8rem;
+      height: 2.8rem;
+    }
   }
 
   /* Cảm ứng: không có hover nên chỉ hiện số thứ tự, tên chỉ hiện ở tổng mặt bằng */

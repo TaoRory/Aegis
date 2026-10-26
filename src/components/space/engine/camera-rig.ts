@@ -7,8 +7,9 @@ export interface Rig {
   pos: Vec3;
   target: Vec3;
   fov: number;
-  /** Bề rộng (mét, tại mặt phẳng đích) cần nằm gọn trong phần khung còn trống */
+  /** Bề rộng và chiều cao (mét, tại mặt phẳng đích) cần nằm gọn trong phần khung còn trống */
   span?: number;
+  spanV?: number;
 }
 
 /**
@@ -21,27 +22,28 @@ export function rigFor(zone: ZoneId, focus: string | null, manifest: SceneManife
       const index = focus ? manifest.projects.findIndex((p) => p.slug === focus) : -1;
       if (index >= 0) {
         const x = showroomX(index);
-        return { pos: [x + 0.5, 2.2, SHOWROOM.z + 3.2], target: [x, SHOWROOM.y - 0.05, SHOWROOM.z], fov: 34 };
+        // Góc nhìn đủ cao để khi lùi ra (màn hẹp) vẫn nhìn qua đỉnh tường phòng kế bên (cao 2,4 m)
+      return { pos: [x + 0.5, 3.2, SHOWROOM.z + 3.0], target: [x, SHOWROOM.y - 0.05, SHOWROOM.z], fov: 34, span: 2.8, spanV: 2.0 };
       }
-      return { pos: [0, 8.4, 6.8], target: [0, 1.25, SHOWROOM.z], fov: 44, span: 17.6 };
+      return { pos: [0, 8.4, 6.8], target: [0, 1.25, SHOWROOM.z], fov: 44, span: 17.6, spanV: 4.4 };
     }
     case "thi-nghiem": {
       const index = focus ? manifest.lab.findIndex((l) => l.id === focus) : -1;
-      if (index >= 0) return { pos: [LAB.x - 2.9, 2.6, labZ(index) + 3.0], target: [LAB.x, LAB.capY, labZ(index)], fov: 32 };
-      return { pos: [LAB.x - 5.0, 6.4, 6.6], target: [LAB.x, 0.95, LAB.z], fov: 40 };
+      if (index >= 0) return { pos: [LAB.x - 2.9, 2.6, labZ(index) + 3.0], target: [LAB.x, LAB.capY, labZ(index)], fov: 32, span: 2.4, spanV: 2.4 };
+      return { pos: [LAB.x - 5.0, 6.4, 6.6], target: [LAB.x, 0.95, LAB.z], fov: 40, span: 5.8, spanV: 3.6 };
     }
     case "mau-giao-dien":
-      return { pos: [SHELF.x, 4.7, 12.6], target: [SHELF.x, 1.2, SHELF.z], fov: 44 };
+      return { pos: [SHELF.x, 4.7, 12.6], target: [SHELF.x, 1.2, SHELF.z], fov: 44, span: 8.8, spanV: 3.6 };
     case "dich-vu":
-      return { pos: [DRAFT.x + 4.4, 5.6, DRAFT.z + 5.4], target: [DRAFT.x, 0.8, DRAFT.z], fov: 40 };
+      return { pos: [DRAFT.x + 4.4, 5.6, DRAFT.z + 5.4], target: [DRAFT.x, 0.8, DRAFT.z], fov: 40, span: 5.4, spanV: 3.4 };
     case "ve-aegis":
-      return { pos: [CORE.x, 4.4, 7.3], target: [CORE.x, 1.75, CORE.z], fov: 38 };
+      return { pos: [CORE.x, 4.4, 7.3], target: [CORE.x, 1.75, CORE.z], fov: 38, span: 6, spanV: 4.8 };
     case "nhat-ky":
-      return { pos: [JOURNAL.x, 3.5, JOURNAL.z + 6.6], target: [JOURNAL.x, 0.85, JOURNAL.z], fov: 36 };
+      return { pos: [JOURNAL.x, 3.5, JOURNAL.z + 6.6], target: [JOURNAL.x, 0.85, JOURNAL.z], fov: 36, span: 3.8, spanV: 3 };
     case "lien-he":
-      return { pos: [DOOR.x, 2.9, DOOR.z + 8.3], target: [DOOR.x, 1.2, DOOR.z], fov: 36 };
+      return { pos: [DOOR.x, 2.9, DOOR.z + 8.3], target: [DOOR.x, 1.2, DOOR.z], fov: 36, span: 3.4, spanV: 3.4 };
     default:
-      return { pos: [0, 25, 28], target: [0, 0, 0.6], fov: 34 };
+      return { pos: [0, 25, 28], target: [0, 0, 0.6], fov: 34, span: 19, spanV: 14 };
   }
 }
 
@@ -57,10 +59,10 @@ export function pullback(effAspect: number): number {
 }
 
 /**
- * Hệ số lùi để `span` mét nằm gọn trong phần khung còn trống (`freeW` px của khung `height` px), tính từ khoảng cách
- * gốc `dist` và góc nhìn dọc `fov`. Giới hạn trần để màn hẹp không lùi xa tới mức vật thể thành chấm.
+ * Hệ số lùi để `span` mét nằm gọn trong phần khung còn trống (`freePx` px theo một chiều, của khung `height` px), tính từ
+ * khoảng cách gốc `dist` và góc nhìn dọc `fov`. Giới hạn trần để màn hẹp không lùi xa tới mức vật thể thành chấm.
  */
-export function fitPullback(span: number, dist: number, fov: number, freeW: number, height: number): number {
-  const visible = 2 * dist * Math.tan((fov * Math.PI) / 360) * (freeW / height);
-  return Math.min(2.3, Math.max(1, span / visible));
+export function fitPullback(span: number, dist: number, fov: number, freePx: number, height: number): number {
+  const visible = 2 * dist * Math.tan((fov * Math.PI) / 360) * (freePx / height);
+  return Math.min(2.6, Math.max(1, span / visible));
 }
