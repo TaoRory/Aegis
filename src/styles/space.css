@@ -1,0 +1,973 @@
+/*
+ * Xưởng Aegis (phiên bản 2): style của vỏ, HUD, mặt bằng phẳng và các khung nội dung.
+ * Chỉ nạp ở layout (spatial)/xuong. Mọi rule nằm dưới .space-* hoặc html[data-space="on"] để không rò sang trang chính.
+ * Màu/cỡ chữ chỉ dùng biến vai trò từ tokens.css (vùng data-surface="dark").
+ */
+
+html[data-space="on"],
+html[data-space="on"] body {
+  overflow: hidden;
+  height: 100%;
+}
+
+@layer components {
+  .space-root {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  .space-grid {
+    position: absolute;
+    inset: 0;
+    mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 25%, transparent 90%);
+  }
+
+  /* ---------- Mặt bằng phẳng ---------- */
+  .space-map {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 4.75rem 1.5rem 5.5rem;
+    transition: padding 0.8s var(--motion-ease-out);
+  }
+
+  .space-map-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .space-plan-frame rect,
+  .space-plan-frame line,
+  .space-plan-frame path {
+    fill: none;
+    stroke: var(--border-strong);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .space-plan-frame rect {
+    stroke-dasharray: 3 5;
+  }
+
+  .space-dim {
+    font: 500 3px var(--font-family-mono);
+    fill: var(--fg-subtle);
+    letter-spacing: 0.1em;
+  }
+
+  .space-room {
+    cursor: pointer;
+    outline: none;
+  }
+
+  .space-room-box {
+    fill: transparent;
+    stroke: var(--border-strong);
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+    transition:
+      fill 0.45s var(--motion-ease-out),
+      stroke 0.45s var(--motion-ease-out);
+  }
+
+  .space-room:hover .space-room-box,
+  .space-room:focus-visible .space-room-box,
+  .space-room[data-active="true"] .space-room-box {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+  }
+
+  .space-room:focus-visible .space-room-box {
+    stroke-width: 3;
+  }
+
+  .space-glyph * {
+    fill: none;
+    stroke: var(--fg-subtle);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .space-room:hover .space-glyph *,
+  .space-room[data-active="true"] .space-glyph * {
+    stroke: var(--accent);
+  }
+
+  .space-room-index {
+    font: 500 3.2px var(--font-family-mono);
+    fill: var(--accent);
+    letter-spacing: 0.12em;
+  }
+
+  .space-room-name {
+    font: 600 4.6px var(--font-family-sans);
+    fill: var(--fg);
+    letter-spacing: -0.01em;
+  }
+
+  /* Chừa chỗ cho khung nội dung / thẻ giới thiệu */
+  @media (min-width: 64rem) {
+    .space-root:has(.space-panel) .space-map {
+      padding-right: calc(min(46rem, 100vw - 2rem) + 2rem);
+    }
+
+    .space-root:has(.space-hub) .space-map {
+      padding-left: 28.5rem;
+    }
+  }
+
+  @media (max-width: 63.99rem) {
+    .space-root:has(.space-panel) .space-map {
+      padding-bottom: calc(66svh + 5rem);
+      padding-top: 4.25rem;
+    }
+
+    .space-root:has(.space-panel[data-snap="low"]) .space-map {
+      padding-bottom: calc(34svh + 5rem);
+    }
+
+    .space-root:has(.space-hub) .space-map {
+      padding-bottom: calc(46svh + 5rem);
+      padding-top: 4.25rem;
+    }
+  }
+
+  /* ---------- HUD ---------- */
+  .space-top {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .space-home {
+    display: inline-flex;
+    align-items: center;
+    color: var(--fg);
+    height: 2.5rem;
+    padding-inline: 1rem;
+    border: 1px solid var(--border-strong);
+    background: color-mix(in oklab, var(--bg) 80%, transparent);
+    backdrop-filter: blur(10px);
+    transition: border-color 0.3s ease;
+  }
+
+  .space-home:hover {
+    border-color: var(--fg);
+  }
+
+  .space-title {
+    position: absolute;
+    left: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .space-title-sheet {
+    margin-top: 0.35rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  @media (max-width: 63.99rem) {
+    .space-title {
+      display: none;
+    }
+  }
+
+  .space-nav {
+    position: absolute;
+    left: 50%;
+    bottom: 1rem;
+    z-index: 4;
+    transform: translateX(-50%);
+    max-width: calc(100% - 1.5rem);
+  }
+
+  .space-nav ul {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.35rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--bg) 82%, transparent);
+    backdrop-filter: blur(14px);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .space-nav ul::-webkit-scrollbar {
+    display: none;
+  }
+
+  .space-nav a {
+    display: flex;
+    gap: 0.45rem;
+    align-items: baseline;
+    padding: 0.62rem 1rem;
+    border-radius: 999px;
+    font-family: var(--font-family-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--fg-muted);
+    transition:
+      background-color 0.35s ease,
+      color 0.35s ease;
+  }
+
+  .space-nav a:hover {
+    color: var(--fg);
+  }
+
+  .space-nav a[aria-current="page"] {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .space-nav-index {
+    color: var(--accent);
+  }
+
+  .space-nav a[aria-current="page"] .space-nav-index {
+    color: var(--bg);
+    opacity: 0.6;
+  }
+
+  /* ---------- Khung nội dung + thẻ giới thiệu ---------- */
+  .space-main {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    outline: none;
+  }
+
+  .space-panel,
+  .space-hub {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    pointer-events: auto;
+    background: color-mix(in oklab, var(--bg-elevated) 93%, transparent);
+    border: 1px solid var(--border-strong);
+    backdrop-filter: blur(18px);
+  }
+
+  .space-panel {
+    top: 4.25rem;
+    right: 1rem;
+    bottom: 5rem;
+    width: min(46rem, calc(100% - 2rem));
+  }
+
+  .space-hub {
+    top: 4.75rem;
+    left: 1.5rem;
+    width: min(26rem, 38vw);
+    max-height: calc(100% - 10.5rem);
+    padding: 1.5rem;
+    overflow-y: auto;
+  }
+
+  @media (max-width: 63.99rem) {
+    .space-panel {
+      top: auto;
+      left: 0;
+      right: 0;
+      bottom: 4.25rem;
+      width: auto;
+      height: 66svh;
+      border-radius: 1.25rem 1.25rem 0 0;
+      border-inline: 0;
+      transition: height 0.55s var(--motion-ease-out);
+    }
+
+    .space-panel[data-snap="low"] {
+      height: 34svh;
+    }
+
+    .space-panel[data-snap="full"] {
+      height: calc(100svh - 8.5rem);
+    }
+
+    .space-hub {
+      top: auto;
+      left: 0;
+      right: 0;
+      bottom: 4.25rem;
+      width: auto;
+      max-height: 46svh;
+      border-radius: 1.25rem 1.25rem 0 0;
+      border-inline: 0;
+    }
+  }
+
+  /* Giấu tới khi JS đặt data-ready (chỉ khi có chuyển động); failsafe sau 3 giây nếu JS lỗi */
+  [data-motion="on"] .space-panel:not([data-ready]),
+  [data-motion="on"] .space-hub:not([data-ready]) {
+    visibility: hidden;
+    animation: reveal-failsafe 0.01s 3s forwards;
+  }
+
+  .space-panel-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1.25rem;
+  }
+
+  .space-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--border-strong);
+  }
+
+  .space-close {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--border-strong);
+    transition: border-color 0.3s ease;
+  }
+
+  .space-close:hover {
+    border-color: var(--fg);
+  }
+
+  .space-panel-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+    padding: 1.75rem 1.5rem 2.5rem;
+  }
+
+  .space-panel-title {
+    letter-spacing: -0.035em;
+  }
+
+  .space-panel-title em {
+    color: var(--accent);
+  }
+
+  .space-panel-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.8rem 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .space-step {
+    display: inline-flex;
+    gap: 0.5rem;
+    color: var(--fg-muted);
+    transition: color 0.3s ease;
+  }
+
+  .space-step:hover {
+    color: var(--accent);
+  }
+
+  .space-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+    height: 2.75rem;
+    padding-inline: 1.1rem;
+    background: var(--accent);
+    color: var(--on-accent);
+    transition: transform 0.4s var(--motion-ease-out);
+  }
+
+  .space-cta:hover {
+    transform: translateY(-2px);
+  }
+
+  .space-legend {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .space-legend-link {
+    display: grid;
+    grid-template-columns: 3rem 1fr auto;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    transition: color 0.3s ease;
+  }
+
+  .space-legend-link:hover {
+    color: var(--accent);
+  }
+
+  /* ---------- Thành phần nội dung ---------- */
+  .space-spec {
+    margin-top: 1.75rem;
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .space-spec > div {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 1rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .space-list {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.6rem;
+  }
+
+  .space-list li {
+    position: relative;
+    padding-left: 1.1rem;
+    line-height: 1.55;
+  }
+
+  .space-list li::before {
+    content: "+";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-family: var(--font-family-mono);
+  }
+
+  .space-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .space-card {
+    display: grid;
+    gap: 0.5rem;
+    align-content: start;
+    height: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    transition:
+      border-color 0.35s ease,
+      background-color 0.35s ease;
+  }
+
+  .space-card:hover,
+  .space-card:focus-visible {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .space-card-img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .space-card-name {
+    font-size: 1.35rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .space-sheets {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .space-sheet {
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    background: color-mix(in oklab, var(--surface) 50%, transparent);
+  }
+
+  .space-sheet-cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+  }
+
+  /* Sân khấu thiết bị (ảnh trang dự án trong khung trình duyệt) */
+  .space-stage {
+    margin-top: 2rem;
+    padding: 1.25rem;
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+  }
+
+  .space-device {
+    border: 1px solid var(--border-strong);
+    background: var(--bg);
+  }
+
+  .space-device-bar {
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .space-device-bar span {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: var(--border-strong);
+  }
+
+  .space-device-screen {
+    max-height: 24rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
+  /* Phòng thí nghiệm */
+  .space-lab {
+    margin-top: 1.75rem;
+  }
+
+  .space-lab-stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: min(52svh, 26rem);
+    min-height: 20rem;
+    overflow: hidden;
+    border: 1px solid var(--border-strong);
+    background: var(--bg);
+    touch-action: pan-y;
+  }
+
+  .space-lab-notes {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 1.75rem;
+  }
+
+  /* Khi giảm chuyển động: khung hiện ngay, không clip */
+  @media (prefers-reduced-motion: reduce) {
+    .space-panel,
+    .space-hub {
+      transition: none;
+    }
+  }
+
+  /* Tay nắm kéo của sheet mobile */
+  .space-handle {
+    display: none;
+    width: 100%;
+    height: 1.4rem;
+    place-items: center;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .space-handle span {
+    width: 2.75rem;
+    height: 0.28rem;
+    border-radius: 999px;
+    background: var(--border-strong);
+  }
+
+  @media (max-width: 63.99rem) {
+    .space-handle {
+      display: grid;
+    }
+  }
+
+  .space-eyebrow {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .space-close {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* Bảng phím tắt */
+  .space-shortcuts {
+    position: absolute;
+    top: calc(100% + 0.6rem);
+    right: 0;
+    z-index: 50;
+    width: 19rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border-strong);
+    background: var(--bg);
+  }
+
+  .space-shortcuts dl {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .space-shortcuts dl > div {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 0.75rem;
+    align-items: baseline;
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+
+  /* ---------- Màn khởi động ---------- */
+  .space-boot {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: none;
+    background: var(--bg);
+  }
+
+  html[data-space-boot="playing"] .space-boot {
+    display: block;
+    /* Failsafe: nếu JS lỗi thì tự ẩn sau 4 giây */
+    animation: space-boot-failsafe 0.01s 4s forwards;
+  }
+
+  .space-boot-grid {
+    position: absolute;
+    inset: 0;
+  }
+
+  .space-boot-inner {
+    position: absolute;
+    left: clamp(1.25rem, 5vw, 4rem);
+    right: clamp(1.25rem, 5vw, 4rem);
+    bottom: clamp(1.5rem, 8vh, 5rem);
+  }
+
+  .space-boot-log {
+    display: grid;
+    gap: 0.35rem;
+    margin-bottom: 2rem;
+    font-family: var(--font-family-mono);
+    font-size: clamp(0.78rem, 0.7rem + 0.4vw, 1rem);
+    color: var(--fg-muted);
+  }
+
+  .space-boot-log li {
+    opacity: 0.18;
+    transition:
+      opacity 0.3s ease,
+      color 0.3s ease;
+  }
+
+  .space-boot-log li[data-on="true"] {
+    opacity: 1;
+  }
+
+  .space-boot-log li:first-child[data-on="true"] {
+    color: var(--accent);
+  }
+
+  .space-boot-meter {
+    height: 1px;
+    background: var(--border-strong);
+  }
+
+  .space-boot-bar {
+    display: block;
+    height: 3px;
+    margin-top: -1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+
+  .space-boot-pct {
+    margin-top: 1rem;
+    font-size: clamp(3.5rem, 2rem + 8vw, 9rem);
+    line-height: 0.9;
+    font-weight: 600;
+    letter-spacing: -0.05em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .space-boot-skip {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--border-strong);
+    color: var(--fg-muted);
+  }
+
+  .space-boot-skip:hover {
+    color: var(--fg);
+    border-color: var(--fg);
+  }
+}
+
+@keyframes space-boot-failsafe {
+  to {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+@layer components {
+  /* ---------- Cảnh 3D ---------- */
+  .space-canvas-host {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+    touch-action: none;
+    pointer-events: none; /* rỗng ở bản phẳng: không chặn link của mặt bằng */
+  }
+
+  html[data-space-live="on"] .space-canvas-host {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .space-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Bản phẳng nhường chỗ cho cảnh 3D (vẫn nằm trong DOM làm dự phòng, ẩn khỏi tab khi 3D chạy) */
+  html[data-space-live="on"] .space-map {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.9s ease,
+      visibility 0s 0.9s;
+  }
+
+  /* ---------- Điểm chạm (hotspot) ---------- */
+  .space-hotspots {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .space-hotspot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 0;
+    height: 0;
+    pointer-events: auto;
+    will-change: transform;
+  }
+
+  .space-hotspot[data-off="true"] {
+    visibility: hidden;
+  }
+
+  .space-diamond {
+    position: absolute;
+    left: -0.6rem;
+    top: -0.6rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    background: var(--accent);
+    transform: rotate(45deg);
+    transition:
+      transform 0.45s var(--motion-ease-out),
+      background-color 0.3s ease;
+  }
+
+  .space-diamond::before {
+    content: "";
+    position: absolute;
+    inset: -0.5rem;
+    border: 1px solid var(--accent);
+    opacity: 0.5;
+    animation: space-ping 2.4s ease-out infinite;
+  }
+
+  .space-hotspot:hover .space-diamond,
+  .space-hotspot:focus-visible .space-diamond,
+  .space-hotspot[data-hover="true"] .space-diamond {
+    transform: rotate(45deg) scale(1.35);
+    background: var(--fg);
+  }
+
+  .space-hotspot:focus-visible {
+    outline: none;
+  }
+
+  .space-hotspot:focus-visible .space-diamond {
+    outline: 2px solid var(--fg);
+    outline-offset: 4px;
+  }
+
+  .space-hotspot-label {
+    position: absolute;
+    left: 1.25rem;
+    top: -0.85rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--accent);
+    background: color-mix(in oklab, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+    font-family: var(--font-family-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition:
+      opacity 0.3s ease,
+      transform 0.4s var(--motion-ease-out);
+    pointer-events: none;
+  }
+
+  .space-hotspot-tag {
+    color: var(--accent);
+  }
+
+  .space-hotspot:hover .space-hotspot-label,
+  .space-hotspot:focus-visible .space-hotspot-label,
+  .space-hotspot[data-hover="true"] .space-hotspot-label,
+  .space-hotspot[data-always="true"] .space-hotspot-label {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Cảm ứng: không có hover nên chỉ hiện số thứ tự, tên chỉ hiện ở tổng mặt bằng */
+  @media (hover: none) {
+    .space-hotspot[data-always="false"] .space-hotspot-label {
+      opacity: 1;
+      transform: none;
+      padding: 0.2rem 0.4rem;
+    }
+
+    .space-hotspot[data-always="false"] .space-hotspot-name {
+      display: none;
+    }
+  }
+
+  .space-notice {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    max-width: 21rem;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border-strong);
+    background: var(--bg);
+    color: var(--fg-muted);
+    line-height: 1.5;
+    letter-spacing: 0.04em;
+    text-transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .space-diamond::before {
+      animation: none;
+    }
+  }
+}
+
+@keyframes space-ping {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@layer components {
+  .space-lab-stage:fullscreen {
+    height: 100vh;
+    background: var(--bg);
+  }
+
+  .space-lab-fill {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .space-lab-controls {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+  }
+
+  .space-lab-full {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 3;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--border-strong);
+    background: color-mix(in oklab, var(--bg) 80%, transparent);
+    color: var(--fg);
+  }
+
+  .space-chroma-stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    overflow: hidden;
+  }
+
+  .space-chroma-layer {
+    grid-area: 1 / 1;
+    font-size: clamp(4rem, 3rem + 8vw, 9rem);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+}
