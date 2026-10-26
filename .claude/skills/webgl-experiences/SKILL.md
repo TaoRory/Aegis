@@ -11,7 +11,7 @@ description: Xây hiệu ứng WebGL cho website (particle field, morph hình th
 |---|---|---|
 | Một hiệu ứng đơn (particles, nền shader, biến dạng ảnh) | **Raw WebGL2** (một program, vài buffer) | ~3–8 KB tự viết |
 | Vài hiệu ứng, cần helper geometry/texture | OGL | ~25 KB |
-| Cảnh 3D thật: model GLTF, hoặc cảnh không gian dựng bằng code (Xưởng `/xuong`) | Three.js (nạp lười bằng `import()`); xem `references/spatial-site.md` | ~150 KB+ |
+| Cảnh 3D thật: model GLTF, hoặc cảnh không gian dựng bằng code (Xưởng `/factory`) | Three.js (nạp lười bằng `import()`); xem `references/spatial-site.md` | ~150 KB+ |
 | Cảnh 3D gắn chặt với React state | React Three Fiber + drei | lớn nhất |
 
 Website giới thiệu doanh nghiệp: ưu tiên **raw WebGL2** cho particles. Chỉ dùng Three.js khi có model 3D hoặc cần cảnh không gian nhiều khu (`references/spatial-site.md`).

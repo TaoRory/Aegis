@@ -12,7 +12,7 @@ import { SpaceKeys } from "@/components/space/SpaceKeys";
 import { getLenis } from "@/lib/motion";
 
 /**
- * Vỏ cố định của Xưởng Aegis: nằm ở layout (route group (spatial)/xuong) nên KHÔNG bị dựng lại khi đổi khu.
+ * Vỏ cố định của Xưởng Aegis: nằm ở layout (route group (spatial)/factory) nên KHÔNG bị dựng lại khi đổi khu.
  * - Đặt html[data-space="on"] (khóa cuộn cửa sổ) và dừng Lenis: nội dung cuộn trong từng Panel bằng cuộn gốc.
  * - Lớp dưới: lưới bản vẽ + mặt bằng phẳng (SVG). Lớp trên: HUD. Giữa: <main> chứa Panel của trang hiện tại.
  * - Server và lần render đầu của client giống hệt nhau (bản phẳng, khu mặc định) → không lệch hydration.

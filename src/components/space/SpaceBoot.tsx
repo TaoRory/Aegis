@@ -10,12 +10,12 @@ const MIN_MS = 1800;
 const MAX_MS = 3200;
 
 /**
- * Màn khởi động kiểu terminal (không âm thanh), chỉ hiện khi vào đúng /xuong lần đầu trong phiên
+ * Màn khởi động kiểu terminal (không âm thanh), chỉ hiện khi vào đúng /factory lần đầu trong phiên
  * (html[data-space-boot="playing"] do script đầu trang đặt, không có khi giảm chuyển động).
  * - Có engine 3D: tiến độ là THẬT (store.bootProgress từ engine: chunk, shader, texture); kết thúc khi engine sẵn sàng.
  * - Không có engine (bản phẳng): chạy theo thời gian ngắn.
  * Tối đa MAX_MS; bấm phím/chạm/nút "Bỏ qua" là vào luôn. CSS có failsafe 4 giây phòng khi JS lỗi.
- * Link sâu (/xuong/trung-bay…) không có màn này: nội dung hiện ngay, cảnh dựng phía sau.
+ * Link sâu (/factory/trung-bay…) không có màn này: nội dung hiện ngay, cảnh dựng phía sau.
  */
 export function SpaceBoot() {
   const ref = useRef<HTMLDivElement>(null);
@@ -37,7 +37,7 @@ export function SpaceBoot() {
       finished = true;
       cancelAnimationFrame(raf);
       try {
-        sessionStorage.setItem("aegis-xuong-boot", "1");
+        sessionStorage.setItem("aegis-factory-boot", "1");
       } catch {}
       gsap.to(el, {
         autoAlpha: 0,

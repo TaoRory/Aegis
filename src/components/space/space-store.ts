@@ -36,7 +36,7 @@ interface SpaceState {
 const state: SpaceState = {
   zone: "hub",
   focus: null,
-  pathname: "/xuong",
+  pathname: "/factory",
   navigated: false,
   mode: "flat",
   ready: false,

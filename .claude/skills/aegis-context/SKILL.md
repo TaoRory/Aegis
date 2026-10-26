@@ -30,7 +30,7 @@ description: Ngữ cảnh doanh nghiệp Aegis (dữ kiện đã xác nhận, 4 
 - Trang `/mau-giao-dien` và 6 mẫu `/mau-giao-dien/<slug>` (`src/content/templates.ts`). Đây là **mẫu demo do Aegis tự thiết kế**, thương hiệu và số liệu là **giả định**, phải luôn ghi rõ (DemoBar, DemoClosing, nhãn thư viện). Không trộn với 7 dự án thật.
 - Thêm/sửa mẫu: skill `template-gallery`, agent `template-builder`.
 
-## Xưởng Aegis (`/xuong`, phiên bản UI 2, chạy song song)
+## Xưởng Aegis (`/factory`, phiên bản UI 2, chạy song song)
 
 - Cảnh 3D nhiều khu thay cho trang cuộn dài: tổng mặt bằng, trưng bày dự án, phòng thí nghiệm, kệ 8 style, bàn bản vẽ dịch vụ, về Aegis, nhật ký, cửa liên hệ. Nội dung ở `src/config/space.ts`, `src/content/space.ts|lab.ts|journal.ts`. noindex, không vào sitemap. Bản cũ ở `/` giữ nguyên (tag `option-1`).
 - Phòng thí nghiệm chỉ mô tả điều code làm thật; mục `usedIn` không được ghi chỗ không dùng. Nhật ký chỉ hiện bài `confirmed: true` và kể về cách dựng website, không số liệu hay ngày tháng.

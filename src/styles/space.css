@@ -1,6 +1,6 @@
 /*
  * Xưởng Aegis (phiên bản 2): style của vỏ, HUD, mặt bằng phẳng và các khung nội dung.
- * Chỉ nạp ở layout (spatial)/xuong. Mọi rule nằm dưới .space-* hoặc html[data-space="on"] để không rò sang trang chính.
+ * Chỉ nạp ở layout (spatial)/factory. Mọi rule nằm dưới .space-* hoặc html[data-space="on"] để không rò sang trang chính.
  * Màu/cỡ chữ chỉ dùng biến vai trò từ tokens.css (vùng data-surface="dark").
  */
 

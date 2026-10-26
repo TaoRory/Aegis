@@ -9,7 +9,7 @@ import { Lines } from "@/components/ui/Rich";
 import { zones } from "@/config/space";
 import { spaceCopy } from "@/content/space";
 
-/** Thẻ giới thiệu ở tổng mặt bằng (/xuong): tiêu đề h1 và danh sách tất cả các khu (bao gồm Nhật ký, không có trên thanh điều hướng). */
+/** Thẻ giới thiệu ở tổng mặt bằng (/factory): tiêu đề h1 và danh sách tất cả các khu (bao gồm Nhật ký, không có trên thanh điều hướng). */
 export function HubIntro() {
   const ref = useRef<HTMLElement>(null);
   usePanelEnter(ref);

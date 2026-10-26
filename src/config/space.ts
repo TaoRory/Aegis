@@ -4,7 +4,7 @@
  * Chữ hiển thị dài nằm ở src/content/space.ts.
  */
 
-export const SPACE_BASE = "/xuong";
+export const SPACE_BASE = "/factory";
 
 export type ZoneId = "hub" | "trung-bay" | "thi-nghiem" | "mau-giao-dien" | "dich-vu" | "ve-aegis" | "nhat-ky" | "lien-he";
 
@@ -45,7 +45,7 @@ export function resolveZone(pathname: string): { zone: ZoneId; focus: string | n
   return { zone: zone.id, focus: rest[1] ?? null };
 }
 
-/** Route cha: dùng cho Esc / nút đóng. /xuong/trung-bay/vidi26 → /xuong/trung-bay → /xuong → / */
+/** Route cha: dùng cho Esc / nút đóng. /factory/trung-bay/vidi26 → /factory/trung-bay → /factory → / */
 export function parentRoute(pathname: string): string {
   const clean = pathname.replace(/\/+$/, "");
   if (clean === SPACE_BASE) return "/";

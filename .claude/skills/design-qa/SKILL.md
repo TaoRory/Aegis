@@ -17,9 +17,9 @@ node .claude/skills/design-research/scripts/contact-sheet.mjs <outDir> 3 560
 
 Sau đó Read contact sheet và từng shot quan trọng (hero, signature moment, project list, footer).
 
-### Hành trình khu (website không gian như `/xuong`)
+### Hành trình khu (website không gian như `/factory`)
 
-Không có cuộn dài: chụp theo hành trình **khu**. Với desktop và mobile (từng nấc bottom sheet), chụp: tổng mặt bằng → từng khu → một sản phẩm → một thí nghiệm → liên hệ, cả bản 3D lẫn bản phẳng. Kiểm bằng đo, không chỉ nhìn ảnh: vị trí hotspot nằm trong vùng còn trống, `renderer.info` (lệnh vẽ ≤ 120, tam giác ≤ 150k) qua `?debug-space`. Script: `pnpm qa:xuong <url>` (bản build production, cổng không phải 3000 nếu bị chiếm).
+Không có cuộn dài: chụp theo hành trình **khu**. Với desktop và mobile (từng nấc bottom sheet), chụp: tổng mặt bằng → từng khu → một sản phẩm → một thí nghiệm → liên hệ, cả bản 3D lẫn bản phẳng. Kiểm bằng đo, không chỉ nhìn ảnh: vị trí hotspot nằm trong vùng còn trống, `renderer.info` (lệnh vẽ ≤ 120, tam giác ≤ 150k) qua `?debug-space`. Script: `pnpm qa:factory <url>` (bản build production, cổng không phải 3000 nếu bị chiếm).
 
 ## 2. Chạy QA chức năng của dự án
 

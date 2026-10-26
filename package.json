@@ -12,7 +12,7 @@
     "capture:previews": "node --experimental-strip-types --no-warnings scripts/capture-previews.mjs",
     "og:generate": "node --experimental-strip-types --no-warnings scripts/generate-og.mjs",
     "qa": "node scripts/qa.mjs",
-    "qa:xuong": "node scripts/qa-xuong.mjs",
+    "qa:factory": "node scripts/qa-factory.mjs",
     "capture:templates": "node --experimental-strip-types --no-warnings scripts/capture-templates.mjs"
   },
   "dependencies": {

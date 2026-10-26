@@ -1,4 +1,4 @@
-# Website không gian 3D nhiều khu (mẫu: Xưởng Aegis, `/xuong`)
+# Website không gian 3D nhiều khu (mẫu: Xưởng Aegis, `/factory`)
 
 Dùng khi người dùng muốn bỏ bố cục một trang dài, thay bằng một cảnh 3D chia thành nhiều khu, mỗi khu mở một khung nội dung. Cảnh dựng **bằng code** (không model GLTF) nên nhẹ và đổi màu theo token.
 
