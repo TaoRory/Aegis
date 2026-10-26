@@ -97,8 +97,26 @@ export function MotionProvider() {
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
 
+    // Chiều cao trang đổi SAU lúc Lenis đo (chữ wordmark chân trang co giãn khi font tải xong, ảnh lười, section ghim…):
+    // nếu không đo lại, giới hạn cuộn của Lenis bị cũ và người dùng không kéo được tới hết trang.
+    // ResizeObserver riêng trên <body> (không debounce, gom theo khung hình) + đo lại mỗi lần ScrollTrigger refresh.
+    let sizeRaf = 0;
+    const remeasure = () => {
+      cancelAnimationFrame(sizeRaf);
+      sizeRaf = requestAnimationFrame(() => lenis.resize());
+    };
+    const sizeObserver = new ResizeObserver(remeasure);
+    sizeObserver.observe(document.body);
+    ScrollTrigger.addEventListener("refresh", remeasure);
+    window.addEventListener("load", remeasure);
+    document.fonts?.ready.then(remeasure);
+
     return () => {
       window.removeEventListener("load", refresh);
+      window.removeEventListener("load", remeasure);
+      ScrollTrigger.removeEventListener("refresh", remeasure);
+      sizeObserver.disconnect();
+      cancelAnimationFrame(sizeRaf);
       gsap.ticker.remove(tick);
       lenis.destroy();
       setLenis(null);

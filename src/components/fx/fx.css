@@ -138,13 +138,3 @@
   }
 }
 
-@layer components {
-  /* ScrollChroma: tách kênh đỏ/xanh theo tốc độ cuộn (biến do ScrollChroma ghi lên phần tử) */
-  .chroma,
-  .text-h2,
-  .text-mega {
-    text-shadow:
-      calc(var(--chroma, 0px) * -1) 0 rgb(255 46 99 / var(--chroma-a, 0)),
-      var(--chroma, 0px) 0 rgb(40 210 255 / var(--chroma-a, 0));
-  }
-}

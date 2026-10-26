@@ -445,8 +445,8 @@ export class GalleryEngine {
       this.canvas.height = h;
     }
     const aspect = this.cssW / this.cssH;
-    // Màn hẹp (điện thoại dọc): lùi camera để thấy đủ thẻ giữa và hai thẻ bên
-    this.camZ = Math.max(0, 1.5 / aspect - 1) * 3.2;
+    // Màn hẹp (điện thoại dọc): lùi camera vừa đủ để thẻ giữa rộng khoảng 60% màn hình, hai thẻ bên ló ra hai mép
+    this.camZ = Math.max(0, 4.2 / aspect - FRONT);
     perspective(this.proj, FOV, aspect, 0.1, 80);
     view(this.viewM, [0, CAM_Y, this.camZ], PITCH);
     mul(this.vp, this.proj, this.viewM);

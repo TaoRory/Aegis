@@ -78,6 +78,20 @@ class ShapeBuilder {
     }
   }
 
+  /**
+   * "Đám mây electron": lấy ngẫu nhiên các điểm đã có rồi rắc lệch theo phân phối chuẩn quanh chúng,
+   * cho hình có khối (đọc được cả khi nhỏ trên điện thoại) thay vì chỉ là nét mảnh.
+   */
+  haze(n: number, spread: number) {
+    const available = this.points.length / 3;
+    if (available === 0) return;
+    for (let i = 0; i < n; i++) {
+      const src = Math.floor(this.rand() * available) * 3;
+      const g = () => (this.rand() + this.rand() + this.rand() - 1.5) * spread;
+      this.push(this.points[src] + g(), this.points[src + 1] + g(), this.points[src + 2] + g());
+    }
+  }
+
   push(x: number, y: number, z: number) {
     this.points.push(x, y, z);
   }
@@ -140,6 +154,7 @@ function foundation(count: number) {
     b.gridXZ(0, y + 0.065, 0, half * 0.94, half * 0.94, count * (0.07 - i * 0.008), 0.09);
   });
   b.gridXZ(0, -0.78, 0, 1.45, 1.45, count * 0.12, 0.16);
+  b.haze(count * 0.14, 0.045);
   return b.build();
 }
 
@@ -161,6 +176,7 @@ function neuralNetwork(count: number) {
     for (const a of nodes[l]) for (const c of nodes[l + 1]) edges.push([a, c]);
   }
   b.segments(edges, count * 0.68, 0.006);
+  b.haze(count * 0.12, 0.035);
   return faceCamera(b.build());
 }
 
@@ -176,6 +192,7 @@ function modules(count: number) {
     b.segments(boxEdges(x, y, z, 0.24, h / 2, 0.24), (count * 0.78) / 9);
     b.gridXZ(x, y + h / 2, z, 0.22, 0.22, (count * 0.22) / 9, 0.07);
   });
+  b.haze(count * 0.14, 0.04);
   return b.build();
 }
 
@@ -194,6 +211,7 @@ function browser(count: number) {
   [0.2, 0.08, -0.04, -0.16].forEach((y, i) => b.segments([[[0.26, y, 0.1], [0.92 - i * 0.12, y, 0.1]]], count * 0.04));
   b.segments(rect(0.26, -0.38, 0.62, -0.26, 0.2), count * 0.06);
   b.segments(rect(-0.92, -0.62, 0.92, -0.5, 0.05), count * 0.06);
+  b.haze(count * 0.12, 0.035);
   return faceCamera(b.build());
 }
 
@@ -213,6 +231,7 @@ function broadcast(count: number) {
     }
     b.segments(arc, count * 0.05);
   }
+  b.haze(count * 0.12, 0.04);
   return b.build();
 }
 

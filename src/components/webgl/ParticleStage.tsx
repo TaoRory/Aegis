@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { stageStore } from "@/components/webgl/stage-store";
-import { gsap, MQ, onIntroDone, ScrollTrigger } from "@/lib/motion";
+import { getLenis, gsap, MQ, onIntroDone, ScrollTrigger } from "@/lib/motion";
 import { onPointerMove } from "@/lib/pointer";
 
 /** Đọc màu token CSS (#rrggbb) thành vec3 0..1, để đổi theme không phải sửa shader */
@@ -44,27 +44,29 @@ export function ParticleStage() {
       const desktop = window.matchMedia("(min-width: 64rem)").matches;
       const lowQuality = document.documentElement.dataset.quality === "low";
       const weak = lowQuality || (navigator.hardwareConcurrency ?? 8) <= 4;
-      const count = Math.round((desktop ? 12000 : 7000) * (lowQuality ? 0.3 : weak ? 0.55 : 1));
+      const count = Math.round((desktop ? 18000 : 10000) * (lowQuality ? 0.3 : weak ? 0.55 : 1));
       const dpr = Math.min(window.devicePixelRatio || 1, lowQuality ? 1 : desktop ? 2 : 1.5);
 
       let engine: InstanceType<typeof ParticleEngine>;
       try {
-        engine = new ParticleEngine(canvas, createShapes(count), { dpr, pointSize: desktop ? 2.1 : 2.4 });
+        engine = new ParticleEngine(canvas, createShapes(count), { dpr, pointSize: desktop ? 2 : 2.6 });
       } catch (error) {
         console.warn("[ParticleStage] Bỏ qua hiệu ứng WebGL:", error);
         return;
       }
       engine.setColors(tokenColor("--palette-paper", [0.92, 0.91, 0.89]), tokenColor("--palette-ultramarine-light", [0.55, 0.56, 1]));
       canvas.dataset.ready = "on";
+      // Kiểm thử tự động: ?debug-flow cho phép đọc trạng thái trường năng lượng từ trình duyệt
+      if (window.location.search.includes("debug-flow")) (window as unknown as { __aegisParticles?: unknown }).__aegisParticles = engine;
 
       const s = engine.state;
       const layout = () => {
         const isDesktop = window.matchMedia("(min-width: 64rem)").matches;
         const aspect = window.innerWidth / Math.max(1, window.innerHeight);
         return {
-          // Mobile: hình gọn, đủ lớn, nằm ở nửa trên màn hình (phía trên tiêu đề/chữ)
-          hero: isDesktop ? { x: aspect * 0.42, y: 0.02, scale: 0.62 } : { x: 0, y: 0.58, scale: Math.min(0.62, aspect * 0.85) },
-          services: isDesktop ? { x: aspect * 0.48, y: 0, scale: 0.58 } : { x: 0, y: 0.55, scale: Math.min(0.58, aspect * 0.85) },
+          // Điện thoại: artwork chiếm trọn nửa trên màn hình (chữ nằm ở nửa dưới), vừa khít bề ngang
+          hero: isDesktop ? { x: aspect * 0.42, y: 0.02, scale: 0.62 } : { x: 0, y: 0.5, scale: Math.min(0.62, aspect * 0.86) },
+          services: isDesktop ? { x: aspect * 0.48, y: 0, scale: 0.58 } : { x: 0, y: 0.4, scale: Math.min(0.58, aspect * 0.95) },
         };
       };
 
@@ -130,20 +132,40 @@ export function ParticleStage() {
       ];
       const unsubscribe = stageStore.subscribe(apply);
 
-      // Chuột: đẩy hạt và nghiêng nhẹ khối
+      // Luồng năng lượng: chuột / ngón tay đi qua cuốn phân tử theo hướng di chuyển (không đẩy ra xa).
+      // Chuột còn làm khối nghiêng rất nhẹ theo chiều dọc.
       const onPointer = (event: PointerEvent) => {
-        const aspect = window.innerWidth / Math.max(1, window.innerHeight);
-        const nx = (event.clientX / window.innerWidth) * 2 - 1;
-        const ny = -((event.clientY / window.innerHeight) * 2 - 1);
-        s.mouseX = nx * aspect;
-        s.mouseY = ny;
-        gsap.to(s, { mouseForce: 1, rotX: ny * 0.08, duration: 0.6, overwrite: "auto" });
+        engine.pointer(event.clientX, event.clientY);
+        if (event.pointerType === "mouse") {
+          const ny = -((event.clientY / window.innerHeight) * 2 - 1);
+          gsap.to(s, { rotX: ny * 0.08, duration: 0.6, overwrite: "auto" });
+        }
       };
-      const onPointerLeave = () => gsap.to(s, { mouseForce: 0, rotX: 0, duration: 0.8 });
-      let stopPointer = () => {};
-      if (window.matchMedia(MQ.fineHover).matches) {
-        stopPointer = onPointerMove((event) => (event ? onPointer(event) : onPointerLeave()));
-      }
+      const onPointerLeave = () => {
+        engine.pointerLeave();
+        gsap.to(s, { rotX: 0, duration: 0.8, overwrite: "auto" });
+      };
+      const stopPointer = onPointerMove((event) => (event ? onPointer(event) : onPointerLeave()));
+      // Cảm ứng: trình duyệt huỷ pointer khi bắt đầu cuộn, nên nghe thêm touchmove (passive, không chặn cuộn)
+      const onTouch = (event: TouchEvent) => {
+        const t = event.touches[0];
+        if (t) engine.pointer(t.clientX, t.clientY);
+      };
+      const onTouchEnd = () => engine.pointerLeave();
+      window.addEventListener("touchmove", onTouch, { passive: true });
+      window.addEventListener("touchend", onTouchEnd, { passive: true });
+
+      // Gió cuộn: phân tử lệch nhẹ theo vận tốc cuộn rồi trở lại (artwork "sống" cả khi không chạm)
+      let lastY = window.scrollY;
+      const windTick = () => {
+        const lenis = getLenis();
+        const v = lenis ? lenis.velocity : window.scrollY - lastY;
+        lastY = window.scrollY;
+        const target = Math.max(-0.05, Math.min(0.05, v * 0.0016));
+        s.windY += (target - s.windY) * 0.12;
+        if (Math.abs(s.windY) < 1e-4) s.windY = 0;
+      };
+      gsap.ticker.add(windTick);
 
       // Chỉ chạy vòng render khi Hero hoặc Dịch vụ đang hiển thị và tab đang mở
       const visible = new Set<Element>();
@@ -177,6 +199,9 @@ export function ParticleStage() {
         document.removeEventListener("visibilitychange", sync);
         window.removeEventListener("resize", onResize);
         stopPointer();
+        window.removeEventListener("touchmove", onTouch);
+        window.removeEventListener("touchend", onTouchEnd);
+        gsap.ticker.remove(windTick);
         engine.destroy();
       };
     };

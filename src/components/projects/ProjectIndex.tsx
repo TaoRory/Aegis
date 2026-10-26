@@ -103,7 +103,7 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
   return (
     <div>
       <div className="flex flex-col gap-6 border-b border-line pb-6 sm:flex-row sm:items-center sm:justify-between">
-        <div role="group" aria-label="Lọc dự án theo loại" className="flex flex-wrap gap-2">
+        <div role="group" aria-label="Lọc dự án theo loại" className="no-scrollbar -mx-(--gutter) flex gap-2 overflow-x-auto px-(--gutter) pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
           {categories.map((category) => {
             const selected = category.id === filter;
             return (
@@ -113,7 +113,7 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
                 aria-pressed={selected}
                 onClick={() => changeFilter(category.id)}
                 className={cn(
-                  "label inline-flex h-9 items-center gap-2 rounded-sm border px-3.5 transition-colors duration-200",
+                  "label inline-flex h-10 shrink-0 items-center gap-2 rounded-sm border px-3.5 transition-colors duration-200 sm:h-9",
                   selected ? "border-fg bg-fg text-bg" : "border-line-strong text-muted hover:border-fg hover:text-fg",
                 )}
               >
@@ -127,6 +127,10 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
           Hiển thị {String(visible.length).padStart(2, "0")} / {String(projects.length).padStart(2, "0")} dự án
         </p>
       </div>
+
+      <p aria-hidden className="project-swipe-hint label text-muted">
+        Vuốt ngang để xem thêm <span>→</span>
+      </p>
 
       <ul
         ref={listRef}
@@ -153,7 +157,7 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
                 rel="noopener noreferrer"
                 data-cursor="view"
                 data-cursor-label="Xem ↗"
-                className="project-link grid gap-x-6 gap-y-3 py-7 lg:grid-cols-12 lg:items-baseline lg:py-9"
+                className="project-link grid gap-x-6 gap-y-3 py-7 max-lg:flex max-lg:flex-col max-lg:gap-0 max-lg:py-0 lg:grid-cols-12 lg:items-baseline lg:py-9"
               >
                 <span className="label text-muted lg:col-span-1">{String(index + 1).padStart(2, "0")}</span>
                 <span className="project-name text-[clamp(2rem,1.2rem+3.6vw,5rem)] leading-[1.02] font-semibold tracking-[-0.04em] lg:col-span-6">

@@ -26,13 +26,15 @@ export function VelocityMarquee({
   useEffect(() => {
     const track = trackRef.current;
     if (!track || !window.matchMedia(MQ.anyMotion).matches) return;
+    // Điện thoại / máy tính bảng: chạy đều một tốc độ, không đổi chiều hay tăng tốc theo cú cuộn
+    const reactive = window.matchMedia(MQ.speedFx).matches;
     let x = 0;
     let dir = reverse ? 1 : -1;
     let boost = 0;
     let lastY = window.scrollY;
     const tick = () => {
       const lenis = getLenis();
-      const v = lenis ? lenis.velocity : window.scrollY - lastY;
+      const v = reactive ? (lenis ? lenis.velocity : window.scrollY - lastY) : 0;
       lastY = window.scrollY;
       if (Math.abs(v) > 0.5) dir = (v > 0 ? -1 : 1) * (reverse ? -1 : 1);
       boost += (Math.min(18, Math.abs(v) * 0.6) - boost) * 0.1;

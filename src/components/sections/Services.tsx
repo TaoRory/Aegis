@@ -14,7 +14,7 @@ export function Services() {
       className="relative"
     >
       <div aria-hidden className="blueprint-grid pointer-events-none absolute inset-0 -z-10" />
-      <div className="container-page pt-(--section-y) pb-16 lg:pb-8">
+      <div className="services-intro container-page pt-(--section-y) pb-16 lg:pb-8">
         <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
           <div className="lg:col-span-8">
             <p className="label text-muted">{servicesSection.label}</p>

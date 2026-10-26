@@ -36,12 +36,7 @@
     opacity: 1;
   }
 
-  /* Mobile: chữ hero/nhãn nằm ở nửa trên → làm mờ hạt ở vùng đó để chữ đọc được */
-  @media (max-width: 47.99rem) {
-    .particle-stage {
-      mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.28) 0%, rgb(0 0 0 / 0.28) 22%, #000 58%);
-    }
-  }
+  /* Điện thoại: artwork nằm trọn ở nửa trên, chữ ở nửa dưới trên dải gradient (xem .hero::after) → không cần làm mờ hạt */
 
   /* ---------- Chữ ---------- */
   .split-line-mask {
@@ -261,6 +256,12 @@
     right: calc(var(--gutter) + 5.75rem);
   }
 
+  /* Nút pill trên header điện thoại: bỏ góc ngoặc vuông của nút hộp */
+  .header-cta-pill::before,
+  .header-cta-pill::after {
+    display: none;
+  }
+
   @media (min-width: 64rem) {
     .header-cta {
       right: var(--gutter);
@@ -364,12 +365,21 @@
     padding: 1.75rem 0;
   }
 
+  /* Điện thoại / máy tính bảng: mỗi chương là một "cảnh" cao một màn hình — nửa trên trong suốt để lộ trọn bản vẽ
+     phân tử đang morph, nửa dưới là thẻ nội dung trên dải gradient (không blur, không che kín artwork). */
   @media (max-width: 63.99rem) {
+    .service-chapter {
+      display: flex;
+      min-height: 100svh;
+      align-items: flex-end;
+    }
+
     .service-chapter article {
-      padding: 1.5rem var(--gutter);
+      position: relative;
+      width: calc(100% + var(--gutter) * 2);
       margin-inline: calc(var(--gutter) * -1);
-      background: color-mix(in oklab, var(--bg) 82%, transparent);
-      backdrop-filter: blur(6px);
+      padding: 4.5rem var(--gutter) 2rem;
+      background: linear-gradient(to top, color-mix(in oklab, var(--bg) 94%, transparent) 62%, transparent);
     }
   }
 
@@ -1755,6 +1765,236 @@
     }
   }
 
+  /* Hero điện thoại: dải gradient tối chỉ ở nửa dưới (vùng chữ); nửa trên để trọn artwork phân tử */
+  @media (max-width: 63.99rem) {
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      z-index: 0;
+      height: 58%;
+      background: linear-gradient(to top, color-mix(in oklab, var(--bg) 92%, transparent) 55%, transparent);
+      pointer-events: none;
+    }
+
+    .hero > .container-page {
+      z-index: 1;
+    }
+
+    /* Phần mở đầu mục Dịch vụ: nền tối phía sau chữ để bản vẽ phân tử (đang chuyển sang AI) không đè lên chữ */
+    .services-intro {
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(to bottom, color-mix(in oklab, var(--bg) 92%, transparent) 72%, transparent);
+    }
+  }
+
+  /* ---------- Điện thoại / máy tính bảng (< 64rem): bố cục riêng, đủ "wow" mà không rối ---------- */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .service-more-toggle,
+  .project-swipe-hint {
+    display: none;
+  }
+
+  @media (max-width: 63.99rem) {
+    /* Dịch vụ: thẻ gọn, chi tiết gập lại (nút "Xem chi tiết") */
+    .service-chapter article::before {
+      content: attr(data-num);
+      position: absolute;
+      top: 4rem;
+      right: var(--gutter);
+      z-index: 1;
+      font-size: 3.4rem;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.05em;
+      color: transparent;
+      -webkit-text-stroke: 1px color-mix(in oklab, var(--fg) 28%, transparent);
+      pointer-events: none;
+    }
+
+    .service-chapter h3 {
+      padding-right: 3.6rem;
+    }
+
+    html[data-js] .service-more-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      height: 2.75rem;
+      margin-top: 1.5rem;
+      padding-inline: 1.15rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      color: var(--fg);
+      transition:
+        background-color 0.3s ease,
+        border-color 0.3s ease;
+    }
+
+    .service-more-toggle[aria-expanded="true"] {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .service-more-icon {
+      position: relative;
+      width: 0.7rem;
+      height: 0.7rem;
+    }
+
+    .service-more-icon::before,
+    .service-more-icon::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 1px;
+      background: currentcolor;
+      transition: transform 0.35s var(--motion-ease-out);
+    }
+
+    .service-more-icon::after {
+      transform: rotate(90deg);
+    }
+
+    .service-more-toggle[aria-expanded="true"] .service-more-icon::after {
+      transform: rotate(0deg);
+    }
+
+    html[data-js] .service-more-body:not([data-open="true"]) {
+      display: none;
+    }
+
+    .service-more-body[data-open="true"] {
+      animation: service-open 0.5s var(--motion-ease-out) both;
+    }
+
+    /* Dự án: dải thẻ vuốt ngang, chạm vào là xem website */
+    .project-swipe-hint {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+    }
+
+    .project-index {
+      display: flex;
+      gap: 1rem;
+      margin-inline: calc(var(--gutter) * -1);
+      padding: 0.75rem var(--gutter) 1.5rem;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--gutter);
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .project-index::-webkit-scrollbar {
+      display: none;
+    }
+
+    .project-row {
+      /* position: relative để phần chữ ẩn (sr-only, absolute) nằm trong thẻ và bị dải cuộn cắt, không đẩy rộng cả trang */
+      position: relative;
+      display: flex;
+      flex: 0 0 min(80vw, 21rem);
+      border: 1px solid var(--border-strong);
+      border-radius: 1.5rem;
+      overflow: hidden;
+      background: var(--bg-elevated);
+      scroll-snap-align: start;
+    }
+
+    .project-link {
+      width: 100%;
+    }
+
+    .project-link > :not(.project-inline-media) {
+      padding-inline: 1.15rem;
+    }
+
+    .project-link > :first-child {
+      padding-top: 1.1rem;
+    }
+
+    .project-link > .project-name {
+      margin-top: 0.35rem;
+      font-size: 1.85rem;
+    }
+
+    .project-link > :nth-last-child(2) {
+      padding-bottom: 1.15rem;
+    }
+
+    .project-inline-media {
+      display: block;
+      order: -1;
+      margin: 0;
+      border: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .project-inline-media img {
+      transition: transform 0.9s var(--motion-ease-out);
+    }
+
+    .project-row:active .project-inline-media img {
+      transform: scale(1.04);
+    }
+
+    /* Thư viện style: thanh thước nằm gọn dưới hàng lọc, thẻ lớn hơn */
+    .gallery-stage {
+      --g-h: min(84svh, 44rem);
+    }
+  }
+
+  /* Phản hồi khi chạm: nút và thẻ lún nhẹ, không có khung sáng mặc định của trình duyệt */
+  @media (hover: none) {
+    a,
+    button,
+    label,
+    summary {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-box,
+    .round-btn,
+    .wizard-option-face,
+    .wizard-service-face,
+    .gallery-arrow,
+    .gallery-chip,
+    .service-more-toggle {
+      transition:
+        transform 0.25s var(--motion-ease-out),
+        background-color 0.3s ease,
+        border-color 0.3s ease;
+    }
+
+    .btn-box:active,
+    .round-btn:active,
+    .wizard-option-face:active,
+    .gallery-arrow:active,
+    .gallery-chip:active,
+    .service-more-toggle:active {
+      transform: scale(0.96);
+    }
+
+    .wizard-service:active .wizard-service-face {
+      transform: scale(0.985);
+    }
+  }
+
   /* ---------- HUD ---------- */
   /* Chữ dọc nằm trong lề trái, không đè nội dung */
   .chapter-hud {
@@ -2020,5 +2260,12 @@
   to {
     opacity: 0;
     visibility: hidden;
+  }
+}
+
+@keyframes service-open {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
   }
 }

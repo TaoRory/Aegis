@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 
-import { MistCursor } from "@/components/fx/MistCursor";
 import { gsap, MQ, onIntroDone } from "@/lib/motion";
 import { onPointerMove } from "@/lib/pointer";
 
@@ -10,9 +9,9 @@ const FILTER_ID = "hero-warp";
 
 /**
  * Lớp hiệu ứng của hero (trang trí, aria-hidden):
- * 1. Tiêu đề xuất hiện với gợn sóng + tách kênh RGB rồi "khớp" lại (Emotion hero); rê chuột vào tiêu đề làm gợn nhẹ lại.
+ * 1. Tiêu đề xuất hiện với gợn sóng rồi "khớp" lại (Emotion hero); rê chuột vào tiêu đề làm gợn nhẹ lại (chỉ máy tính).
  * 2. Thước ngắm bản vẽ: hai đường kẻ chạy theo con trỏ + tọa độ mm (chỉ thiết bị có chuột).
- * 3. Làn khói ultramarine theo chuột (MistCursor).
+ * (Luồng năng lượng theo chuột/ngón tay nằm trong sân khấu hạt: ParticleStage + flow-field.)
  * Giảm chuyển động / cảm ứng: chỉ còn tiêu đề tĩnh.
  */
 export function HeroFx() {
@@ -22,26 +21,23 @@ export function HeroFx() {
   const hRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
 
-  // 1. Gợn sóng + tách kênh khi intro xong
+  // 1. Gợn sóng khi intro xong
   useEffect(() => {
     const title = document.getElementById("hero-title");
     const disp = dispRef.current;
-    if (!title || !disp || !window.matchMedia(MQ.anyMotion).matches) return;
-    title.classList.add("chroma");
+    // Gợn sóng chỉ dành cho máy tính; điện thoại để tiêu đề hiện gọn gàng
+    if (!title || !disp || !window.matchMedia(MQ.speedFx).matches) return;
 
     const warp = (strength: number, duration: number) => {
-      const state = { s: strength, c: strength / 5 };
+      const state = { s: strength };
       title.style.filter = `url(#${FILTER_ID})`;
       return gsap.to(state, {
         s: 0,
-        c: 0,
         duration,
         ease: "expo.out",
         overwrite: true,
         onUpdate: () => {
           disp.setAttribute("scale", state.s.toFixed(2));
-          title.style.setProperty("--chroma", `${state.c.toFixed(2)}px`);
-          title.style.setProperty("--chroma-a", Math.min(0.8, state.c / 6).toFixed(2));
         },
         onComplete: () => {
           title.style.filter = "";
@@ -104,7 +100,6 @@ export function HeroFx() {
           <feDisplacementMap ref={dispRef} in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </svg>
-      <MistCursor color="#8c8fff" opacity={0.32} className="mix-blend-screen" />
       <div ref={vRef} className="hero-crosshair-v absolute top-0 left-0 h-full w-px" />
       <div ref={hRef} className="hero-crosshair-h absolute top-0 left-0 h-px w-full" />
       <span ref={labelRef} className="hero-crosshair-label label absolute top-0 left-0 whitespace-nowrap" />

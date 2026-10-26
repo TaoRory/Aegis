@@ -30,6 +30,8 @@ Tham chiếu: Heron AI (ngôn ngữ bản vẽ), EnduroSat (một cảnh WebGL l
 12. **Chuyển trang "lật bản vẽ" (2026-10-25):** View Transitions. Rèm quét ngang giữa các trang Aegis (`aegis-forward` / `aegis-back`); thẻ 3D phóng thành trang mẫu (`aegis-open`, cặp `ViewTransition name="tpl-<slug>"` giữa lớp phủ trong thư viện và `.morph-target` của `DemoShell`). Con trỏ riêng có `view-transition-name` để không bị đóng băng.
 13. **Cài đặt hiệu ứng (2026-10-25):** nút "Cài đặt" ở header (chất lượng Cao/Thấp, con trỏ riêng Bật/Tắt) — không có âm thanh tự phát.
 
+14. **Phân tử sống + luồng năng lượng (2026-10-26):** 5 bản vẽ (nền móng, AI, phần mềm, web, marketing) dựng từ ~18k phân tử (10k trên điện thoại): hạt có chiều sâu, nhấp nháy, trôi theo nhiễu xoáy, 6% "hạt nhân" màu accent có quầng, thêm lớp "đám mây electron" (`ShapeBuilder.haze`) cho hình có khối. Con trỏ / ngón tay không còn đẩy hạt ra xa ("hố đen") mà là **luồng năng lượng** (`src/components/webgl/flow-field.ts`): trường vận tốc trên GPU, hạt bị cuốn theo hướng di chuyển, sáng lên, rồi trôi về chỗ cũ; vệt năng lượng mờ vẽ ngay trong canvas hạt. Điện thoại: artwork chiếm trọn nửa trên, chữ ở nửa dưới (không `mask-image`, không `backdrop-filter`); cuộn tạo "gió" lệch nhẹ. Không còn tách màu chữ theo tốc độ cuộn trên mọi thiết bị.
+
 ## Hệ thống (tạm thời, trong tokens.css)
 
 - **Màu:** giấy `#ECEAE4`, mực `#0D0E11`, than `#15171C`, accent **ultramarine** `#3B3FFF` (trên nền tối dùng `#8C8FFF`). Accent ≤ 5% diện tích: nhãn, dấu "+", hạt nhấn, CTA.

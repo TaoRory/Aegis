@@ -24,7 +24,7 @@ export function Hero() {
         <div className="hero-meta relative z-10 mt-6 grid grid-cols-2 gap-6 border-t border-line pt-4 text-muted lg:grid-cols-4">
           <p className="label">{hero.label}</p>
           <p className="label hidden lg:block">Tỉ lệ 1:1 — Doanh nghiệp</p>
-          <ul className="label col-span-2 flex flex-wrap gap-x-4 gap-y-1 lg:col-span-2 lg:justify-end">
+          <ul className="label col-span-2 flex flex-wrap gap-x-4 gap-y-1 max-lg:hidden lg:col-span-2 lg:justify-end">
             {services.map((service, index) => (
               <li key={service.id}>
                 <a href={`#dich-vu-${service.id}`} className="transition-colors hover:text-fg">
@@ -35,13 +35,14 @@ export function Hero() {
           </ul>
         </div>
 
-        <div className="flex flex-1 items-end pt-10 pb-10 lg:pb-14">
+        {/* Điện thoại: nửa trên dành trọn cho artwork phân tử, chữ bắt đầu từ giữa màn hình */}
+        <div className="flex flex-1 items-end pt-10 pb-10 max-lg:pt-[38svh] lg:pb-14">
           <div className="w-full">
             <SplitReveal
               as="h1"
               id="hero-title"
               trigger="intro"
-              className="hero-title chroma text-hero font-semibold"
+              className="hero-title text-hero font-semibold"
             >
               {hero.lines.map((line, index) => (
                 <span key={line} className="block">
@@ -57,11 +58,17 @@ export function Hero() {
 
             <div className="hero-foot mt-10 grid gap-8 border-t border-line pt-6 lg:mt-14 lg:grid-cols-12 lg:items-end">
               <p className="text-lead text-muted lg:col-span-5">{hero.description}</p>
-              <div className="flex flex-wrap items-center gap-6 lg:col-span-7 lg:justify-end">
-                <ButtonLink href={hero.secondaryCta.href} variant="link">
+              <div className="flex flex-col gap-5 lg:col-span-7 lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:gap-6">
+                {/* Điện thoại: nút chính to, dễ chạm bằng ngón cái; máy tính: nút tròn magnetic */}
+                <ButtonLink href={siteConfig.cta.href} className="h-14 w-full justify-center text-base lg:hidden">
+                  {siteConfig.cta.label}
+                </ButtonLink>
+                <ButtonLink href={hero.secondaryCta.href} variant="link" className="self-center lg:self-auto">
                   {hero.secondaryCta.label}
                 </ButtonLink>
-                <RoundButton href={siteConfig.cta.href}>{siteConfig.cta.label}</RoundButton>
+                <RoundButton href={siteConfig.cta.href} className="max-lg:hidden">
+                  {siteConfig.cta.label}
+                </RoundButton>
               </div>
             </div>
           </div>

@@ -25,7 +25,7 @@ export function VelocitySkew({
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || !window.matchMedia(MQ.anyMotion).matches) return;
+    if (!el || !window.matchMedia(MQ.speedFx).matches) return;
     let current = 0;
     let lastY = window.scrollY;
     const tick = () => {

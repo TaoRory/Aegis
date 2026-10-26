@@ -21,6 +21,8 @@ export function ServiceChapters({ services }: { services: Service[] }) {
   const ref = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
   const [active, setActive] = useState(0);
+  /** Điện thoại: chi tiết từng dịch vụ gập lại, bấm để mở (máy tính luôn hiện đủ) */
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const pad = (n: number) => String(n).padStart(2, "0");
 
   useGSAP(
@@ -106,7 +108,7 @@ export function ServiceChapters({ services }: { services: Service[] }) {
               className="service-chapter"
               style={{ "--i": index } as CSSProperties}
             >
-              <article aria-labelledby={`dich-vu-${service.id}-title`} className="lg:max-w-[46rem]">
+              <article aria-labelledby={`dich-vu-${service.id}-title`} data-num={pad(index + 1)} className="lg:max-w-[46rem]">
                 <p className="label flex items-center gap-3 text-muted">
                   <span className="text-accent">BV-{pad(index + 1)}</span>
                   <span aria-hidden className="h-px w-10 bg-line-strong" />
@@ -117,6 +119,18 @@ export function ServiceChapters({ services }: { services: Service[] }) {
                 </h3>
                 <p className="mt-5 max-w-[36rem] text-lead text-muted">{service.summary}</p>
 
+                <button
+                  type="button"
+                  className="service-more-toggle label"
+                  aria-expanded={!!expanded[service.id]}
+                  aria-controls={`dich-vu-${service.id}-chi-tiet`}
+                  onClick={() => setExpanded((e) => ({ ...e, [service.id]: !e[service.id] }))}
+                >
+                  <span>{expanded[service.id] ? "Thu gọn" : "Xem chi tiết"}</span>
+                  <span aria-hidden className="service-more-icon" />
+                </button>
+
+                <div id={`dich-vu-${service.id}-chi-tiet`} data-open={!!expanded[service.id]} className="service-more-body">
                 <div className="mt-9 grid gap-8 border-t border-line pt-7 sm:grid-cols-2">
                   <div>
                     <h4 className="label text-muted">Nhu cầu thường gặp</h4>
@@ -145,6 +159,7 @@ export function ServiceChapters({ services }: { services: Service[] }) {
                 <p className="mt-8 font-serif text-[clamp(1.2rem,1rem+0.7vw,1.6rem)] leading-snug italic">
                   “{service.value}”
                 </p>
+                </div>
 
                 <SelectServiceLink serviceId={service.id} className="btn-link mt-8 text-fg">
                   <span className="roll">

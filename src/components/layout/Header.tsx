@@ -166,10 +166,14 @@ export function Header() {
       <div
         data-surface="light"
         data-hidden={hidden && !open}
-        className="site-header header-cta fixed top-0 z-50 hidden h-(--header-h) items-center sm:flex"
+        className="site-header header-cta fixed top-0 z-50 flex h-(--header-h) items-center"
       >
         <SettingsMenu className="mr-3 hidden lg:block" />
-        <ButtonLink href={localizeHref(siteConfig.cta.href, pathname)} className="h-10 px-4">
+        {/* Điện thoại: nút pill gọn như "Let's talk" của Emotion; từ sm trở lên: nút đầy đủ */}
+        <ButtonLink href={localizeHref(siteConfig.cta.href, pathname)} arrow={false} className="header-cta-pill h-9 rounded-full px-4 sm:hidden">
+          Trao đổi
+        </ButtonLink>
+        <ButtonLink href={localizeHref(siteConfig.cta.href, pathname)} className="h-10 px-4 max-sm:hidden">
           {siteConfig.cta.label}
         </ButtonLink>
       </div>

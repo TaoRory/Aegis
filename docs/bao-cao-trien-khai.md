@@ -59,3 +59,30 @@ Một agent review độc lập đọc code mới và báo 1 lỗi nghiêm trọ
 - **Nguyên nhân:** thư viện cuộn mượt (Lenis) giữ "vị trí đích" của trang cũ. Khi bạn vừa cuộn xong rồi bấm link ngay, Next cuộn trang mới về đầu nhưng Lenis kéo ngược về vị trí cũ (bị kẹp ở cuối trang mới), và mỗi cú lăn sau đó tính từ vị trí cũ nên không đi đâu được. Nội dung phía trên (chưa tới lượt hiện) nên trông như trang trống chỉ còn chân trang.
 - **Sửa:** `MotionProvider.tsx` đặt lại Lenis mỗi lần đổi route (về đầu trang, hoặc về đúng mục nếu link có `#hash`); Back/Forward trả về đúng chỗ đang xem.
 - **Kiểm tra:** 4 kịch bản "cuộn xong bấm ngay" (chờ 150ms và 900ms) hết lỗi; bộ dò `flows.mjs` 103/103 (từ 3 trang × 5 link header, cuộn sâu bằng bánh xe thật, kiểm tra route / vị trí / lăn xuống-lên / tiêu đề hiện / không lỗi console), gồm cả trang mẫu, Back/Forward và menu di động.
+
+## Nâng cấp giao diện điện thoại (2026-10-26)
+
+- **Bỏ các hiệu ứng phản ứng theo tốc độ cuộn trên điện thoại / máy tính bảng:** tách màu chữ (RGB) theo tốc độ cuộn, gợn sóng + tách kênh ở tiêu đề hero, nghiêng nội dung theo tốc độ, dải chữ chạy đổi chiều/tăng tốc khi cuộn. Dải chữ nay chạy đều một chiều. Máy tính có chuột vẫn giữ nguyên (cờ `MQ.speedFx` trong `src/lib/motion.ts`; muốn bỏ luôn trên máy tính chỉ cần đổi điều kiện này).
+- **Hero:** nút "Trao đổi nhu cầu" to, full-width, dễ chạm bằng ngón cái.
+- **Thanh "Trao đổi nhu cầu" nổi ở đáy màn hình** (`MobileCta.tsx`): hiện sau khi cuộn qua hero; ẩn ở trang liên hệ, khi mục liên hệ / chân trang đã vào màn hình và khi menu mở.
+- **Dịch vụ:** thẻ gọn có số bản vẽ dạng chữ rỗng; "Nhu cầu thường gặp / Aegis hỗ trợ" gập lại sau nút "Xem chi tiết". Trang chủ ngắn đi khoảng 5.000px (17.500 → 12.500px).
+- **Dự án:** dải thẻ vuốt ngang có snap (ảnh trên, chữ dưới), bộ lọc cuộn ngang; thay cho danh sách dọc dài.
+- **Thư viện 3D:** thẻ giữa rộng khoảng 60% màn hình, hai thẻ bên ló ra mép; thước tiến độ nằm dưới hàng lọc.
+- **Chạm:** thẻ / nút lún nhẹ khi chạm, bỏ khung sáng mặc định của trình duyệt.
+- **Lỗi nghiêm trọng đã bắt được trong lúc làm:** chữ ẩn (`sr-only`) trong dải thẻ dự án làm trang rộng 2.000px; trên điện thoại trình duyệt tự thu nhỏ cả trang cho vừa. Đã sửa; bộ `mobile.mjs` kiểm tra bề rộng thật (360 / 390 / 430 / 768px, 6 trang, cuộn qua nhiều vị trí) và có 34 kiểm tra.
+- **Kiểm tra lại toàn bộ:** `pnpm qa` 93/93, form 28, con trỏ 23, thư viện 3D 52, cài đặt/menu 25, lỗi review 22, luồng điều hướng 103, mobile 34, Firefox + WebKit không lỗi; lint, typecheck sạch.
+
+## Phân tử sống + luồng năng lượng + mobile kiểu Emotion (2026-10-26)
+
+- **Artwork:** 5 bản vẽ dựng từ ~18k phân tử (điện thoại 10k, chất lượng thấp ~5k): có chiều sâu, nhấp nháy, "thở" theo nhiễu xoáy, hạt nhân màu accent có quầng, lớp đám mây electron cho hình có khối.
+- **Con trỏ = luồng năng lượng:** bỏ lực đẩy "hố đen". Chuột / ngón tay đi qua cuốn phân tử theo hướng di chuyển, hạt sáng lên rồi trôi về chỗ cũ; vệt năng lượng mờ theo sau. Đo trực tiếp trên GPU: năng lượng trường 0 → 1 khi rê chuột → 0 sau 2,5 giây. Cuộn trang trên điện thoại tạo "gió" lệch nhẹ.
+- **Điện thoại:** hero: artwork chiếm trọn nửa trên, chữ ở nửa dưới (bỏ mask làm mờ hạt); dịch vụ: mỗi chương là một cảnh cao một màn hình, nửa trên trong suốt để thấy trọn bản vẽ morph, bỏ `backdrop-filter`. Header có nút "Trao đổi" dạng pill như Emotion, bỏ thanh nổi ở đáy.
+- **Bỏ tách màu chữ theo tốc độ cuộn trên mọi thiết bị** (xoá `ScrollChroma`).
+- **Hiệu năng (giả lập, WebGL chạy bằng phần mềm nên chỉ để so sánh):** điện thoại giả lập CPU chậm 4×: trung bình 19,8 ms/khung (~50 fps), p95 33 ms khi cuộn qua hero + dịch vụ; máy tính ~28 fps ở chế độ phần mềm. Cần bạn thử trên máy thật.
+- **Kiểm tra:** `pnpm qa` 93/93, mobile 35/35, luồng điều hướng 103/103, thư viện 3D 52, cài đặt/menu 25, lỗi review 22, form 28, con trỏ 23, Firefox + WebKit không lỗi console.
+
+## Sửa lần 3 (2026-10-26): tương tác hạt quá nhạy + không kéo hết trang
+
+- **Tương tác hạt hơi giật:** vị trí chuột/ngón tay giờ được làm mượt trước khi bơm vào trường (lọc thấp), bơm yếu hơn và vùng ảnh hưởng rộng hơn, lực cuốn nhỏ hơn và giới hạn thấp hơn, trường tắt dần êm hơn, hạt đỡ nhấp nháy khi bị cuốn. Đo trực tiếp: khi chuột rung ngẫu nhiên ±15px, năng lượng trường tăng đều 0 → 1 trong ~0,4 giây, không có xung đột ngột.
+- **Không kéo hết trang để đọc phần Marketing:** giới hạn cuộn của Lenis bị cũ khi chiều cao trang đổi sau lúc đo (chữ "Aegis" ở chân trang co giãn khi font tải xong): trang dài thêm ~850px nhưng Lenis vẫn dừng sớm và kéo ngược lại. Đã thêm đo lại theo khung hình khi `<body>` đổi kích thước, khi ScrollTrigger refresh, khi tải xong và khi font sẵn sàng. Đã thử ở 2160×1300, 1440×900, 1280×720: cuộn tới đúng cuối trang.
+- **Kiểm tra:** `pnpm qa` 93/93, form 28, con trỏ 23, mobile 35, thư viện 3D 52, cài đặt/menu 25, lỗi review 22, luồng điều hướng 103 (đổi cách "về đầu trang" trong test sang lăn bánh xe như người dùng thật).

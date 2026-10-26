@@ -18,6 +18,8 @@ export const MQ = {
   anyMotion: "(prefers-reduced-motion: no-preference)",
   reduced: "(prefers-reduced-motion: reduce)",
   fineHover: "(hover: hover) and (pointer: fine)",
+  /** Hiệu ứng phản ứng theo tốc độ cuộn (tách màu, nghiêng, marquee tăng tốc): chỉ máy tính có chuột; điện thoại/máy tính bảng để yên cho đỡ rối mắt */
+  speedFx: "(min-width: 64rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)",
 } as const;
 
 export const EASE = {
