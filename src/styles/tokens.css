@@ -96,7 +96,9 @@
 }
 
 /* ---- Vai trò màu: vùng nền mực ---- */
-[data-surface="dark"] {
+/* .gallery-stage: sân khấu 3D luôn tối, kể cả khi trang đang ở theme sáng */
+[data-surface="dark"],
+.gallery-stage {
   --bg: var(--palette-ink);
   --bg-elevated: var(--palette-ink-raised);
   --surface: var(--palette-ink-surface);

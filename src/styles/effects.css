@@ -408,6 +408,30 @@
     opacity: 0.85;
   }
 
+  /* Theme sáng: nền và ô cửa cùng sáng nên chữ AEGIS dễ chìm → ô chữ nhuộm xanh nhạt, nét lưới và viền đậm hơn */
+  html[data-theme="light"] .site-intro-grid-fill {
+    fill: color-mix(in oklab, var(--accent) 11%, var(--bg));
+    opacity: 1;
+  }
+
+  html[data-theme="light"] .site-intro-outline {
+    stroke-width: 2.5;
+    stroke-opacity: 1;
+  }
+
+  html[data-theme="light"] .site-intro-grid-minor {
+    stroke: color-mix(in oklab, var(--accent) 22%, transparent);
+  }
+
+  html[data-theme="light"] .site-intro-grid-major,
+  html[data-theme="light"] .site-intro-grid-ray {
+    stroke: color-mix(in oklab, var(--accent) 38%, transparent);
+  }
+
+  html[data-theme="light"] .site-intro-grid-ring {
+    stroke: color-mix(in oklab, var(--accent) 50%, transparent);
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     .site-intro-sweep {
       animation: site-intro-sweep 7s linear infinite;

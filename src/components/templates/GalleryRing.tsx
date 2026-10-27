@@ -554,7 +554,7 @@ export function GalleryRing({
           </p>
         )}
 
-        <div className="gallery-dock" data-surface="dark">
+        <div className="gallery-dock">
           <div className="gallery-info">
             <p className="label text-accent">
               {copy.style} /{pad2(active + 1)} · {current.industry}
