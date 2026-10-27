@@ -10,8 +10,8 @@ import { Hotspots } from "@/components/space/Hotspots";
 import { RouteSync } from "@/components/space/RouteSync";
 import { DragHint } from "@/components/space/DragHint";
 import { SceneCanvas } from "@/components/space/SceneCanvas";
-import { SpaceBoot } from "@/components/space/SpaceBoot";
 import { SpaceHud } from "@/components/space/SpaceHud";
+import { SpaceIntro } from "@/components/space/SpaceIntro";
 import { SpaceKeys } from "@/components/space/SpaceKeys";
 import { getLenis } from "@/lib/motion";
 
@@ -59,7 +59,7 @@ export function SpaceShell({ ui, children }: { ui: FactoryUi; children: ReactNod
       <main id="noi-dung" tabIndex={-1} className="space-main">
         {children}
       </main>
-      <SpaceBoot />
+      <SpaceIntro />
     </div>
     </FactoryProvider>
   );

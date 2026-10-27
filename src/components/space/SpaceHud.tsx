@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { SettingsMenu } from "@/components/layout/SettingsMenu";
+import { engineRef } from "@/components/space/engine-ref";
 import { useFactory } from "@/components/space/factory-context";
 import { SpaceMode, SpaceNotice } from "@/components/space/SpaceMode";
-import { ShortcutsHelp } from "@/components/space/SpaceKeys";
+import { ReplayIntro, ShortcutsHelp } from "@/components/space/SpaceKeys";
 import { spaceStore } from "@/components/space/space-store";
 import { useSpace } from "@/components/space/useSpace";
 import { ZoneIcon } from "@/components/space/ZoneIcon";
@@ -54,6 +55,7 @@ export function SpaceHud() {
           {ui.homeLink}
         </Link>
         <div className="flex items-center gap-2">
+          <ResetView className="space-reset" />
           <ShortcutsHelp />
           <LangSwitch className="space-lang" />
           <SpaceMode />
@@ -172,6 +174,19 @@ function LangSwitch({ className }: { className?: string }) {
   );
 }
 
+/** Nút "Về góc nhìn" (⟲): đưa camera về góc nhìn mặc định của khu đang xem. Chỉ có tác dụng khi cảnh 3D đang chạy. */
+function ResetView({ className, label = false }: { className: string; label?: boolean }) {
+  const { ui } = useFactory();
+  const mode = useSpace("mode");
+  if (mode !== "3d") return null;
+  return (
+    <button type="button" className={className} aria-label={ui.hud.resetView} title={ui.hud.resetView} onClick={() => engineRef.current?.resetView()}>
+      <span aria-hidden>⟲</span>
+      {label && <span className="ml-2">{ui.hud.resetView}</span>}
+    </button>
+  );
+}
+
 /** Thanh trên của điện thoại: gọn như một HUD game, mọi thứ phụ gom vào một nút menu */
 function PhoneBar({ atHub }: { atHub: boolean }) {
   const { ui, href } = useFactory();
@@ -222,6 +237,8 @@ function PhoneBar({ atHub }: { atHub: boolean }) {
             {ui.homeLink}
           </Link>
           <LangSwitch className="space-lang space-lang-menu" />
+          <ResetView className="space-menu-link label" label />
+          <ReplayIntro className="space-menu-link label" />
           <SpaceMode className="space-menu-link label" />
           <div className="space-menu-settings">
             <SettingsMenu inline />

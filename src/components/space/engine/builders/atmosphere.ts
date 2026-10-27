@@ -15,7 +15,7 @@ import {
 } from "three";
 
 import type { ZoneId } from "@/config/space";
-import { CORE_RADIUS, links, roomByZone, rooms, type Room } from "@/components/space/plan";
+import { links, outlinePoints, roomByZone, rooms } from "@/components/space/plan";
 import type { BuildContext } from "@/components/space/engine/types";
 import { disposeGroup } from "@/components/space/engine/types";
 
@@ -138,13 +138,13 @@ vec3 rectPos(float t, float hx, float hz) {
   else if (d < w + h) p = vec2(hx, -hz + (d - w));
   else if (d < 2.0 * w + h) p = vec2(hx - (d - w - h), hz);
   else p = vec2(-hx, hz - (d - 2.0 * w - h));
-  return vec3(p.x, 0.14, p.y);
+  return vec3(p.x, 0.14, p.y + 0.8);
 }
 void main() {
   float lane = aCar.x;
   float dir = lane < 0.5 ? 1.0 : -1.0;
-  float hx = lane < 0.5 ? 13.8 : 15.0;
-  float hz = lane < 0.5 ? 14.0 : 15.2;
+  float hx = lane < 0.5 ? 21.5 : 22.8;
+  float hz = lane < 0.5 ? 19.7 : 21.0;
   float len = 4.0 * (hx + hz);
   vec3 p = rectPos(aCar.y + dir * uTime * aCar.z / len, hx, hz);
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
@@ -222,18 +222,6 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
-/** Đường viền khép kín của một khu (đa giác tròn cho lõi), lùi vào trong một chút */
-function loopOf(r: Room): [number, number][] {
-  const inset = 0.12;
-  if (r.shape === "circle") {
-    const n = 48;
-    const rad = CORE_RADIUS - inset;
-    return Array.from({ length: n + 1 }, (_, i) => [r.x + Math.cos((i / n) * Math.PI * 2) * rad, r.z + Math.sin((i / n) * Math.PI * 2) * rad]);
-  }
-  const x0 = r.x - r.w / 2 + inset, x1 = r.x + r.w / 2 - inset, z0 = r.z - r.d / 2 + inset, z1 = r.z + r.d / 2 - inset;
-  return [[x0, z0], [x1, z0], [x1, z1], [x0, z1], [x0, z0]];
-}
-
 // ---------- Xung năng lượng chạy quanh các khu ----------
 
 const PULSE_VERT = /* glsl */ `
@@ -307,15 +295,15 @@ export function buildAtmosphere(ctx: BuildContext): Atmosphere {
   const m = new Matrix4();
   for (let attempts = 0; matrices.length < count && attempts < count * 12; attempts++) {
     const angle = rand() * Math.PI * 2;
-    const radius = 18 + Math.pow(rand(), 0.8) * 46;
+    const radius = 24 + Math.pow(rand(), 0.8) * 46;
     const x = Math.cos(angle) * radius * 1.2;
     const z = Math.sin(angle) * radius * 0.95;
-    if (Math.abs(x) < 16.5 && Math.abs(z) < 16) continue;
-    if (z > 8 && z < 38 && Math.abs(x) < 30) continue;
+    if (Math.abs(x) < 23 && z > -21 && z < 23) continue; // chừa dấu chân của xưởng
+    if (z > 23 && z < 55 && Math.abs(x) < 28) continue; // chừa hành lang camera tổng quan phía nam
     const w = 1 + rand() * 2.6;
     const d = 1 + rand() * 2.6;
     const far = Math.hypot(x, z);
-    const h = 0.5 + rand() * 2.5 + Math.max(0, far - 17) * (0.04 + rand() * 0.14);
+    const h = 0.5 + rand() * 2.5 + Math.max(0, far - 22) * (0.04 + rand() * 0.14);
     m.makeScale(w, h, d).setPosition(x, h / 2, z);
     seeds[matrices.length] = rand();
     matrices.push(m.clone());
@@ -326,7 +314,7 @@ export function buildAtmosphere(ctx: BuildContext): Atmosphere {
     vertexShader: CITY_VERT,
     fragmentShader: CITY_FRAG,
     uniforms: {
-      uBase: { value: palette.ink.clone().lerp(palette.inkRaised, 0.8) },
+      uBase: { value: palette.ink.clone().lerp(palette.inkSurface, 0.55) },
       uTop: { value: palette.inkSurface.clone() },
       uLit: { value: palette.accentLight.clone() },
       uFog: { value: palette.ink.clone() },
@@ -357,8 +345,8 @@ export function buildAtmosphere(ctx: BuildContext): Atmosphere {
     uniforms: {
       uTime: { value: 0 },
       uPixelRatio: { value: pixelRatio },
-      uFocus: { value: [0, 0, 0, 16] },
-      uBox: { value: [16, 6.5, 14] },
+      uFocus: { value: [0, 0, 0, 22] },
+      uBox: { value: [22, 7, 20] },
       uColor: { value: palette.paper.clone() },
       uAccent: { value: palette.accentLight.clone() },
     },
@@ -377,7 +365,7 @@ export function buildAtmosphere(ctx: BuildContext): Atmosphere {
   const W = 0.07;
   const Y = 0.045;
   rooms.forEach((r, ri) => {
-    const corners = loopOf(r);
+    const corners = outlinePoints(r, 0.12);
     let total = 0;
     for (let e = 0; e < corners.length - 1; e++) total += Math.hypot(corners[e + 1][0] - corners[e][0], corners[e + 1][1] - corners[e][1]);
     let run = 0;
@@ -525,7 +513,8 @@ export function buildAtmosphere(ctx: BuildContext): Atmosphere {
     setZone(zone) {
       pulseMat.uniforms.uActive.value = roomIndex(zone);
       linkMat.uniforms.uActive.value = linkIndex(zone);
-      const c = zone === "hub" ? { x: 0, z: 0, r: 16 } : { x: roomByZone[zone].x, z: roomByZone[zone].z, r: 9 };
+      const room = zone === "hub" ? null : roomByZone[zone];
+      const c = !room ? { x: 0, z: 0, r: 22 } : room.shape === "arc" ? { x: 0, z: -room.r, r: 13 } : { x: room.x, z: room.z, r: 9 };
       moteMat.uniforms.uFocus.value = [c.x, 0, c.z, c.r];
     },
     setHover(zone) {

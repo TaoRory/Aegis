@@ -1,10 +1,7 @@
-import { labItems } from "@/content/lab";
 import { projects } from "@/content/projects";
 import { services } from "@/content/services";
 import { templates } from "@/content/templates";
 import type { FactoryDict, FactoryUi } from "@/content/factory/types";
-import type { JournalEntry } from "@/content/journal";
-import type { LabId, LabItem } from "@/content/lab";
 import type { Project, Service, ServiceId } from "@/content/types";
 
 /**
@@ -105,49 +102,6 @@ const projectText: Record<string, Pick<Project, "type" | "description" | "highli
   },
 };
 
-const labText: Record<LabId, Omit<LabItem, "id" | "index">> = {
-  "nen-mong": {
-    name: "Particle foundation",
-    tagline: "Tens of thousands of points of light, reshaping on your command.",
-    description:
-      "This is the particle engine that draws the foundation on the Aegis home page, placed in its own frame for you to control: pick a shape, scatter the points, push them with the cursor.",
-    howTo: ["Click a shape and the points fly into it", "Drag the scatter slider to loosen the points", "Move the cursor inside the frame to push the points"],
-    techNotes: [
-      "Hand-written WebGL2, no 3D library",
-      "Each point keeps two positions (from and to); the morph runs on the GPU",
-      "Noise motion and the cursor flow are computed in the shader",
-    ],
-    usedIn: ["Particle background on the Aegis home page"],
-  },
-  "suong-mu": {
-    name: "Mist",
-    tagline: "Draw a trail of smoke with your cursor.",
-    description: "A soft mist follows the cursor and slowly fades. Move faster and the mist grows thicker and wider.",
-    howTo: ["Move the cursor inside the frame to draw the mist", "Move faster for a thicker trail", "Stop and let the mist fade"],
-    techNotes: [
-      "WebGL2 with two low-resolution frames swapped back and forth (ping-pong)",
-      "Each frame blurs, drifts and fades the previous one, then adds a stroke along the cursor path",
-    ],
-    usedIn: ["Closing contact screen on the Aegis home page", "SERENE template"],
-  },
-  "tach-mau": {
-    name: "Chromatic type",
-    tagline: "Type that tears into two colour edges when you swipe fast.",
-    description: "Type a line, then sweep the cursor across it. The faster you go, the further the two colour channels split; stop and they snap back together.",
-    howTo: ["Type into the field", "Sweep the cursor quickly over the text to split the colour channels", "On a phone, touch and drag your finger"],
-    techNotes: ["Three stacked text layers; two coloured layers shift in opposite directions with cursor speed", "CSS and JavaScript only, no WebGL"],
-    usedIn: [],
-  },
-  "dai-cong": {
-    name: "Bend strip",
-    tagline: "Drag a strip of cards and the whole strip curves into an arc.",
-    description: "A horizontal strip you can drag with inertia. The faster you drag, the more the cards lift and rotate by their distance from the centre.",
-    howTo: ["Drag the strip", "Drag fast and the whole strip bends into an arc", "Use the left/right arrow keys once the strip is focused"],
-    techNotes: ["Inertia from a hand-written loop, no drag library", "Each card lifts and rotates by its distance from the centre and the drag velocity"],
-    usedIn: ["ATELIER template", "VOYAGE template"],
-  },
-};
-
 const templateText: Record<string, { industry: string; signature: string }> = {
   atelier: { industry: "Fashion", signature: "A draggable lookbook; the whole strip bends with the speed of your drag." },
   signal: { industry: "Technology / AI", signature: "A shader wave field that responds to cursor and scroll." },
@@ -159,41 +113,7 @@ const templateText: Record<string, { industry: string; signature: string }> = {
   campus: { industry: "Education", signature: "A day at school: horizontal scroll that runs like a clock." },
 };
 
-const journal: JournalEntry[] = [
-  {
-    slug: "nen-mong-dung-tu-hat",
-    index: "01",
-    title: "A foundation built from particles",
-    body: [
-      "The foundation on the home page isn't an image or a video. It's about 18,000 points of light on desktop (10,000 on phones), each with a target position for every shape: foundation, neural network, modular grid, browser frame, spreading wave.",
-      "As visitors scroll through the services section, the points move from one shape to the next, all computed on the GPU. You can play with this engine yourself in the Studio.",
-    ],
-    confirmed: true,
-  },
-  {
-    slug: "tam-style-tam-nganh",
-    index: "02",
-    title: "Eight styles, eight industries",
-    body: [
-      "The template library has eight styles, each a distinct recipe for one industry: colours, fonts that support Vietnamese, layout and interactions.",
-      "The templates use fictional brands to show capability. Images in the templates come from openly licensed sources and are credited at the end of each template.",
-    ],
-    confirmed: true,
-  },
-  {
-    slug: "xuong-dung-bang-code",
-    index: "03",
-    title: "This factory is built in code",
-    body: [
-      "The 3D space you're viewing uses no pre-built models. Floors, platforms, pavilions and screens are all geometry generated in code (Three.js); project screenshots are applied to the screens as textures.",
-      "If your device can't run 3D, the factory switches to a flat floor plan with the same links.",
-    ],
-    confirmed: true,
-  },
-];
-
 const localizedServices: Service[] = services.map((s) => ({ id: s.id, ...serviceText[s.id] }));
-const localizedLab: LabItem[] = labItems.map((l) => ({ id: l.id, index: l.index, ...labText[l.id] }));
 
 const ui: FactoryUi = {
   lang: "en",
@@ -208,13 +128,13 @@ const ui: FactoryUi = {
     web: { name: "Web & Apps", short: "Web", tag: "SERVICE" },
     marketing: { name: "Marketing", short: "Marketing", tag: "SERVICE" },
     work: { name: "Work", short: "Work", tag: "PROOF" },
-    studio: { name: "Studio", short: "Studio", tag: "LAB" },
+    studio: { name: "Template studio", short: "Templates", tag: "STUDIO" },
     contact: { name: "Contact", short: "Contact", tag: "GATE" },
   },
   hub: {
     label: "Overview",
     lines: ["Aegis Factory,", "*where everything is built.*"],
-    lead: "Aegis sits at the core, with four equal service pavilions around it, connected to our delivered work, the experimental studio and the contact gate. Pick a space to begin.",
+    lead: "Aegis sits at the core, with four equal service pavilions around it, connected to our delivered work, the interface template studio and the contact gate. Pick a space to begin.",
     legend: "Spaces in the factory",
     servicesLabel: "Four services",
   },
@@ -232,13 +152,16 @@ const ui: FactoryUi = {
       ["← →", "Previous / next project or prototype (or swipe the scene)"],
       ["Esc", "Close the content panel"],
       ["B", "Switch 3D view / flat view"],
-      ["Drag", "Look around the 3D scene"],
+      ["R", "Reset to the default view"],
+      ["Drag · Scroll · Right-drag", "Rotate · zoom · pan the camera in the 3D scene"],
     ],
     details: "Details",
     toHub: "Overview",
     menu: "Menu",
     menuClose: "Close menu",
-    dragHint: "Drag to look around",
+    dragHint: "Drag to rotate · scroll to zoom",
+    dragHintTouch: "Drag to rotate · pinch to zoom",
+    resetView: "Reset view",
     stepOf: "Item",
     stepPrev: "Previous",
     stepNext: "Next",
@@ -250,28 +173,13 @@ const ui: FactoryUi = {
     contextLost: "The browser lost its graphics context, so the factory switched to the flat view.",
     noWebgl: "The 3D scene couldn't be built on this device, so the factory is showing the flat view.",
   },
-  boot: {
-    skip: "Skip ⏎",
-    lines: ["AEGIS / FACTORY", "> reading the site plan", "> pouring the foundation", "> raising the service pavilions", "> connecting energy lines to the core", "> lighting up", "Ready. Drag to look around."],
-  },
+  intro: { hint: "Scroll to enter the factory", hintTouch: "Swipe up to enter the factory", skip: "Skip", loading: "Building the factory…", replay: "Replay the intro" },
   notFound: { lines: ["This space", "*hasn't been built yet.*"], back: "Back to the overview", body: "This address isn't on the factory plan." },
   product: {
     label: "PROJECT",
     shot: "Website home page screenshot (captured when the factory was built)",
     fullShot: "Scroll inside the frame to see the full page",
   },
-  lab: {
-    label: "PROTOTYPE",
-    notice: "Experimental prototype, running live in your browser.",
-    how: "How to play",
-    tech: "Technical notes",
-    usedIn: "Used in",
-    fullscreen: "Fullscreen",
-    exitFullscreen: "Exit fullscreen",
-    loading: "Assembling the prototype…",
-    missing: "This prototype is still being installed.",
-  },
-  labNames: Object.fromEntries(localizedLab.map((l) => [l.id, l.name])) as FactoryUi["labNames"],
   serviceTitles: Object.fromEntries(localizedServices.map((s) => [s.id, s.title])) as FactoryUi["serviceTitles"],
   demoBadge: "Illustrative demo · fictional brand and data",
   hotspotLabels: { demo: "Illustrative demo", proof: "Delivered work", start: "Talk to us" },
@@ -294,7 +202,7 @@ export const en: FactoryDict = {
     demoCta: "Open the demo",
     start: "Talk to us about this service",
     others: "Other services",
-    studioLink: "Experiments and interface templates in the Studio",
+    studioLink: "Interface template studio",
     open: "Visit the pavilion",
   },
   projects: projects.map((p) => ({ ...p, ...projectText[p.slug] })),
@@ -341,25 +249,17 @@ export const en: FactoryDict = {
     ],
     servicesLabel: "Four equal services",
   },
-  lab: localizedLab,
   studio: {
-    title: "The *studio.*",
-    lead: "Where Aegis experiments: working motion and graphics prototypes, a library of eight interface styles, and notes on how this factory was built.",
-    labTitle: "Experiments",
-    labLead: "Experiments Aegis builds to test how motion and graphics behave. Each one is a working prototype in your browser that you can play with right away.",
-    labCta: "Play",
-    shelfTitle: "Interface template shelf",
+    title: "Interface *templates.*",
+    lead: "Eight interface styles designed by Aegis, each a recipe for one industry: colours, fonts that support Vietnamese, layout and interactions.",
+    shelfTitle: "Eight styles, eight industries",
     shelfLead: "Eight interface styles, each a design recipe for one industry, built as a working sample website.",
     shelfCta: "Open template",
-    journalTitle: "Notes",
-    journalLead: "Short notes on how this factory itself was built.",
-    journalEmpty: "No notes yet. They'll be added later.",
     templateNotice:
       "These are demo interface templates designed by Aegis to show capability. Brands, content and figures in the templates are fictional, not real clients. The template sites themselves are in Vietnamese.",
     paletteLabel: "Style colour palette",
   },
   templates: templates.map((t) => ({ slug: t.slug, name: t.name, ...templateText[t.slug] })),
-  journal,
   contact: {
     title: "Your project *starts here.*",
     lead: "Answer a few short questions, mostly by tapping. Aegis reads your brief, advises on a solution and gets back to you to get started.",

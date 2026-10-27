@@ -1,6 +1,4 @@
 import type { Locale, ZoneId } from "@/config/space";
-import type { JournalEntry } from "@/content/journal";
-import type { LabId, LabItem } from "@/content/lab";
 import type { ProcessStep, Project, ProjectCategory, Service, ServiceId, Value } from "@/content/types";
 
 /**
@@ -28,6 +26,8 @@ export interface FactoryUi {
     menu: string;
     menuClose: string;
     dragHint: string;
+    dragHintTouch: string;
+    resetView: string;
     stepOf: string;
     stepPrev: string;
     stepNext: string;
@@ -39,21 +39,9 @@ export interface FactoryUi {
     contextLost: string;
     noWebgl: string;
   };
-  boot: { skip: string; lines: string[] };
+  intro: { hint: string; hintTouch: string; skip: string; loading: string; replay: string };
   notFound: { lines: string[]; back: string; body: string };
   product: { label: string; shot: string; fullShot: string };
-  lab: {
-    label: string;
-    notice: string;
-    how: string;
-    tech: string;
-    usedIn: string;
-    fullscreen: string;
-    exitFullscreen: string;
-    loading: string;
-    missing: string;
-  };
-  labNames: Record<LabId, string>;
   /** Tên đầy đủ của 4 dịch vụ, dùng cho bảng tên trong cảnh 3D */
   serviceTitles: Record<ServiceId, string>;
   demoBadge: string;
@@ -106,23 +94,15 @@ export interface FactoryDict {
     process: ProcessStep[];
     servicesLabel: string;
   };
-  lab: LabItem[];
   studio: {
     title: string;
     lead: string;
-    labTitle: string;
-    labLead: string;
-    labCta: string;
     shelfTitle: string;
     shelfLead: string;
     shelfCta: string;
-    journalTitle: string;
-    journalLead: string;
-    journalEmpty: string;
     templateNotice: string;
     paletteLabel: string;
   };
   templates: { slug: string; name: string; industry: string; signature: string }[];
-  journal: JournalEntry[];
   contact: { title: string; lead: string };
 }

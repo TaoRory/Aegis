@@ -75,7 +75,7 @@ export function resolveZone(pathname: string): { zone: ZoneId; focus: string | n
   if (!a) return { zone: "hub", focus: null };
   if (a === "services") return b && (serviceIds as readonly string[]).includes(b) ? { zone: b as ServiceId, focus: c ?? null } : { zone: "hub", focus: "services" };
   if (a === "work") return { zone: "work", focus: b ?? null };
-  if (a === "studio") return { zone: "studio", focus: b === "lab" && c ? c : null };
+  if (a === "studio") return { zone: "studio", focus: null };
   if (a === "about") return { zone: "about", focus: null };
   if (a === "contact") return { zone: "contact", focus: null };
   return { zone: "hub", focus: null };
@@ -88,7 +88,5 @@ export function parentRoute(pathname: string): string {
   if (clean === SPACE_BASE) return lang === "en" ? "/" : "/";
   const sub = clean.slice(SPACE_BASE.length + 1).split("/");
   sub.pop();
-  // /services/ai → tổng quan dịch vụ nằm ở hub; /studio/lab/x → /studio
-  if (sub.at(-1) === "lab") sub.pop();
   return factoryHref(lang, sub.join("/"));
 }

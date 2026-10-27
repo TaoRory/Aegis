@@ -1,6 +1,5 @@
 import { factoryHref, isServiceZone, servicesWithDemo, zones, type Locale, type ZoneId } from "@/config/space";
 import type { FactoryUi } from "@/content/factory/types";
-import { labItems } from "@/content/lab";
 import { projects } from "@/content/projects";
 import { templates } from "@/content/templates";
 
@@ -34,10 +33,7 @@ export function hotspotsFor(zone: ZoneId, lang: Locale, ui: FactoryUi): Hotspot[
     return projects.map((p, i) => ({ id: `project:${p.slug}`, href: href(`work/${p.slug}`), label: p.name, tag: pad(i + 1) }));
   }
   if (zone === "studio") {
-    return [
-      ...labItems.map((l) => ({ id: `lab:${l.id}`, href: href(`studio/lab/${l.id}`), label: ui.labNames[l.id], tag: l.index })),
-      ...templates.map((t, i) => ({ id: `template:${t.slug}`, href: `/mau-giao-dien/${t.slug}`, label: t.name, tag: pad(i + 1) })),
-    ];
+    return templates.map((t, i) => ({ id: `template:${t.slug}`, href: `/mau-giao-dien/${t.slug}`, label: t.name, tag: pad(i + 1) }));
   }
   return [];
 }
@@ -54,7 +50,6 @@ export function hrefForId(id: string, lang: Locale): string | null {
   if (kind === "proof") return href("work");
   if (kind === "start") return `${href("contact")}?dv=${key}`;
   if (kind === "project") return href(`work/${key}`);
-  if (kind === "lab") return href(`studio/lab/${key}`);
   if (kind === "template") return `/mau-giao-dien/${key}`;
   return null;
 }

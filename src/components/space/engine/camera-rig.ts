@@ -1,8 +1,8 @@
 import { isServiceZone, type ZoneId } from "@/config/space";
-import { DOOR, LAB, SHELF, SHOWROOM, CORE, labX, showroomX } from "@/components/space/engine/layout";
+import { CAROUSEL, CORE, DOOR, hallSlot, SHOWROOM } from "@/components/space/engine/layout";
 import type { Vec3 } from "@/components/space/engine/layout";
 import type { SceneManifest } from "@/components/space/engine/types";
-import { roomByZone } from "@/components/space/plan";
+import { HALL, roomByZone } from "@/components/space/plan";
 
 export interface Rig {
   pos: Vec3;
@@ -11,56 +11,54 @@ export interface Rig {
   /** Bề rộng và chiều cao (mét, tại mặt phẳng đích) cần nằm gọn trong phần khung còn trống */
   span?: number;
   spanV?: number;
-  /** Điện thoại: biên độ lắc yaw (rad) khi nhàn rỗi, làm cảnh "thở" */
-  drift?: number;
-  /** Điện thoại: camera trượt qua lại theo vector này (mét) khi nhàn rỗi, để khám phá cả dãy vật thể */
-  pan?: Vec3;
 }
 
-const studio = roomByZone.studio;
-
 /**
- * Điểm nhìn của camera cho từng khu / mục con (bố cục màn ngang). Màn hẹp hoặc khi khung nội dung che bớt khung hình
- * thì camera lùi ra theo `pullback` / `span`. Mọi vật trưng bày quay mặt về phía nam (+z) nên camera luôn đứng phía nam
- * và đủ cao để vượt đỉnh tường lưng (2,4 m) của dãy khu phía trước.
+ * Điểm nhìn mặc định của camera cho từng khu / mục con (bố cục màn ngang). Người dùng tự xoay / zoom / dịch được từ đó (OrbitControls);
+ * màn hẹp hoặc khi khung nội dung che bớt khung hình thì camera lùi ra theo `span` / `pullback`.
+ * Camera luôn đứng phía lõi hoặc phía nam và đủ cao để vượt giàn, vách (2,4–3,4 m) của các khu phía trước.
  */
 export function rigFor(zone: ZoneId, focus: string | null, manifest: SceneManifest, phone = false): Rig {
-  if (phone) {
-    const rig = phoneRig(zone, focus, manifest);
-    if (rig) return rig;
-  }
+  const k = phone ? 0.82 : 1; // điện thoại: áp sát hơn
   if (isServiceZone(zone)) {
-    // Bốn khu dịch vụ: cùng một công thức góc nhìn (ngang hàng). Nhìn chéo từ trên cao (~47°) để vượt đỉnh tường lưng
-    // 2,4 m của Studio phía nam, lệch nhẹ về phía lõi để thấy dòng năng lượng nối vào
+    // Bốn trạm: cùng một công thức góc nhìn (ngang hàng), nhìn từ phía nam, hơi lệch về phía lõi để thấy dòng năng lượng nối vào
     const r = roomByZone[zone];
     const toward = r.x > 0 ? -1 : 1;
-    return { pos: [r.x + toward * 1.4, 7.4, r.z + 5.4], target: [r.x, 1.3, r.z - 0.1], fov: 40, span: 9.4, spanV: 5.8 };
+    return { pos: [r.x + toward * 1.6 * k, 6.4 * k + 0.4, r.z + 7.2 * k], target: [r.x, 1.5, r.z - 0.2], fov: phone ? 48 : 40, span: phone ? 8.6 : 9.6, spanV: 6 };
   }
   switch (zone) {
     case "work": {
       const index = focus ? manifest.projects.findIndex((p) => p.slug === focus) : -1;
       if (index >= 0) {
-        const x = showroomX(index);
-        return { pos: [x + 0.5, 2.7, SHOWROOM.z + 3.2], target: [x, SHOWROOM.y - 0.05, SHOWROOM.z], fov: 34, span: 2.2, spanV: 1.6 };
+        const s = hallSlot(index);
+        const side = phone ? 0.3 : 0.55;
+        const dist = phone ? 2.9 : 3.3;
+        return {
+          pos: [s.x + s.nx * dist - s.nz * side, 2.5, s.z + s.nz * dist + s.nx * side],
+          target: [s.x, SHOWROOM.y - 0.05, s.z],
+          fov: phone ? 42 : 34,
+          span: phone ? 2.1 : 2.3,
+          spanV: 1.5,
+        };
       }
-      return { pos: [0, 6.4, SHOWROOM.z + 8.6], target: [0, 1.2, SHOWROOM.z], fov: 44, span: 15, spanV: 4.2 };
+      // Từ phía lõi nhìn ra cung 7 màn hình
+      return { pos: [0, 11, 5.5], target: [0, 1.6, -HALL.r + 1], fov: phone ? 56 : 46, span: 25, spanV: 8 };
     }
     case "studio": {
-      const index = focus ? manifest.lab.findIndex((l) => l.id === focus) : -1;
-      if (index >= 0) return { pos: [labX(index) + 0.4, 2.5, LAB.z + 3.0], target: [labX(index), LAB.capY, LAB.z], fov: 34, span: 2, spanV: 2.1 };
-      return { pos: [studio.x, 4.6, studio.z + 8.4], target: [studio.x, 1.1, SHELF.z + 0.6], fov: 42, span: 12.8, spanV: 4 };
+      const s = roomByZone.studio;
+      return { pos: [s.x + 1.2, phone ? 6.2 : 7.2, s.z - 8.8], target: [s.x, CAROUSEL.y, s.z], fov: phone ? 48 : 40, span: 9.6, spanV: 5 };
     }
     case "about":
-      return { pos: [CORE.x, 4.6, 7.6], target: [CORE.x, 1.8, CORE.z], fov: 40, span: 6.4, spanV: 5 };
+      return { pos: [0, 5.8, 11], target: [0, CORE.holoY - 0.3, 0], fov: phone ? 48 : 40, span: 8.6, spanV: 7.2 };
     case "contact":
-      return { pos: [DOOR.x - 0.4, 3.0, DOOR.z + 8.0], target: [DOOR.x, 1.2, DOOR.z], fov: 36, span: 3.6, spanV: 3.4 };
+      return { pos: [DOOR.x - 0.8, phone ? 5.4 : 6.2, DOOR.z - 7.6], target: [DOOR.x, 1.3, DOOR.z + 0.6], fov: phone ? 48 : 40, span: 7.6, spanV: 5 };
     default:
-      return { pos: [0, 28, 31], target: [0, 0, 0.4], fov: 34, span: 24, spanV: 22 };
+      return { pos: [0, 31, 34], target: [0, 0, 1.2], fov: 35, span: 40, spanV: 26 };
   }
 }
 
 /** Điểm nhìn mở màn: từ trên cao nhìn thẳng xuống mặt bằng */
-export const INTRO_RIG: Rig = { pos: [0, 40, 0.12], target: [0, 0, 0.1], fov: 34 };
+export const INTRO_RIG: Rig = { pos: [0, 52, 0.12], target: [0, 0, 1], fov: 34 };
 
 /**
  * Kéo camera lùi khỏi mục tiêu khi vùng nhìn thấy được hẹp (điện thoại dọc, khung nội dung chiếm một nửa).
@@ -77,37 +75,4 @@ export function pullback(effAspect: number): number {
 export function fitPullback(span: number, dist: number, fov: number, freePx: number, height: number): number {
   const visible = 2 * dist * Math.tan((fov * Math.PI) / 360) * (freePx / height);
   return Math.min(2.6, Math.max(1, span / visible));
-}
-
-/**
- * Điểm nhìn riêng cho điện thoại dọc: cảnh chiếm gần cả màn hình nên camera ÁP SÁT vật thể (như đứng trong xưởng),
- * thay vì lùi ra xem cả sa bàn. Hub và các dãy vật thể có `drift`/`pan` để tự trôi nhẹ khi người dùng chưa chạm.
- */
-function phoneRig(zone: ZoneId, focus: string | null, manifest: SceneManifest): Rig | undefined {
-  if (isServiceZone(zone)) {
-    const r = roomByZone[zone];
-    const toward = r.x > 0 ? -1 : 1;
-    return { pos: [r.x + toward * 0.9, 6.6, r.z + 4.4], target: [r.x, 1.5, r.z], fov: 50, span: 6.4, spanV: 5, drift: 0.12 };
-  }
-  switch (zone) {
-    case "hub":
-      return { pos: [0, 14, 18], target: [0, 0, 0.8], fov: 52, drift: 0.32 };
-    case "work": {
-      const index = focus ? manifest.projects.findIndex((p) => p.slug === focus) : -1;
-      if (index >= 0) {
-        const x = showroomX(index);
-        return { pos: [x + 0.4, 3.0, SHOWROOM.z + 2.5], target: [x, SHOWROOM.y - 0.05, SHOWROOM.z], fov: 44, span: 1.95, spanV: 1.3, drift: 0.05 };
-      }
-      return { pos: [0, 4.6, SHOWROOM.z + 5.9], target: [0, 1.25, SHOWROOM.z], fov: 50, pan: [5.6, 0, 0], drift: 0.08 };
-    }
-    case "studio": {
-      const index = focus ? manifest.lab.findIndex((l) => l.id === focus) : -1;
-      if (index >= 0) return { pos: [labX(index) + 0.3, 2.3, LAB.z + 2.6], target: [labX(index), LAB.capY - 0.05, LAB.z], fov: 40, span: 1.7, spanV: 1.9, drift: 0.06 };
-      return { pos: [studio.x, 3.6, studio.z + 6.6], target: [studio.x, 1.15, SHELF.z + 0.6], fov: 50, pan: [4.6, 0, 0], drift: 0.08 };
-    }
-    case "about":
-      return { pos: [CORE.x, 4.2, 6.4], target: [CORE.x, 1.9, CORE.z], fov: 48, span: 4.6, spanV: 4.6, drift: 0.18 };
-    default:
-      return undefined;
-  }
 }

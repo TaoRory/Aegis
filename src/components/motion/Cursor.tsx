@@ -15,6 +15,8 @@ import { onPointerMove, pointer } from "@/lib/pointer";
  * - data-cursor="view" | "drag" + data-cursor-label="Xem ↗" → bong bóng có nhãn (nhãn xáo chữ khi đổi).
  * - a, button, label, [data-cursor="link"] → vòng phóng to. Ô nhập chữ → ẩn vòng, trả con trỏ gốc.
  * - Bấm chuột: vòng co lại, để lại dấu "+" mờ dần (chữ ký bản vẽ).
+ * Trong Xưởng (html[data-space="on"]) con trỏ đổi sang dạng "ngắm kỹ thuật": khung bốn góc vuông, chấm hình thoi, nhãn vát góc;
+ * không kéo giãn/xoay theo hướng di chuyển (hình vuông xoay trông lệch).
  * Trạng thái hiện tại nằm ở html[data-cursor-state] (kit.css và CSS mẫu đọc để đổi màu).
  */
 
@@ -219,7 +221,8 @@ export function Cursor() {
       const vx = (rx - ox) / Math.max(dt, 0.001);
       const vy = (ry - oy) / Math.max(dt, 0.001);
       const speed = Math.hypot(vx, vy);
-      const stretching = mode === "idle" || mode === "link";
+      const tech = root.dataset.space === "on";
+      const stretching = !tech && (mode === "idle" || mode === "link");
       const tStretch = stretching ? Math.min(speed / 2600, 0.5) : 0;
       stretch += (tStretch - stretch) * (1 - Math.exp(-dt * 11));
       if (stretching) {
@@ -232,7 +235,7 @@ export function Cursor() {
       h += (th - h) * kSize;
       round += (tRound - round) * kSize;
       rad += (snapRadius - rad) * kSize;
-      const radius = round * (Math.min(w, h) / 2) + (1 - round) * Math.min(rad, Math.min(w, h) / 2);
+      const radius = tech ? 0 : round * (Math.min(w, h) / 2) + (1 - round) * Math.min(rad, Math.min(w, h) / 2);
       press += ((pressed ? 1 : 0) - press) * (1 - Math.exp(-dt * 22));
 
       // Mức hiện / ẩn của từng phần

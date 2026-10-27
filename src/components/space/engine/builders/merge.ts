@@ -10,7 +10,11 @@ export function boxAt(w: number, h: number, d: number, x: number, y: number, z: 
 
 /** Gộp danh sách hình học (cùng thuộc tính, cùng có/không chỉ mục) rồi giải phóng bản gốc */
 export function mergeAll(list: BufferGeometry[]): BufferGeometry {
-  const merged = mergeGeometries(list, false);
+  // Hình học bo cạnh (RoundedBoxGeometry) không có chỉ mục; trộn với hình có chỉ mục thì phải đưa hết về dạng không chỉ mục
+  const mixed = list.some((g) => !g.index) && list.some((g) => g.index);
+  const parts = mixed ? list.map((g) => (g.index ? g.toNonIndexed() : g)) : list;
+  const merged = mergeGeometries(parts, false);
   for (const g of list) g.dispose();
+  if (mixed) for (const g of parts) g.dispose();
   return merged;
 }

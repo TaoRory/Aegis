@@ -1,24 +1,33 @@
-import { roomByZone } from "@/components/space/plan";
+import { CORE_RADIUS, HALL, roomByZone } from "@/components/space/plan";
 
 /** Toạ độ các vật trưng bày, suy từ plan.ts (mét) */
 
-const work = roomByZone.work;
+/** Sảnh dự án: 7 màn hình xếp trên một cung quanh lõi, quay mặt vào tâm */
+export const SHOWROOM = { y: 1.45, w: 1.7, h: 1.06, count: 7 } as const;
+
+export interface Slot {
+  x: number;
+  z: number;
+  /** Góc quay quanh trục y để mặt phẳng (pháp tuyến +z) hướng vào tâm */
+  yaw: number;
+  /** Pháp tuyến đơn vị trong mặt phẳng xz, hướng ra phía người xem (vào tâm) */
+  nx: number;
+  nz: number;
+}
+
+export function hallSlot(i: number): Slot {
+  const a = HALL.a0 + ((HALL.a1 - HALL.a0) * i) / (SHOWROOM.count - 1);
+  return { x: Math.sin(a) * HALL.r, z: -Math.cos(a) * HALL.r, yaw: -a, nx: -Math.sin(a), nz: Math.cos(a) };
+}
+
+/** Băng chuyền mẫu giao diện: 8 khung quanh một trụ xoay chậm, quay mặt ra ngoài */
 const studio = roomByZone.studio;
+export const CAROUSEL = { x: studio.x, z: studio.z, r: 2.55, y: 1.25, w: 1.5, h: 0.94, count: 8 } as const;
+
+export const CORE = { x: 0, z: 0, holoY: 2.1, radius: CORE_RADIUS } as const;
+
+/** Cổng liên hệ: bệ phóng tròn với khung cửa nhìn về phía lõi */
 const gate = roomByZone.contact;
-
-/** Gallery: 7 màn hình đứng thành hàng trước tường bắc, quay mặt về phía nam (+z) */
-export const SHOWROOM = { z: work.z - work.d / 2 + 0.9, y: 1.5, x0: -6.15, step: 2.05, w: 1.7, h: 1.06 } as const;
-/** Studio, nửa phải: bàn dài với 4 viên nang xếp theo trục x */
-export const LAB = { x: 0.6, z: studio.z + 0.15, capX0: -1.35, capStep: 0.9, capY: 1.3 } as const;
-/** Studio, nửa trái: 8 khung mẫu treo trên tường bắc (2 hàng × 4), quay mặt về phía nam */
-export const SHELF = { z: studio.z - studio.d / 2 + 0.12, x: -5.5, dx: 1.95, w: 1.6, h: 1.0, yTop: 1.72, yBottom: 0.58, cols: 4 } as const;
-export const CORE = { x: 0, z: 0, holoY: 1.85, holoScale: 1.45 } as const;
-/** Cổng liên hệ: khung cửa dựa tường bắc của khu Gate */
-export const DOOR = { x: gate.x, z: gate.z - gate.d / 2 + 0.05 } as const;
-
-export const showroomX = (i: number) => SHOWROOM.x0 + i * SHOWROOM.step;
-export const labX = (i: number) => LAB.x + LAB.capX0 + i * LAB.capStep;
-export const shelfX = (i: number) => SHELF.x + ((i % SHELF.cols) - (SHELF.cols - 1) / 2) * SHELF.dx;
-export const shelfY = (i: number) => (i < SHELF.cols ? SHELF.yTop : SHELF.yBottom);
+export const DOOR = { x: gate.x, z: gate.z, r: gate.r } as const;
 
 export type Vec3 = [number, number, number];

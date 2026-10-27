@@ -9,15 +9,17 @@ import {
   PerspectiveCamera,
   PMREMGenerator,
   PointLight,
+  Ray,
   Raycaster,
   Scene,
-  Spherical,
+  TOUCH,
   Vector2,
   Vector3,
   WebGLRenderer,
   WebGLRenderTarget,
   type Mesh,
 } from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
@@ -27,15 +29,13 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import type { ZoneId } from "@/config/space";
 import { buildArchitecture, type Architecture } from "@/components/space/engine/builders/architecture";
 import { buildAtmosphere, type Atmosphere } from "@/components/space/engine/builders/atmosphere";
+import { buildArms } from "@/components/space/engine/builders/arms";
+import { buildBays } from "@/components/space/engine/builders/bay";
+import { buildCarousel } from "@/components/space/engine/builders/carousel";
 import { buildCore } from "@/components/space/engine/builders/core";
-import { buildLab } from "@/components/space/engine/builders/lab";
-import { buildPavilions } from "@/components/space/engine/builders/pavilion";
-import { buildDoor } from "@/components/space/engine/builders/props";
-import { buildShelf } from "@/components/space/engine/builders/shelf";
-import { buildShowroom } from "@/components/space/engine/builders/showroom";
-import { buildSignage } from "@/components/space/engine/builders/signage";
+import { buildHall } from "@/components/space/engine/builders/hall";
+import { buildLaunchpad } from "@/components/space/engine/builders/launchpad";
 import { fitPullback, INTRO_RIG, pullback, rigFor, type Rig } from "@/components/space/engine/camera-rig";
-import type { Vec3 } from "@/components/space/engine/layout";
 import { readPalette } from "@/components/space/engine/palette";
 import type { BuildContext, SceneManifest, ZoneBuild } from "@/components/space/engine/types";
 import { gsap } from "@/lib/motion";
@@ -46,10 +46,8 @@ export interface EngineOptions {
   reduced: boolean;
   onProgress: (p: number) => void;
   onHover: (id: string | null) => void;
-  /** Người dùng bắt đầu kéo để nhìn quanh (lần đầu) */
+  /** Người dùng bắt đầu tương tác với camera (xoay / zoom / dịch) lần đầu */
   onDrag?: () => void;
-  /** Vuốt ngang trên cảnh khi đang xem một mục (dự án / nguyên mẫu): 1 = mục kế, -1 = mục trước */
-  onStep?: (delta: 1 | -1) => void;
   onPick: (id: string) => void;
   onContextLost: () => void;
 }
@@ -79,10 +77,8 @@ export class SpaceEngine {
   private bloom: UnrealBloomPass | null = null;
   private sceneCalls = 0;
   private sceneTriangles = 0;
-  private parallax = { x: 0, y: 0, tx: 0, ty: 0 };
-  /** Lắc/trượt nhàn rỗi của điểm nhìn hiện tại (điện thoại) và mức độ đang áp dụng (0 khi người dùng vừa chạm) */
-  private driftRig: { drift: number; pan: Vec3 | null } = { drift: 0, pan: null };
-  private driftAmt = 0;
+  /** Camera tự do: kéo xoay, cuộn / chụm zoom, chuột phải / hai ngón dịch. Các chuyến bay theo route ghi đè lên khi đang bay. */
+  private readonly controls: OrbitControls;
   private lastTouch = 0;
   private dragNotified = false;
   private readonly zones: { key: string; zone: ZoneId; build: ZoneBuild }[] = [];
@@ -90,6 +86,8 @@ export class SpaceEngine {
   private readonly anchors = new Map<string, Vector3>();
   private readonly hotspotEls = new Map<string, HTMLElement>();
   private readonly raycaster = new Raycaster();
+  /** Tia từ camera qua con trỏ chuột (null khi chuột ở ngoài cảnh hoặc là cảm ứng): để các nhân vật trong cảnh biết người xem đang trỏ tới đâu */
+  private pointerRay: Ray | null = null;
   private readonly pmrem: PMREMGenerator;
   private readonly lights: (DirectionalLight | HemisphereLight | PointLight)[] = [];
   private readonly intro = { walls: 1, canvas: 1 };
@@ -106,8 +104,7 @@ export class SpaceEngine {
   private time = 0;
   private hoverId: string | null = null;
   private introDone = false;
-  private looking = { yaw: 0, pitch: 0, ty: 0, tp: 0 };
-  private drag: { x: number; y: number; moved: number; sx: number; sy: number } | null = null;
+  private drag: { moved: number; sx: number; sy: number; x: number; y: number } | null = null;
   private view = { x: 0, y: 0 };
   private width = 1;
   private height = 1;
@@ -116,19 +113,48 @@ export class SpaceEngine {
   private readonly curTarget = new Vector3();
   private curFov = 32;
   private flight: gsap.core.Tween | null = null;
+  /** Chuyến bay vừa kết thúc ngay trong nhịp vừa rồi: khung hình kế tiếp phải ghi nốt điểm đến lên camera */
+  private flightFinal = false;
   private viewTween: gsap.core.Tween | null = null;
   private readonly tmp = new Vector3();
-  private readonly focusPoint = new Vector3();
-  private readonly panVec = new Vector3();
-  private readonly spherical = new Spherical();
+  private readonly delta = new Vector3();
+  /** Mở màn bằng cuộn (intro AEGIS): camera và các khối do tiến độ p điều khiển, người dùng chưa được cầm lái */
+  private scrubbing = false;
+  private readonly scrubPos = new Vector3();
+  private readonly scrubTarget = new Vector3();
+  private scrubFov = 40;
   private readonly options: EngineOptions;
 
   private constructor(options: EngineOptions, ctx: BuildContext, canvas: HTMLCanvasElement, renderer: WebGLRenderer) {
     this.options = options;
     this.canvas = canvas;
     this.renderer = renderer;
-    this.camera = new PerspectiveCamera(32, 1, 0.1, 120);
+    this.camera = new PerspectiveCamera(32, 1, 0.1, 140);
     this.pmrem = new PMREMGenerator(renderer);
+
+    const controls = new OrbitControls(this.camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.085;
+    controls.rotateSpeed = 0.65;
+    controls.zoomSpeed = 0.9;
+    controls.panSpeed = 0.8;
+    controls.zoomToCursor = true;
+    controls.screenSpacePanning = true;
+    controls.minPolarAngle = 0.12;
+    controls.maxPolarAngle = 1.36; // không chui xuống sàn
+    controls.touches = { ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN };
+    controls.addEventListener("start", () => {
+      this.flight?.kill(); // người dùng cầm lái: hủy chuyến bay đang chạy
+      this.lastTouch = performance.now();
+      if (!this.dragNotified) {
+        this.dragNotified = true;
+        this.options.onDrag?.();
+      }
+      this.markBusy(400);
+    });
+    controls.addEventListener("change", () => this.markBusy(250));
+    this.controls = controls;
+    this.setLimits("hub", null);
 
     const { palette } = ctx;
     this.scene.background = palette.ink.clone();
@@ -205,13 +231,12 @@ export class SpaceEngine {
 
     // Mỗi phần cảnh gắn với khu sáng lên khi khu đó được mở ("hub" = không thuộc khu nào, luôn ở trạng thái nền)
     const builds: [string, ZoneId, ZoneBuild][] = [
-      ["showroom", "work", buildShowroom(ctx)],
-      ["lab", "studio", buildLab(ctx)],
-      ["shelf", "studio", buildShelf(ctx)],
+      ["hall", "work", buildHall(ctx)],
+      ["carousel", "studio", buildCarousel(ctx)],
       ["core", "about", buildCore(ctx)],
-      ["door", "contact", buildDoor(ctx)],
-      ...buildPavilions(ctx).map(({ zone, build }): [string, ZoneId, ZoneBuild] => [`pavilion-${zone}`, zone, build]),
-      ["signage", "hub", buildSignage(ctx)],
+      ["launchpad", "contact", buildLaunchpad(ctx)],
+      ...buildBays(ctx).map(({ zone, build }): [string, ZoneId, ZoneBuild] => [`bay-${zone}`, zone, build]),
+      ["arms", "hub", buildArms(ctx)],
     ];
     for (const [key, zone, build] of builds) {
       engine.scene.add(build.group);
@@ -221,10 +246,10 @@ export class SpaceEngine {
     options.onProgress(0.35);
 
     // Texture khởi động: chỉ phòng trưng bày (ảnh dự án). Kệ mẫu nạp lười.
-    const showroom = builds[0][2];
+    const hall = builds[0][2];
     let loaded = 0;
-    const total = Math.max(1, showroom.loadCount ?? 1);
-    await showroom.load?.(() => {
+    const total = Math.max(1, hall.loadCount ?? 1);
+    await hall.load?.(() => {
       loaded += 1;
       options.onProgress(0.35 + 0.5 * (loaded / total));
     });
@@ -280,6 +305,7 @@ export class SpaceEngine {
     this.detach();
     this.flight?.kill();
     this.viewTween?.kill();
+    this.controls.dispose();
     this.architecture.dispose();
     this.atmosphere.dispose();
     this.composer?.dispose();
@@ -316,7 +342,7 @@ export class SpaceEngine {
     const hop = from === zone && this.focus !== null && focus !== null && this.focus !== focus;
     this.zone = zone;
     this.focus = focus;
-    this.looking.ty = this.looking.tp = 0;
+    this.setLimits(zone, focus);
     this.architecture.setZone(zone);
     this.atmosphere.setZone(zone);
     if (!instant && !this.options.reduced && from !== zone) {
@@ -337,13 +363,18 @@ export class SpaceEngine {
   async loadShelf() {
     if (this.shelfLoading) return;
     this.shelfLoading = true;
-    await this.zones.find((z) => z.key === "shelf")?.build.load?.(() => this.markBusy(300));
+    await this.zones.find((z) => z.key === "carousel")?.build.load?.(() => this.markBusy(300));
   }
 
   /** Mở màn: tường dựng lên từ nét mặt bằng, camera hạ từ trên cao xuống góc nhìn tổng quan, các vật mọc dần từ sàn. */
   playIntro(short: boolean, onDone?: () => void) {
     if (this.introDone) return;
     this.introDone = true;
+    const finish = onDone;
+    onDone = () => {
+      for (const z of this.zones) z.build.onIntroDone?.();
+      finish?.();
+    };
     const hub = this.targetRig();
     if (this.options.reduced) {
       this.setCamera(hub);
@@ -370,6 +401,71 @@ export class SpaceEngine {
     this.architecture.walls.scale.y = this.intro.walls;
   }
 
+  /**
+   * Intro AEGIS: bắt đầu chế độ "cuộn để vào". Camera đứng xa và thấp nhìn vào lõi đang phát sáng; mọi khu khác còn nằm dưới sàn
+   * và sẽ dựng lên theo tiến độ do SpaceIntro truyền vào (setIntroProgress).
+   */
+  beginIntroScrub() {
+    if (this.introDone || this.scrubbing) return;
+    this.scrubbing = true;
+    this.controls.enabled = false;
+    for (const z of this.zones) z.build.group.scale.y = z.zone === "about" ? 1 : 0.001;
+    this.atmosphere.city.scale.y = 0.001;
+    this.intro.walls = 0.001;
+    this.applyIntro();
+    this.setIntroProgress(0);
+  }
+
+  /** p: 0 (chỉ thấy lõi từ xa) → 1 (đã về góc nhìn tổng quan, mọi thứ đã dựng xong) */
+  setIntroProgress(p: number) {
+    if (!this.scrubbing) return;
+    const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+    const smooth = (a: number, b: number, v: number) => {
+      const t = clamp01((v - a) / (b - a));
+      return t * t * (3 - 2 * t);
+    };
+    // Camera: từ xa và thấp (nhìn vào lõi) lùi lên cao dần về góc nhìn tổng quan
+    const end = this.targetRig();
+    const u = smooth(0, 1, p);
+    const curve = new CatmullRomCurve3([new Vector3(0, 3.4, 27), new Vector3(0, 11, 40), new Vector3(0, 19, 50), new Vector3(...end.pos)], false, "catmullrom", 0.5);
+    curve.getPoint(u, this.scrubPos);
+    this.scrubTarget.set(0, 2.6, 0).lerp(new Vector3(...end.target), u);
+    this.scrubFov = MathUtils.lerp(36, end.fov, u);
+    // Các khối mọc dần từ sàn, so le nhau
+    const appear = (start: number, span: number) => {
+      const t = clamp01((p - start) / span);
+      const c1 = 1.5;
+      const c3 = c1 + 1;
+      return Math.max(0.001, 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2)); // easeOutBack
+    };
+    const starts: Record<string, number> = { hall: 0.16, carousel: 0.3, launchpad: 0.34, arms: 0.44 };
+    let bay = 0;
+    for (const z of this.zones) {
+      if (z.zone === "about") continue;
+      const start = z.key.startsWith("bay-") ? 0.18 + 0.05 * bay++ : (starts[z.key] ?? 0.3);
+      z.build.group.scale.y = appear(start, 0.34);
+    }
+    this.intro.walls = Math.max(0.001, smooth(0.04, 0.42, p));
+    this.applyIntro();
+    this.atmosphere.city.scale.y = Math.max(0.001, smooth(0.2, 0.9, p));
+    this.markBusy(300);
+  }
+
+  /** Kết thúc intro: mọi thứ về trạng thái cuối, camera đứng ở góc nhìn tổng quan và người dùng được cầm lái */
+  finishIntroScrub() {
+    if (!this.scrubbing) return;
+    this.scrubbing = false;
+    this.introDone = true;
+    this.controls.enabled = true;
+    for (const z of this.zones) z.build.group.scale.y = 1;
+    this.atmosphere.city.scale.y = 1;
+    this.intro.walls = 1;
+    this.applyIntro();
+    this.setCamera(this.targetRig());
+    this.lastTouch = performance.now();
+    for (const z of this.zones) z.build.onIntroDone?.();
+  }
+
   get hasPlayedIntro() {
     return this.introDone;
   }
@@ -378,7 +474,6 @@ export class SpaceEngine {
 
   private targetRig(): Rig {
     const base = rigFor(this.zone, this.focus, this.options.manifest, this.options.mobile);
-    this.driftRig = { drift: base.drift ?? 0, pan: base.pan ?? null };
     const free = this.freeSize();
     const tgt = new Vector3(...base.target);
     let pb = pullback(free.w / free.h);
@@ -395,20 +490,44 @@ export class SpaceEngine {
     return { w, h };
   }
 
+  /** Giới hạn zoom theo khu: tổng quan xa được, trong khu hoặc khi xem một mục thì gần hơn */
+  private setLimits(zone: ZoneId, focus: string | null) {
+    if (zone === "hub") {
+      this.controls.minDistance = 8;
+      this.controls.maxDistance = 90;
+    } else if (focus) {
+      this.controls.minDistance = 1.6;
+      this.controls.maxDistance = 14;
+    } else {
+      this.controls.minDistance = 2.4;
+      this.controls.maxDistance = 34;
+    }
+  }
+
+  /** Đặt camera ngay (không bay) */
   private setCamera(rig: Rig) {
     this.flight?.kill();
     this.curPos.set(...rig.pos);
     this.curTarget.set(...rig.target);
     this.curFov = rig.fov;
+    this.camera.position.copy(this.curPos);
+    this.controls.target.copy(this.curTarget);
+    this.camera.fov = rig.fov;
+    this.controls.update();
     this.markBusy(300);
   }
 
-  /** Bay tới điểm nhìn mới theo đường cong có nâng cao giữa chặng để không xuyên tường */
+  /** Bay tới điểm nhìn mới (từ vị trí camera hiện tại, kể cả khi người dùng đã xoay / zoom) theo đường cong có nâng cao giữa chặng */
   private flyTo(rig: Rig, duration: number) {
     this.flight?.kill();
-    const fromPos = this.curPos.clone();
-    const fromTarget = this.curTarget.clone();
-    const fromFov = this.curFov;
+    this.flightFinal = false;
+    // Xả hết quán tính xoay còn dư của OrbitControls (giảm chấn), nếu không nó tiếp tục xoay camera sau khi chuyến bay kết thúc
+    this.controls.enableDamping = false;
+    this.controls.update();
+    this.controls.enableDamping = true;
+    const fromPos = this.camera.position.clone();
+    const fromTarget = this.controls.target.clone();
+    const fromFov = this.camera.fov;
     const toPos = new Vector3(...rig.pos);
     const toTarget = new Vector3(...rig.target);
     const dist = fromPos.distanceTo(toPos);
@@ -416,6 +535,9 @@ export class SpaceEngine {
     mid.y += MathUtils.clamp(dist * 0.18, 0, 5);
     const curve = new CatmullRomCurve3([fromPos, mid, toPos], false, "catmullrom", 0.5);
     const state = { t: 0 };
+    this.curPos.copy(fromPos);
+    this.curTarget.copy(fromTarget);
+    this.curFov = fromFov;
     this.flight = gsap.to(state, {
       t: 1,
       duration,
@@ -426,8 +548,17 @@ export class SpaceEngine {
         this.curFov = MathUtils.lerp(fromFov, rig.fov, state.t);
         this.markBusy(200);
       },
+      onComplete: () => {
+        this.flightFinal = true;
+      },
     });
     this.markBusy(duration * 1000 + 300);
+  }
+
+  /** Về góc nhìn mặc định của khu đang xem (nút ⟲, phím R, nhấp đúp) */
+  resetView() {
+    this.lastTouch = performance.now(); // đang chủ động chỉnh camera: chưa tự xoay
+    this.flyTo(this.targetRig(), 0.9);
   }
 
   /** Tính lại điểm nhìn + độ lệch tâm khung hình (chừa chỗ cho khung nội dung) */
@@ -477,46 +608,47 @@ export class SpaceEngine {
     if (this.disposed || this.paused || document.hidden || !this.host) return;
     const now = performance.now();
     const busy = now < this.busyUntil;
-    const drifting = this.driftAmt > 0.01 || (this.options.mobile && !this.options.reduced && (this.driftRig.drift > 0 || this.driftRig.pan !== null));
-    // nhàn rỗi: ~20 (di động) / ~30 (máy tính) khung/giây; đang tự trôi: ~30 khung/giây
-    if (!busy && now - this.lastRender < (drifting ? 33 : this.options.mobile ? 50 : 33)) return;
+    // nhàn rỗi: ~20 (di động) / ~30 (máy tính) khung/giây
+    if (!busy && now - this.lastRender < (this.options.mobile ? 50 : 33)) return;
     this.lastRender = now;
     const dt = Math.min(0.1, deltaMs / 1000);
     if (!this.options.reduced) this.time += dt; // giảm chuyển động: đóng băng mọi hiệu ứng nền
 
-    // nhìn quanh (lò xo)
-    const k = 1 - Math.exp(-dt * 9);
-    this.looking.yaw += (this.looking.ty - this.looking.yaw) * k;
-    this.looking.pitch += (this.looking.tp - this.looking.pitch) * k;
-    const pk = 1 - Math.exp(-dt * 3.5);
-    this.parallax.x += (this.parallax.tx - this.parallax.x) * pk;
-    this.parallax.y += (this.parallax.ty - this.parallax.y) * pk;
-    const sway = this.options.reduced ? 0 : Math.sin(this.time * 0.17) * 0.012;
-    // Tự trôi (điện thoại): chỉ khi người dùng đã yên ≥ 2,5 giây; chạm vào là dừng ngay và êm dần quay lại
-    const wantDrift = this.options.mobile && !this.options.reduced && this.introDone && !this.flight?.isActive() && now - this.lastTouch > 2500 ? 1 : 0;
-    this.driftAmt += (wantDrift - this.driftAmt) * (1 - Math.exp(-dt * (wantDrift ? 0.8 : 5)));
-    const wave = Math.sin(this.time * 0.21) * this.driftAmt;
-    const driftYaw = this.driftRig.drift * wave;
-    this.tmp.copy(this.curPos).sub(this.curTarget);
-    this.spherical.setFromVector3(this.tmp);
-    this.spherical.theta += this.looking.yaw + this.parallax.x + sway + driftYaw;
-    this.spherical.phi = MathUtils.clamp(this.spherical.phi - this.looking.pitch - this.parallax.y, 0.12, 1.5);
-    this.tmp.setFromSpherical(this.spherical);
-    const pan = this.driftRig.pan;
-    this.focusPoint.copy(this.curTarget);
-    if (pan) this.focusPoint.addScaledVector(this.panVec.set(pan[0], pan[1], pan[2]), wave);
-    this.camera.position.copy(this.focusPoint).add(this.tmp);
-    this.camera.lookAt(this.focusPoint);
-    if (this.camera.fov !== this.curFov) {
+    // Đang bay theo route: ghi vị trí lên camera. Hết bay thì OrbitControls giữ nguyên và người dùng cầm lái.
+    if (this.flight?.isActive() || this.flightFinal) {
+      this.flightFinal = false;
+      this.camera.position.copy(this.curPos);
+      this.controls.target.copy(this.curTarget);
       this.camera.fov = this.curFov;
+    } else if (this.scrubbing) {
+      this.camera.position.copy(this.scrubPos);
+      this.controls.target.copy(this.scrubTarget);
+      this.camera.fov = this.scrubFov;
+    }
+    if (this.controls.update(dt)) this.markBusy(100);
+    // Tâm nhìn không rời khỏi xưởng (kéo cả camera theo để không bị giật)
+    const t = this.controls.target;
+    this.delta.set(MathUtils.clamp(t.x, -20, 20), MathUtils.clamp(t.y, 0, 7), MathUtils.clamp(t.z, -20, 20)).sub(t);
+    if (this.delta.lengthSq() > 1e-8) {
+      t.add(this.delta);
+      this.camera.position.add(this.delta);
     }
     if (Math.abs(this.view.x) > 0.5 || Math.abs(this.view.y) > 0.5) this.camera.setViewOffset(this.width, this.height, this.view.x, this.view.y, this.width, this.height);
     else this.camera.clearViewOffset();
     this.camera.updateProjectionMatrix();
 
+    // Sương mù lùi theo khoảng cách camera: ở điện thoại camera đứng xa hơn 70 m nên sương cố định làm cả cảnh chìm vào nền
+    const fog = this.scene.fog as Fog;
+    const away = this.camera.position.distanceTo(this.controls.target);
+    fog.near = Math.max(30, away * 0.95);
+    fog.far = Math.max(70, away * 2.2);
+
     this.architecture.update(dt);
     this.atmosphere.update(this.time);
-    for (const z of this.zones) z.build.update(this.time, dt);
+    for (const z of this.zones) {
+      z.build.setPointer?.(this.pointerRay, this.camera.position);
+      z.build.update(this.time, dt);
+    }
     if (this.composer) this.composer.render(dt);
     else this.renderer.render(this.scene, this.camera);
     this.projectHotspots();
@@ -525,6 +657,11 @@ export class SpaceEngine {
   private projectHotspots() {
     const w = this.width;
     const h = this.height;
+    // Tâm vùng còn trống (đã trừ khung nội dung): điểm chạm gần tâm nhất được đánh dấu data-near (điện thoại chỉ hiện nhãn của nó)
+    const cx = (this.insets.left + (w - this.insets.right)) / 2;
+    const cy = (this.insets.top + (h - this.insets.bottom)) / 2;
+    let nearEl: HTMLElement | null = null;
+    let nearD = Infinity;
     for (const [id, el] of this.hotspotEls) {
       const anchor = this.anchors.get(id);
       if (!anchor) continue;
@@ -534,8 +671,22 @@ export class SpaceEngine {
       const off = this.tmp.z > 1 || x < -40 || x > w + 40 || y < -40 || y > h + 40;
       el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
       el.dataset.off = off ? "true" : "false";
+      if (!off) {
+        const d = (x - cx) ** 2 + (y - cy) ** 2;
+        if (d < nearD) {
+          nearD = d;
+          nearEl = el;
+        }
+      }
+    }
+    if (nearEl !== this.nearEl) {
+      if (this.nearEl) delete this.nearEl.dataset.near;
+      if (nearEl) nearEl.dataset.near = "true";
+      this.nearEl = nearEl;
     }
   }
+
+  private nearEl: HTMLElement | null = null;
 
   // ---------- Con trỏ ----------
 
@@ -547,6 +698,7 @@ export class SpaceEngine {
   private pick(event: PointerEvent): string | null {
     // setViewOffset đã nằm trong projectionMatrix nên raycaster dùng NDC thường
     this.raycaster.setFromCamera(this.ndc(event), this.camera);
+    this.pointerRay = event.pointerType === "mouse" ? this.raycaster.ray.clone() : null;
     const hit = this.raycaster.intersectObjects(this.pickables, false)[0];
     return (hit?.object.userData.pick as string | undefined) ?? null;
   }
@@ -564,72 +716,39 @@ export class SpaceEngine {
     this.markBusy(500);
   }
 
+  // Xoay / zoom / dịch do OrbitControls lo; ở đây chỉ phân biệt "bấm" (chọn vật) với "kéo" và theo dõi rê chuột để hiện nhãn
   private readonly onDown = (event: PointerEvent) => {
     this.lastTouch = performance.now();
-    this.drag = { x: event.clientX, y: event.clientY, moved: 0, sx: event.clientX, sy: event.clientY };
-    this.canvas.setPointerCapture(event.pointerId);
+    this.drag = { moved: 0, sx: event.clientX, sy: event.clientY, x: event.clientX, y: event.clientY };
   };
 
   private readonly onMove = (event: PointerEvent) => {
     if (this.drag) {
-      const dx = event.clientX - this.drag.x;
-      const dy = event.clientY - this.drag.y;
-      this.drag.moved += Math.abs(dx) + Math.abs(dy);
+      this.drag.moved += Math.abs(event.clientX - this.drag.x) + Math.abs(event.clientY - this.drag.y);
       this.drag.x = event.clientX;
       this.drag.y = event.clientY;
-      if (this.drag.moved > 6) {
-        // Điện thoại: quay quanh rất rộng (như đi vòng quanh căn phòng); máy tính: chỉ liếc nhẹ
-        const yawMax = this.options.mobile ? (this.zone === "hub" ? 1.15 : 0.75) : 0.45;
-        const pitchMax = this.options.mobile ? 0.3 : 0.14;
-        this.looking.ty = MathUtils.clamp(this.looking.ty - dx * (this.options.mobile ? 0.0042 : 0.0035), -yawMax, yawMax);
-        this.looking.tp = MathUtils.clamp(this.looking.tp + dy * (this.options.mobile ? 0.0024 : 0.002), -pitchMax, pitchMax);
-        this.lastTouch = performance.now();
-        if (!this.dragNotified) {
-          this.dragNotified = true;
-          this.options.onDrag?.();
-        }
-        this.markBusy(300);
-      }
       return;
     }
-    if (event.pointerType === "mouse") {
-      this.setHover(this.pick(event));
-      if (!this.options.reduced) {
-        const n = this.ndc(event);
-        this.parallax.tx = n.x * 0.045;
-        this.parallax.ty = n.y * 0.02;
-        this.markBusy(400);
-      }
-    }
+    if (event.pointerType === "mouse") this.setHover(this.pick(event));
   };
 
   private readonly onUp = (event: PointerEvent) => {
     const drag = this.drag;
     this.drag = null;
-    if (this.canvas.hasPointerCapture(event.pointerId)) this.canvas.releasePointerCapture(event.pointerId);
     if (drag && drag.moved < 6) {
       const id = this.pick(event);
       if (id) this.options.onPick(id);
-    } else if (drag && this.focus && (this.zone === "work" || this.zone === "studio")) {
-      // Vuốt ngang rõ ràng (≥ 70 px, ngang hơn dọc) khi đang xem một mục: sang mục kế/trước thay vì chỉ liếc quanh
-      const dx = event.clientX - drag.sx;
-      const dy = event.clientY - drag.sy;
-      if (Math.abs(dx) >= 70 && Math.abs(dx) > Math.abs(dy) * 1.6) {
-        this.looking.ty = this.looking.tp = 0;
-        this.options.onStep?.(dx < 0 ? 1 : -1);
-      }
     }
   };
 
   private readonly onLeave = () => {
-    this.parallax.tx = this.parallax.ty = 0;
+    this.pointerRay = null;
     this.markBusy(600);
     if (!this.drag) this.setHover(null);
   };
 
   private readonly onDouble = () => {
-    this.looking.ty = this.looking.tp = 0;
-    this.markBusy(600);
+    this.resetView();
   };
 
   private readonly onContextLost = (event: Event) => {
@@ -649,9 +768,27 @@ export class SpaceEngine {
       textures: this.renderer.info.memory.textures,
       geometries: this.renderer.info.memory.geometries,
       fov: this.curFov,
-      yaw: Math.round(this.looking.ty * 1000) / 1000,
-      pitch: Math.round(this.looking.tp * 1000) / 1000,
+      distance: Math.round(this.camera.position.distanceTo(this.controls.target) * 100) / 100,
+      azimuth: Math.round(this.controls.getAzimuthalAngle() * 1000) / 1000,
+      polar: Math.round(this.controls.getPolarAngle() * 1000) / 1000,
     };
+  }
+
+  /** Cảm ứng bắt đầu trên một điểm chạm rồi kéo đi: giao cử chỉ cho OrbitControls (nó chiếm con trỏ về canvas) */
+  forwardDrag(event: PointerEvent) {
+    this.canvas.dispatchEvent(
+      new PointerEvent("pointerdown", {
+        pointerId: event.pointerId,
+        pointerType: event.pointerType,
+        isPrimary: event.isPrimary,
+        clientX: event.clientX,
+        clientY: event.clientY,
+        button: 0,
+        buttons: 1,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
   }
 
   /** Cho Hotspots biết điểm neo tồn tại */

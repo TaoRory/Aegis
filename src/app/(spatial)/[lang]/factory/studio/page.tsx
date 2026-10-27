@@ -22,7 +22,7 @@ export default function StudioPage({ params }: { params: LangParams }) {
   );
 }
 
-/** Studio: thí nghiệm (nguyên mẫu chạy thật) · kệ tám mẫu giao diện · ghi chép về cách xưởng được dựng */
+/** Thư viện mẫu: tám style giao diện dẫn tới các website mẫu chạy thật (demo, thương hiệu giả định) */
 async function Studio({ params }: { params: LangParams }) {
   const { dict, href } = await resolveLang(params);
   const copy = dict.studio;
@@ -34,28 +34,7 @@ async function Studio({ params }: { params: LangParams }) {
       <p data-panel-in className="mt-5 max-w-[34rem] leading-relaxed text-muted">
         {copy.lead}
       </p>
-
-      <h2 data-panel-in className="label mt-10 text-accent">
-        {copy.labTitle}
-      </h2>
-      <p data-panel-in className="mt-3 max-w-[34rem] leading-relaxed text-muted">
-        {copy.labLead}
-      </p>
-      <ol className="space-cards">
-        {dict.lab.map((item) => (
-          <li key={item.id} data-panel-in>
-            <Link href={href(`studio/lab/${item.id}`)} className="space-card" data-cursor="view" data-cursor-label={copy.labCta}>
-              <span className="label text-accent">
-                {dict.ui.lab.label} /{item.index}
-              </span>
-              <span className="space-card-name">{item.name}</span>
-              <span className="text-[0.95rem] leading-relaxed text-muted">{item.tagline}</span>
-            </Link>
-          </li>
-        ))}
-      </ol>
-
-      <h2 data-panel-in className="label mt-10 text-accent">
+      <h2 data-panel-in className="label mt-8 text-accent">
         {copy.shelfTitle}
       </h2>
       <p data-panel-in className="mt-3 max-w-[34rem] leading-relaxed text-muted">
@@ -86,31 +65,6 @@ async function Studio({ params }: { params: LangParams }) {
           );
         })}
       </ol>
-
-      <h2 data-panel-in className="label mt-10 text-accent">
-        {copy.journalTitle}
-      </h2>
-      <p data-panel-in className="mt-3 max-w-[34rem] leading-relaxed text-muted">
-        {copy.journalLead}
-      </p>
-      {dict.journal.length === 0 ? (
-        <p data-panel-in className="mt-6 border-t border-line pt-6 text-muted">
-          {copy.journalEmpty}
-        </p>
-      ) : (
-        <ol className="space-sheets">
-          {dict.journal.map((entry) => (
-            <li key={entry.slug} data-panel-in className="space-sheet">
-              <h3 className="text-[1.35rem] leading-tight font-semibold">{entry.title}</h3>
-              {entry.body.map((paragraph) => (
-                <p key={paragraph} className="mt-3 leading-relaxed text-muted">
-                  {paragraph}
-                </p>
-              ))}
-            </li>
-          ))}
-        </ol>
-      )}
     </Panel>
   );
 }

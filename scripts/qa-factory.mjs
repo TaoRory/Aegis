@@ -1,7 +1,7 @@
-// Kiểm tra Factory "Aegis Foundation" (phiên bản 2, /factory và /en/factory) bằng trình duyệt thật (Playwright).
+// Kiểm tra Factory "Aegis Forge" (phiên bản 3, /factory và /en/factory) bằng trình duyệt thật (Playwright).
 // Chạy: pnpm build && pnpm start   (cửa sổ khác)  rồi  pnpm qa:factory [baseUrl]
 // Phần 0: định tuyến (chuyển hướng slug cũ, /vi nội bộ). Phần 1: quét mọi route vi + en (desktop + mobile).
-// Phần 2: tương tác 3D desktop (nav, phím, hotspot, đổi ngôn ngữ). Phần 2b: điện thoại. Phần 2c: ba demo minh họa.
+// Phần 2: intro AEGIS + tương tác 3D desktop (camera tự do, nhãn hover, nav, phím, hotspot, đổi ngôn ngữ). Phần 2b: điện thoại. Phần 2c: ba demo minh họa.
 // Phần 3: dự phòng (không WebGL, giảm chuyển động, không JS).
 // WebGL trong chế độ headless chạy bằng SwiftShader (chậm), nên các bước chờ cảnh 3D để dư thời gian.
 import { mkdir } from "node:fs/promises";
@@ -19,10 +19,23 @@ const check = (name, ok, detail = "") => {
 
 await mkdir(outDir, { recursive: true });
 
+/** Chờ intro AEGIS sẵn sàng rồi bấm "Bỏ qua" (vào /factory lần đầu của một phiên); không có intro thì thôi. */
+async function skipIntro(page) {
+  const boot = await page.evaluate(() => document.documentElement.dataset.spaceBoot ?? "");
+  if (boot !== "playing") return false;
+  await page.waitForFunction(() => document.querySelector(".space-intro")?.dataset.ready === "true", null, { timeout: 90000 });
+  // Bấm bằng DOM (không chờ kiểm tra "ổn định" của Playwright: cảnh SwiftShader chạy chậm nên lớp phủ luôn đang vẽ lại)
+  await page.evaluate(() => document.querySelector(".space-intro-skip")?.click());
+  await page.waitForFunction(() => !document.documentElement.dataset.spaceBoot, null, { timeout: 40000 });
+  return true;
+}
+const camera = (page) => page.evaluate(() => window.__aegisSpace?.info?.() ?? null);
+const introScale = (page) =>
+  page.evaluate(() => Number(document.querySelector(".space-intro svg > g")?.getAttribute("transform")?.match(/scale\(([\d.]+)\)/)?.[1] ?? 1));
+
 const SERVICES = ["ai", "software", "web", "marketing"];
 const DEMOS = ["ai", "software", "marketing"];
 const PROJECTS = ["vidi26", "handle-vietnam", "integritas-vu-legal", "tedx-vinuniversity-2026", "rethink", "tedx-vinuniversity-2025", "rethink-halloween"];
-const LABS = ["nen-mong", "suong-mu", "tach-mau", "dai-cong"];
 const subRoutes = [
   "",
   "/about",
@@ -32,7 +45,6 @@ const subRoutes = [
   "/work",
   ...PROJECTS.map((p) => `/work/${p}`),
   "/studio",
-  ...LABS.map((l) => `/studio/lab/${l}`),
   "/contact",
 ];
 const routesFor = (lang) => subRoutes.map((s) => (lang === "en" ? "/en" : "") + "/factory" + s);
@@ -47,7 +59,9 @@ const redirects = [
   ["/factory/trung-bay", "/factory/work"],
   ["/factory/trung-bay/vidi26", "/factory/work/vidi26"],
   ["/factory/thi-nghiem", "/factory/studio"],
-  ["/factory/thi-nghiem/nen-mong", "/factory/studio/lab/nen-mong"],
+  ["/factory/thi-nghiem/nen-mong", "/factory/studio"],
+  ["/factory/studio/lab/nen-mong", "/factory/studio"],
+  ["/en/factory/studio/lab/suong-mu", "/en/factory/studio"],
   ["/factory/mau-giao-dien", "/factory/studio"],
   ["/factory/nhat-ky", "/factory/studio"],
   ["/factory/dich-vu", "/factory/services"],
@@ -143,12 +157,25 @@ try {
   await page.goto(`${baseUrl}/factory?debug-space`, { waitUntil: "domcontentloaded" });
 
   const boot = await page.evaluate(() => document.documentElement.dataset.spaceBoot ?? "");
-  check("[3d] vào /factory lần đầu có màn khởi động", boot === "playing", boot);
+  check("[intro] vào /factory lần đầu có intro AEGIS", boot === "playing", boot);
   await page.waitForFunction(() => document.documentElement.dataset.spaceLive === "on", null, { timeout: 60000 }).then(
     () => check("[3d] cảnh 3D lên sóng", true),
     () => check("[3d] cảnh 3D lên sóng", false, "quá 60 giây"),
   );
+  await page.waitForFunction(() => document.querySelector(".space-intro")?.dataset.ready === "true", null, { timeout: 90000 }).catch(() => {});
+  check("[intro] có chữ AEGIS lớn và nút Bỏ qua", (await page.locator(".space-intro-svg text").count()) >= 1 && (await page.locator(".space-intro-skip").count()) === 1);
+  check("[intro] HUD chưa hiện trong lúc intro", await page.evaluate(() => getComputedStyle(document.querySelector(".space-nav")).visibility === "hidden"));
+  await page.screenshot({ path: `${outDir}/intro-0.jpg`, type: "jpeg", quality: 70 });
+  await page.mouse.move(720, 450);
+  await page.mouse.wheel(0, 700);
+  await page.waitForFunction(() => Number(document.querySelector(".space-intro svg > g")?.getAttribute("transform")?.match(/scale\(([\d.]+)\)/)?.[1] ?? 1) > 1.5, null, { timeout: 15000 }).catch(() => {});
+  check("[intro] cuộn chuột phóng to chữ AEGIS", (await introScale(page)) > 1.5, `scale ${await introScale(page)}`);
+  await page.screenshot({ path: `${outDir}/intro-1.jpg`, type: "jpeg", quality: 70 });
+  await page.mouse.wheel(0, 6000);
+  await page.waitForFunction(() => !document.documentElement.dataset.spaceBoot, null, { timeout: 40000 }).catch(() => {});
+  check("[intro] cuộn hết thì intro kết thúc và gỡ khỏi trang", (await page.locator(".space-intro").count()) === 0 && !(await page.evaluate(() => document.documentElement.dataset.spaceBoot)));
   await page.waitForTimeout(4000);
+  check("[intro] chỉ một lần mỗi phiên (đã ghi cờ sessionStorage)", (await page.evaluate(() => sessionStorage.getItem("aegis-factory-boot"))) === "1");
   const zone = () => page.evaluate(() => window.__aegisSpace?.info?.().zone ?? "?");
   const canvas = await page.locator(".space-canvas").count();
   check("[3d] có canvas WebGL", canvas === 1, `${canvas}`);
@@ -158,8 +185,45 @@ try {
     check("[3d] tam giác ≤ 150k", stats.triangles <= 150000, `${stats.triangles}`);
   } else check("[3d] đọc được thống kê (?debug-space)", false);
   check("[3d] khu mặc định là hub", (await zone()) === "hub", await zone());
+  const hubBox = await page.evaluate(() => {
+    const r = document.querySelector(".space-hub")?.getBoundingClientRect();
+    return r ? { w: r.width, h: r.height } : null;
+  });
+  check("[3d] không còn thẻ thông tin ở tổng quan (chỉ h1 ẩn cho trình đọc)", Boolean(hubBox) && hubBox.w <= 2 && hubBox.h <= 2 && (await page.locator("h1").count()) === 1, JSON.stringify(hubBox));
   await page.waitForSelector(".space-hotspot", { timeout: 20000 }).catch(() => {});
   check("[3d] hotspot hiện ở tổng quan (8 khu)", (await page.locator(".space-hotspot").count()) === 8, `${await page.locator(".space-hotspot").count()}`);
+  const labelOpacity = () => page.evaluate(() => Number(getComputedStyle(document.querySelector(".space-hotspot .space-hotspot-label")).opacity));
+  check("[3d] nhãn kim cương ẩn khi chưa rê chuột", (await labelOpacity()) < 0.05, `${await labelOpacity()}`);
+  await page.locator(".space-hotspot .space-diamond").first().hover({ force: true }).catch(() => {});
+  await page.waitForFunction(() => Number(getComputedStyle(document.querySelector(".space-hotspot .space-hotspot-label")).opacity) > 0.8, null, { timeout: 6000 }).catch(() => {});
+  check("[3d] rê chuột vào kim cương thì hiện nhãn", (await labelOpacity()) > 0.8, `${await labelOpacity()}`);
+  await page.mouse.move(720, 120);
+
+  // Camera tự do: cuộn chuột đổi khoảng cách, kéo đổi góc, nút ⟲ về góc mặc định
+  const d0 = (await camera(page)).distance;
+  await page.mouse.move(720, 450);
+  await page.mouse.wheel(0, -900);
+  await page.waitForFunction((d) => window.__aegisSpace.info().distance < d - 3, d0, { timeout: 10000 }).catch(() => {});
+  const d1 = (await camera(page)).distance;
+  check("[camera] cuộn chuột zoom vào được", d1 < d0 - 3, `${d0} → ${d1}`);
+  await page.mouse.wheel(0, 2400);
+  await page.waitForFunction((d) => window.__aegisSpace.info().distance > d + 3, d1, { timeout: 10000 }).catch(() => {});
+  const d2 = (await camera(page)).distance;
+  check("[camera] cuộn ngược zoom ra được", d2 > d1 + 3, `${d1} → ${d2}`);
+  const az0 = (await camera(page)).azimuth;
+  await page.mouse.move(560, 300);
+  await page.mouse.down();
+  for (let i = 1; i <= 14; i++) {
+    await page.mouse.move(560 + i * 22, 300);
+    await page.waitForTimeout(16);
+  }
+  await page.mouse.up();
+  await page.waitForTimeout(800);
+  const az1 = (await camera(page)).azimuth;
+  check("[camera] kéo chuột xoay quanh xưởng", Math.abs(az1 - az0) > 0.3, `${az0} → ${az1}`);
+  await page.locator(".space-reset").click();
+  await page.waitForFunction(() => Math.abs(window.__aegisSpace.info().azimuth) < 0.15 && !window.__aegisSpace.info().flying, null, { timeout: 15000 }).catch(() => {});
+  check("[camera] nút ⟲ đưa camera về góc mặc định", Math.abs((await camera(page)).azimuth) < 0.15, `${(await camera(page)).azimuth}`);
   const navText = await page.locator(".space-nav:visible").innerText();
   check("[3d] thanh điều hướng không đánh số thứ tự", !/\d/.test(navText), navText.replace(/\s+/g, " "));
   check("[3d] bốn dịch vụ cùng một hàng, cùng cỡ", await page.evaluate(() => {
@@ -219,24 +283,19 @@ try {
   check("[3d] hồ sơ dự án nối ngược về khu dịch vụ Web", (await page.locator('.space-panel a[href="/factory/services/web"]').count()) >= 1);
   await page.screenshot({ path: `${outDir}/3d-product.jpg`, type: "jpeg", quality: 70 });
 
-  // Chuyển giữa các dự án không cần bấm nút nhỏ cuối bảng: phím ← →, vuốt ngang trên cảnh, bộ chuyển nổi cạnh bảng
+  // Chuyển giữa các dự án: phím ← → và bộ chuyển nổi cạnh bảng (vuốt ngang nhường cho xoay camera)
   await page.keyboard.press("ArrowRight");
   await page.waitForURL("**/work/handle-vietnam", { timeout: 15000 }).catch(() => {});
   check("[3d] phím → sang dự án kế tiếp", page.url().endsWith("/work/handle-vietnam"), page.url());
+  await page.waitForFunction(() => [...document.querySelectorAll(".space-stepper-count")].some((el) => el.getClientRects().length && el.textContent?.includes("02 / 07")), null, { timeout: 10000 }).catch(() => {});
   await page.keyboard.press("ArrowLeft");
   await page.waitForURL("**/work/vidi26", { timeout: 15000 }).catch(() => {});
   check("[3d] phím ← về dự án trước", page.url().endsWith("/work/vidi26"), page.url());
-  await page.waitForTimeout(1500);
-  await page.mouse.move(560, 650);
-  await page.mouse.down();
-  for (let i = 1; i <= 12; i++) {
-    await page.mouse.move(560 - i * 30, 650);
-    await page.waitForTimeout(16);
-  }
-  await page.mouse.up();
+  await page.waitForFunction(() => [...document.querySelectorAll(".space-stepper-count")].some((el) => el.getClientRects().length && el.textContent?.includes("01 / 07")), null, { timeout: 10000 }).catch(() => {});
+  await page.keyboard.press("ArrowRight");
   await page.waitForURL("**/work/handle-vietnam", { timeout: 15000 }).catch(() => {});
-  check("[3d] vuốt ngang trên cảnh sang dự án kế tiếp", page.url().endsWith("/work/handle-vietnam"), page.url());
-  check("[3d] bộ chuyển 02 / 07 nổi cạnh bảng", (await page.locator(".space-stepper-count").innerText().catch(() => "")).includes("02 / 07"));
+  await page.waitForFunction(() => document.querySelector(".space-stepper-count")?.textContent?.includes("02 / 07"), null, { timeout: 8000 }).catch(() => {});
+  check("[3d] bộ chuyển 02 / 07 nổi cạnh bảng", (await page.locator(".space-stepper-count:visible").first().innerText().catch(() => "")).includes("02 / 07"));
   await page.getByRole("link", { name: /Mục trước/ }).first().click();
   await page.waitForURL("**/work/vidi26", { timeout: 15000 }).catch(() => {});
   await page.waitForTimeout(1500);
@@ -291,6 +350,15 @@ try {
     () => check("[mobile] cảnh 3D lên sóng", true),
     () => check("[mobile] cảnh 3D lên sóng", false, "quá 90 giây"),
   );
+  check("[mobile] có intro AEGIS", await page.evaluate(() => document.documentElement.dataset.spaceBoot === "playing"));
+  await page.waitForFunction(() => document.querySelector(".space-intro")?.dataset.ready === "true", null, { timeout: 90000 }).catch(() => {});
+  const introCdp = await context.newCDPSession(page);
+  await introCdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 195, y: 600 }] });
+  for (let i = 1; i <= 8; i++) await introCdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 195, y: 600 - i * 20 }] });
+  await introCdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await page.waitForFunction(() => Number(document.querySelector(".space-intro svg > g")?.getAttribute("transform")?.match(/scale\(([\d.]+)\)/)?.[1] ?? 1) > 1.2, null, { timeout: 15000 }).catch(() => {});
+  check("[mobile] vuốt lên phóng to chữ AEGIS", (await introScale(page)) > 1.2, `scale ${await introScale(page)}`);
+  await skipIntro(page);
   await page.waitForTimeout(4000);
   const stats = await page.evaluate(() => window.__aegisSpace?.info?.() ?? null);
   if (stats) {
@@ -319,13 +387,14 @@ try {
   await page.waitForURL("**/factory/services/software", { timeout: 15000 }).catch(() => {});
   check("[mobile] chạm một ô dịch vụ mở khu đó", page.url().endsWith("/factory/services/software"), page.url());
   await page.waitForTimeout(3000);
-  check("[mobile] sheet mặc định ở nấc nhô", (await page.locator(".space-panel").getAttribute("data-snap")) === "peek");
+  check("[mobile] chạm một khu thì nội dung hiện ngay (sheet mở ở nấc vừa)", (await page.locator(".space-panel").getAttribute("data-snap")) === "mid");
+  const sheetBox = await page.locator(".space-panel").boundingBox();
+  check("[mobile] sheet đủ cao để đọc (≥ 35% màn hình) và còn thấy cảnh phía trên", Boolean(sheetBox) && sheetBox.height >= 844 * 0.35 && sheetBox.y >= 844 * 0.2, JSON.stringify(sheetBox));
   await page.screenshot({ path: `${outDir}/mobile-3d-service.jpg`, type: "jpeg", quality: 70 });
-  // Bấm tay nắm mở sheet vừa, bấm lại mở hết cỡ
+  // Bấm tay nắm: mở hết cỡ, bấm lại: về nấc vừa
   await page.locator(".space-handle").tap();
   await page.waitForTimeout(400);
-  check("[mobile] chạm tay nắm mở sheet", (await page.locator(".space-panel").getAttribute("data-snap")) === "mid");
-  await page.locator(".space-handle").tap();
+  check("[mobile] chạm tay nắm mở hết cỡ", (await page.locator(".space-panel").getAttribute("data-snap")) === "full");
   await page.locator(".space-handle").tap();
   await page.waitForTimeout(300);
 
@@ -338,20 +407,11 @@ try {
   await page.waitForURL("**/factory/work/handle-vietnam", { timeout: 15000 }).catch(() => {});
   check("[mobile] chạm › chuyển sang dự án kế tiếp", page.url().endsWith("/work/handle-vietnam"), page.url());
   await page.waitForTimeout(3000);
-  const swipeCdp = await context.newCDPSession(page);
-  await swipeCdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 330, y: 300 }] });
-  for (let i = 1; i <= 12; i++) {
-    await swipeCdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 330 - i * 20, y: 300 }] });
-    await page.waitForTimeout(16);
-  }
-  await swipeCdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-  await page.waitForURL("**/factory/work/integritas-vu-legal", { timeout: 15000 }).catch(() => {});
-  check("[mobile] vuốt ngang trên cảnh sang dự án kế tiếp", page.url().endsWith("/work/integritas-vu-legal"), page.url());
   await page.goto(`${baseUrl}/factory/services/ai`, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(2500);
   check("[mobile] khu dịch vụ không có bộ đếm thứ tự", (await page.locator(".space-stepper-count").count()) === 0);
 
-  // Kéo quanh rất rộng (desktop chỉ ±0,45 rad)
+  // Kéo một ngón xoay camera quanh xưởng
   await page.goto(`${baseUrl}/factory?debug-space`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.dataset.spaceLive === "on", null, { timeout: 90000 }).catch(() => {});
   await page.waitForTimeout(4000);
@@ -362,9 +422,9 @@ try {
     await page.waitForTimeout(16);
   }
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-  await page.waitForTimeout(600);
+  await page.waitForFunction(() => Math.abs(window.__aegisSpace.info().azimuth) > 0.4, null, { timeout: 8000 }).catch(() => {});
   const look = await page.evaluate(() => window.__aegisSpace?.info?.() ?? null);
-  check("[mobile] vuốt quay camera quanh xưởng (>0,6 rad)", Boolean(look) && Math.abs(look.yaw) > 0.6, `yaw ${look?.yaw}`);
+  check("[mobile] vuốt một ngón xoay camera quanh xưởng (>0,4 rad)", Boolean(look) && Math.abs(look.azimuth) > 0.4, `azimuth ${look?.azimuth}`);
   check("[mobile] gợi ý kéo biến mất sau lần kéo đầu", (await page.locator(".space-drag-hint").count()) === 0);
   // Menu điện thoại có đổi ngôn ngữ
   await page.getByRole("button", { name: "Menu" }).tap();
@@ -447,6 +507,8 @@ try {
   const page = await context.newPage();
   await page.goto(`${baseUrl}/factory`, { waitUntil: "networkidle" });
   await page.waitForTimeout(1500);
+  check("[fallback] không WebGL: có intro AEGIS nhưng bỏ qua được", (await skipIntro(page)) === true);
+  await page.waitForTimeout(800);
   check("[fallback] không WebGL: tự dùng bản phẳng", (await page.locator(".space-canvas").count()) === 0);
   check("[fallback] có thông báo bản phẳng", (await page.locator(".space-notice").count()) === 1);
   check("[fallback] mặt bằng phẳng hiển thị", await page.locator(".space-map").isVisible());
@@ -462,7 +524,12 @@ try {
   const rmPage = await rm.newPage();
   await rmPage.goto(`${baseUrl}/factory`, { waitUntil: "domcontentloaded" });
   const bootRm = await rmPage.evaluate(() => document.documentElement.dataset.spaceBoot ?? "");
-  check("[reduced-motion] không có màn khởi động", bootRm === "");
+  check("[reduced-motion] không có intro", bootRm === "");
+  const deep = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const deepPage = await deep.newPage();
+  await deepPage.goto(`${baseUrl}/factory/work`, { waitUntil: "domcontentloaded" });
+  check("[intro] link sâu (/factory/work) vào thẳng, không intro", (await deepPage.evaluate(() => document.documentElement.dataset.spaceBoot ?? "")) === "");
+  await deep.close();
   await rm.close();
 
   const nojs = await browser.newContext({ viewport: { width: 1440, height: 900 }, javaScriptEnabled: false });

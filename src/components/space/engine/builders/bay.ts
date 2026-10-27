@@ -1,4 +1,18 @@
-import { AdditiveBlending, BoxGeometry, BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, Points, RingGeometry, ShaderMaterial, Vector3 } from "three";
+import {
+  AdditiveBlending,
+  BoxGeometry,
+  BufferAttribute,
+  BufferGeometry,
+  CircleGeometry,
+  DoubleSide,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  Points,
+  RingGeometry,
+  ShaderMaterial,
+  Vector3,
+} from "three";
 
 import { servicesWithDemo } from "@/config/space";
 import { BASE_ROTATION, createShapes } from "@/components/webgl/shapes";
@@ -10,6 +24,9 @@ import type { ServiceId } from "@/content/types";
 /** Hình hạt của từng dịch vụ (chỉ số trong createShapes): cùng một ngôn ngữ, mỗi dịch vụ một hình */
 export const SERVICE_SHAPE: Record<ServiceId, number> = { ai: 1, software: 2, web: 3, marketing: 4 };
 const MODE: Record<ServiceId, number> = { ai: 0, software: 1, web: 2, marketing: 3 };
+
+/** Chiều cao tâm tác phẩm trên bàn xoay (m) */
+export const BAY_OBJECT_Y = 1.75;
 
 const VERT = /* glsl */ `
 attribute float aSeed;
@@ -62,16 +79,18 @@ void main() {
 }`;
 
 /**
- * Bốn khu dịch vụ, dựng bằng CÙNG một công thức (ngang hàng): tác phẩm hạt mang hình của dịch vụ đặt giữa khung kính,
- * vòng sáng dưới chân, điểm chạm "Demo / Dự án" và "Trao đổi". Khu đang xem sáng và quay nhanh hơn.
+ * Bốn trạm chế tác dịch vụ, dựng bằng CÙNG một công thức (ngang hàng): tác phẩm hạt mang hình của dịch vụ đặt trên bàn xoay,
+ * vòng sáng, mặt phẳng laser quét lên xuống (hai cánh tay máy do arms.ts lo), điểm chạm "Demo / Dự án" và "Trao đổi".
+ * Trạm đang xem sáng và quay nhanh hơn.
  */
-export function buildPavilions(ctx: BuildContext): { zone: ServiceId; build: ZoneBuild }[] {
+export function buildBays(ctx: BuildContext): { zone: ServiceId; build: ZoneBuild }[] {
   const { palette, mobile } = ctx;
-  const count = mobile ? 1600 : 3000;
+  const count = mobile ? 1700 : 3400;
   const shapes = createShapes(count);
   const pixelRatio = Math.min(window.devicePixelRatio || 1, mobile ? 1.25 : 1.75);
   const seeds = new Float32Array(count);
   for (let i = 0; i < count; i++) seeds[i] = ((i * 2654435761) >>> 0) / 4294967296;
+  const additive = { transparent: true, blending: AdditiveBlending, depthWrite: false } as const;
 
   return (["ai", "software", "web", "marketing"] as const).map((id) => {
     const room = roomByZone[id];
@@ -84,9 +103,7 @@ export function buildPavilions(ctx: BuildContext): { zone: ServiceId; build: Zon
     const material = new ShaderMaterial({
       vertexShader: VERT,
       fragmentShader: FRAG,
-      transparent: true,
-      depthWrite: false,
-      blending: AdditiveBlending,
+      ...additive,
       uniforms: {
         uTime: { value: 0 },
         uSize: { value: mobile ? 3.2 : 2.8 },
@@ -101,24 +118,26 @@ export function buildPavilions(ctx: BuildContext): { zone: ServiceId; build: Zon
     });
     const points = new Points(geometry, material);
     points.frustumCulled = false;
-    points.position.set(room.x, 1.75, room.z);
+    points.position.set(room.x, BAY_OBJECT_Y, room.z);
 
-    const ring = new Mesh(
-      new RingGeometry(1.15, 1.2, 72).rotateX(-Math.PI / 2),
-      new MeshBasicMaterial({ color: palette.accentLight, transparent: true, opacity: 0.5, blending: AdditiveBlending, depthWrite: false }),
-    );
-    ring.position.set(room.x, 0.14, room.z);
+    // Vòng sáng trên bàn xoay
+    const ring = new Mesh(new RingGeometry(1.2, 1.26, 72).rotateX(-Math.PI / 2), new MeshBasicMaterial({ color: palette.accentLight, opacity: 0.5, ...additive }));
+    ring.position.set(room.x, 0.38, room.z);
+
+    // Mặt phẳng laser quét lên xuống qua tác phẩm
+    const scan = new Mesh(new CircleGeometry(1.35, 48).rotateX(-Math.PI / 2), new MeshBasicMaterial({ color: palette.accentPale, opacity: 0.1, ...additive, side: DoubleSide }));
+    scan.position.set(room.x, 1, room.z);
 
     // Vùng chạm vô hình quanh tác phẩm (raycast không xét visible)
     const primary = servicesWithDemo.includes(id) ? `demo:${id}` : `proof:${id}`;
-    const pick = new Mesh(new BoxGeometry(2.6, 2.8, 2.6), new MeshBasicMaterial());
+    const pick = new Mesh(new BoxGeometry(2.8, 3.2, 2.8), new MeshBasicMaterial());
     pick.visible = false;
-    pick.position.set(room.x, 1.6, room.z);
+    pick.position.set(room.x, 1.9, room.z);
     pick.userData.pick = primary;
 
-    group.add(points, ring, pick);
-    anchors[primary] = new Vector3(room.x, 3.05, room.z);
-    anchors[`start:${id}`] = new Vector3(room.x + room.w / 2 - 0.7, 0.85, room.z + room.d / 2 - 0.6);
+    group.add(points, ring, scan, pick);
+    anchors[primary] = new Vector3(room.x, 4.1, room.z);
+    anchors[`start:${id}`] = new Vector3(room.x + (room.x > 0 ? -1 : 1) * 2.1, 0.9, room.z + 1.9);
 
     let active = false;
     let hover = false;
@@ -137,12 +156,15 @@ export function buildPavilions(ctx: BuildContext): { zone: ServiceId; build: Zon
       update(time, dt) {
         const target = active ? 1 : hover ? 0.8 : 0.45;
         level += (target - level) * (1 - Math.exp(-dt * 4));
-        spin += dt * (0.1 + level * 0.25);
+        spin += dt * (0.12 + level * 0.3);
         material.uniforms.uTime.value = time;
         material.uniforms.uSpin.value = spin;
         material.uniforms.uOpacity.value = 0.45 + level * 0.55;
-        (ring.material as MeshBasicMaterial).opacity = 0.2 + level * 0.6;
-        ring.scale.setScalar(1 + Math.sin(time * 1.2) * 0.02 * level);
+        (ring.material as MeshBasicMaterial).opacity = 0.2 + level * 0.55;
+        // laser quét: lên xuống chậm, sáng hơn ở trạm đang xem
+        const sweep = 0.5 + 0.5 * Math.sin(time * (0.7 + level * 0.5) + room.x);
+        scan.position.y = 0.5 + sweep * 2.5;
+        (scan.material as MeshBasicMaterial).opacity = 0.05 + level * 0.14;
       },
       dispose() {
         disposeGroup(group);
@@ -151,4 +173,3 @@ export function buildPavilions(ctx: BuildContext): { zone: ServiceId; build: Zon
     return { zone: id, build };
   });
 }
-

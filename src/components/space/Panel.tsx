@@ -7,7 +7,6 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, ty
 import type { ZoneId } from "@/config/space";
 import { useFactory } from "@/components/space/factory-context";
 import { spaceStore } from "@/components/space/space-store";
-import { useSpace } from "@/components/space/useSpace";
 import { Rich } from "@/components/ui/Rich";
 import { gsap, MQ, useGSAP } from "@/lib/motion";
 
@@ -26,8 +25,10 @@ export function usePanelEnter(ref: RefObject<HTMLElement | null>) {
       mm.add(MQ.anyMotion, () => {
         const mobile = window.matchMedia("(max-width: 63.99rem)").matches;
         gsap.from(el, { clipPath: mobile ? "inset(100% 0 0 0)" : "inset(0 0 0 100%)", duration: 0.95, ease: "expo.inOut", clearProps: "clipPath" });
-        gsap.from(el.querySelectorAll("[data-panel-line]"), { scaleX: 0, transformOrigin: "0 50%", duration: 1, ease: "expo.out", delay: 0.35 });
-        gsap.from(el.querySelectorAll("[data-panel-in]"), { y: 26, autoAlpha: 0, duration: 0.8, ease: "expo.out", stagger: 0.06, delay: 0.45, clearProps: "transform,opacity,visibility" });
+        const lines = el.querySelectorAll("[data-panel-line]");
+        const items = el.querySelectorAll("[data-panel-in]");
+        if (lines.length) gsap.from(lines, { scaleX: 0, transformOrigin: "0 50%", duration: 1, ease: "expo.out", delay: 0.35 });
+        if (items.length) gsap.from(items, { y: 26, autoAlpha: 0, duration: 0.8, ease: "expo.out", stagger: 0.06, delay: 0.45, clearProps: "transform,opacity,visibility" });
       });
       return () => mm.revert();
     },
@@ -76,10 +77,9 @@ export function Panel({
   const router = useRouter();
   usePanelEnter(ref);
   // Sheet điện thoại có nhiều nấc cao (nhô / thấp / vừa / hết cỡ); ở nấc hết cỡ cảnh 3D phía sau được tạm dừng.
-  // Mặc định ở chế độ 3D là "nhô": cảnh chiếm gần cả màn hình, người dùng kéo/chạm tay nắm để đọc chi tiết.
-  const mode = useSpace("mode");
+  // Mặc định mở ở nấc "vừa" để nội dung hiện ngay khi chạm vào một khu; kéo tay nắm xuống để xem cảnh rộng hơn.
   const [chosen, setChosen] = useState<Snap>("auto");
-  const snap: Exclude<Snap, "auto"> = chosen === "auto" ? (mode === "3d" ? "peek" : "mid") : chosen;
+  const snap: Exclude<Snap, "auto"> = chosen === "auto" ? "mid" : chosen;
   const dragStart = useRef<number | null>(null);
 
   const cycle = (direction: 1 | -1) => {

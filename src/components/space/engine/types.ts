@@ -1,4 +1,4 @@
-import type { Group, Mesh, Vector3, WebGLRenderer } from "three";
+import type { Group, Mesh, Ray, Vector3, WebGLRenderer } from "three";
 
 import type { ZoneId } from "@/config/space";
 import type { Palette } from "@/components/space/engine/palette";
@@ -8,7 +8,6 @@ import type { RoomZone } from "@/components/space/plan";
 export interface SceneManifest {
   projects: { slug: string; name: string; cover: string }[];
   templates: { slug: string; name: string; cover: string; stage: string; accent: string }[];
-  lab: { id: string; name: string }[];
   /** Nhãn bảng tên của từng khu (theo ngôn ngữ) */
   zones: Record<RoomZone, { name: string; tag: string }>;
 }
@@ -35,6 +34,10 @@ export interface ZoneBuild {
   setState(active: boolean, focus: string | null): void;
   /** Khu đang mở (cho các phần cần biết toàn cảnh: bảng tên, hologram lõi) */
   setZone?(zone: ZoneId): void;
+  /** Tia từ camera qua con trỏ chuột (null khi không có chuột trong cảnh) và vị trí camera; gọi mỗi khung hình trước update */
+  setPointer?(ray: Ray | null, viewer: Vector3): void;
+  /** Màn mở đầu vừa xong (người xem vừa vào xưởng) */
+  onIntroDone?(): void;
   /** id hotspot đang được rê chuột tới (hoặc null) */
   setHover?(id: string | null): void;
   /** Nạp lười các texture (trả về số texture đã xong qua callback để tính tiến độ) */

@@ -1,19 +1,28 @@
-import { DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Vector3, type BufferGeometry, type Texture } from "three";
+import { AdditiveBlending, BoxGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Vector3, type BufferGeometry, type Texture } from "three";
 
-import { boxAt, mergeAll } from "@/components/space/engine/builders/merge";
+import { mergeAll } from "@/components/space/engine/builders/merge";
 import { createPools } from "@/components/space/engine/builders/pools";
 import { addSheen, type Sheen } from "@/components/space/engine/builders/sheen";
-
-import { SHOWROOM, showroomX } from "@/components/space/engine/layout";
+import { hallSlot, SHOWROOM, type Slot } from "@/components/space/engine/layout";
 import { exposureFor, gradientTexture, loadImageTexture } from "@/components/space/engine/textures";
 import type { BuildContext, ZoneBuild } from "@/components/space/engine/types";
 import { disposeGroup } from "@/components/space/engine/types";
 
+/** Hộp đặt theo toạ độ cục bộ (lx, ly, lz) của một ô trên cung, đã xoay theo hướng của ô, gộp được vào một mesh */
+function placedBox(w: number, h: number, d: number, lx: number, ly: number, lz: number, slot: Slot): BufferGeometry {
+  const g = new BoxGeometry(w, h, d);
+  g.rotateY(slot.yaw);
+  const c = Math.cos(slot.yaw);
+  const s = Math.sin(slot.yaw);
+  g.translate(slot.x + c * lx + s * lz, ly, slot.z - s * lx + c * lz);
+  return g;
+}
+
 /**
- * Phòng trưng bày: mỗi dự án là một màn hình đứng trên bệ, ảnh trang thật làm texture phát sáng, có halo phía sau
- * và phản chiếu mờ xuống sàn (bản lật đặt dưới mặt sàn bán trong suốt).
+ * Sảnh dự án: bảy màn hình xếp trên một cung quanh lõi, quay mặt vào tâm. Mỗi màn đứng trên bệ riêng, có dải đèn đứng phía sau
+ * (như tủ kính trưng bày), ảnh trang thật làm texture phát sáng, vệt sáng loang xuống sàn trước mặt và phản chiếu mờ.
  */
-export function buildShowroom(ctx: BuildContext): ZoneBuild {
+export function buildHall(ctx: BuildContext): ZoneBuild {
   const { palette, manifest } = ctx;
   const group = new Group();
   const pickables: Mesh[] = [];
@@ -23,7 +32,7 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
     [0, 0],
     [1, 1],
   ]);
-  const bodyMat = new MeshStandardMaterial({ color: palette.inkSurface, roughness: 0.6, metalness: 0.4 });
+  const bodyMat = new MeshStandardMaterial({ color: palette.inkSurface, roughness: 0.55, metalness: 0.5 });
   const bezelMat = new MeshStandardMaterial({ color: palette.ink, roughness: 0.5, metalness: 0.3 });
 
   interface Item {
@@ -37,17 +46,24 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
     texture: Texture | null;
     sheen: Sheen;
   }
-  // Bệ + trụ và khung viền của cả 7 màn hình gộp thành 2 mesh (thay vì 21)
   const bodyGeos: BufferGeometry[] = [];
   const bezelGeos: BufferGeometry[] = [];
+  const backGeos: BufferGeometry[] = [];
   const standH = SHOWROOM.y - SHOWROOM.h / 2 - 0.08;
+  const slots = manifest.projects.map((_, i) => hallSlot(i));
   const items: Item[] = manifest.projects.map((project, i) => {
-    const x = showroomX(i);
+    const slot = slots[i];
     const unit = new Group();
-    unit.position.set(x, 0, SHOWROOM.z);
+    unit.position.set(slot.x, 0, slot.z);
+    unit.rotation.y = slot.yaw;
 
-    bodyGeos.push(boxAt(1.35, 0.08, 0.62, x, 0.04, SHOWROOM.z), boxAt(0.07, standH, 0.07, x, 0.08 + standH / 2, SHOWROOM.z - 0.05));
-    bezelGeos.push(boxAt(SHOWROOM.w + 0.1, SHOWROOM.h + 0.1, 0.06, x, SHOWROOM.y, SHOWROOM.z - 0.04));
+    bodyGeos.push(placedBox(1.5, 0.1, 0.7, 0, 0.05, 0, slot), placedBox(0.07, standH, 0.07, 0, 0.1 + standH / 2, -0.05, slot));
+    bezelGeos.push(placedBox(SHOWROOM.w + 0.1, SHOWROOM.h + 0.1, 0.06, 0, SHOWROOM.y, -0.04, slot));
+    // dải đèn đứng phía sau màn hình
+    const back = new PlaneGeometry(SHOWROOM.w + 0.9, 3.0);
+    back.rotateY(slot.yaw);
+    back.translate(slot.x - Math.sin(slot.yaw) * 0 + Math.sin(slot.yaw) * -0.45, 1.5, slot.z + Math.cos(slot.yaw) * -0.45);
+    backGeos.push(back);
 
     const screenMat = new MeshBasicMaterial({ color: palette.inkSurface, toneMapped: false });
     const sheen = addSheen(screenMat, i * 0.37);
@@ -67,15 +83,20 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
     unit.add(screen, reflection);
     group.add(unit);
     pickables.push(screen);
-    anchors[`project:${project.slug}`] = new Vector3(x, SHOWROOM.y + SHOWROOM.h / 2 + 0.38, SHOWROOM.z + 0.1);
+    anchors[`project:${project.slug}`] = new Vector3(slot.x + Math.sin(slot.yaw) * 0.1, SHOWROOM.y + SHOWROOM.h / 2 + 0.4, slot.z + Math.cos(slot.yaw) * 0.1);
     return { slug: project.slug, screen, reflection, bright: 0.5, exposure: 1, target: 0.5, texture: null, sheen };
   });
 
   group.add(new Mesh(mergeAll(bodyGeos), bodyMat), new Mesh(mergeAll(bezelGeos), bezelMat));
+  const backlights = new Mesh(
+    mergeAll(backGeos),
+    new MeshBasicMaterial({ color: palette.accent, alphaMap: fade, transparent: true, opacity: 0.16, blending: AdditiveBlending, depthWrite: false, side: DoubleSide, toneMapped: false }),
+  );
+  group.add(backlights);
 
   // Ánh sáng từ màn hình loang xuống sàn trước mặt
   const pools = createPools(
-    items.map((_, i) => ({ x: showroomX(i), z: SHOWROOM.z + 1.05, w: 2.7, d: 2.4 })),
+    slots.map((s) => ({ x: s.x + s.nx * 1.1, z: s.z + s.nz * 1.1, w: 2.7, d: 2.4, yaw: s.yaw })),
     palette.accentLight,
   );
   group.add(pools.mesh);
@@ -87,7 +108,7 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
     for (const item of items) {
       const isFocus = focus === item.slug;
       const isHover = hover === `project:${item.slug}`;
-      item.target = !active ? 0.45 : focus ? (isFocus ? 1 : 0.28) : isHover ? 1 : 0.78;
+      item.target = !active ? 0.5 : focus ? (isFocus ? 1 : 0.3) : isHover ? 1 : 0.8;
     }
   };
   recompute();
@@ -108,6 +129,7 @@ export function buildShowroom(ctx: BuildContext): ZoneBuild {
     },
     update(time, dt) {
       const k = 1 - Math.exp(-dt * 6);
+      (backlights.material as MeshBasicMaterial).opacity = 0.1 + (active ? 0.1 : 0.04) + Math.sin(time * 0.8) * 0.015;
       for (const item of items) {
         item.bright += (item.target - item.bright) * k;
         const sm = item.screen.material as MeshBasicMaterial;

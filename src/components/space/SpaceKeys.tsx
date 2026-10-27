@@ -5,7 +5,9 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { setSpaceMode } from "@/components/space/SceneCanvas";
 import { spaceStore } from "@/components/space/space-store";
+import { engineRef } from "@/components/space/engine-ref";
 import { useFactory } from "@/components/space/factory-context";
+import { useSpace } from "@/components/space/useSpace";
 import { navOthers, navServices } from "@/config/space";
 
 /**
@@ -42,6 +44,7 @@ export function SpaceKeys() {
         return;
       }
       if (event.key.toLowerCase() === "m") router.push(href());
+      if (event.key.toLowerCase() === "r") engineRef.current?.resetView();
       if (event.key.toLowerCase() === "b") setSpaceMode(spaceStore.get().mode === "3d" ? "flat" : "3d");
     };
     window.addEventListener("keydown", onKey);
@@ -49,6 +52,27 @@ export function SpaceKeys() {
   }, [router, href]);
 
   return null;
+}
+
+/** "Xem lại phần mở đầu": xoá cờ phiên rồi tải lại trang tổng quan để intro AEGIS chạy lại */
+export function ReplayIntro({ className }: { className: string }) {
+  const { ui, href } = useFactory();
+  const mode = useSpace("mode");
+  if (mode !== "3d") return null;
+  return (
+    <button
+      type="button"
+      className={className}
+      onClick={() => {
+        try {
+          sessionStorage.removeItem("aegis-factory-boot");
+        } catch {}
+        window.location.assign(href());
+      }}
+    >
+      {ui.intro.replay}
+    </button>
+  );
 }
 
 /** Nút "Phím tắt" + bảng nhỏ (không khóa focus); Esc hoặc bấm ra ngoài để đóng. */
@@ -101,6 +125,7 @@ export function ShortcutsHelp() {
             </div>
           ))}
         </dl>
+        <ReplayIntro className="space-home label mt-3" />
       </div>
     </div>
   );

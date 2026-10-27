@@ -928,6 +928,40 @@
     height: 1px;
   }
 
+  /* Con trỏ trong Xưởng: dạng ngắm kỹ thuật, sắc cạnh (khung bốn góc vuông, chấm hình thoi, nhãn vát góc) */
+  html[data-space="on"] .cursor-ring {
+    border: 0;
+    border-radius: 0;
+    background:
+      linear-gradient(var(--blend-fg), var(--blend-fg)) 0 0 / 9px 1.5px no-repeat,
+      linear-gradient(var(--blend-fg), var(--blend-fg)) 0 0 / 1.5px 9px no-repeat,
+      linear-gradient(var(--blend-fg), var(--blend-fg)) 100% 0 / 9px 1.5px no-repeat,
+      linear-gradient(var(--blend-fg), var(--blend-fg)) 100% 0 / 1.5px 9px no-repeat,
+      linear-gradient(var(--blend-fg), var(--blend-fg)) 0 100% / 9px 1.5px no-repeat,
+      linear-gradient(var(--blend-fg), var(--blend-fg)) 0 100% / 1.5px 9px no-repeat,
+      linear-gradient(var(--blend-fg), var(--blend-fg)) 100% 100% / 9px 1.5px no-repeat,
+      linear-gradient(var(--blend-fg), var(--blend-fg)) 100% 100% / 1.5px 9px no-repeat;
+  }
+
+  html[data-space="on"] .cursor-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 0;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  }
+
+  html[data-space="on"] .cursor-bubble {
+    width: 78px;
+    height: 30px;
+    border-radius: 0;
+    clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  }
+
+  html[data-space="on"] .cursor-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+  }
+
   /* Ẩn con trỏ gốc khi con trỏ riêng đã chạy (html[data-cursor-on] do Cursor.tsx đặt sau lần di chuột đầu tiên) */
   @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
     html[data-cursor-on],

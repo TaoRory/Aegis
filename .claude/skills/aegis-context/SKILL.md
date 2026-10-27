@@ -23,7 +23,7 @@ description: Ngữ cảnh doanh nghiệp Aegis (dữ kiện đã xác nhận, 4 
 - Không giá/gói dịch vụ. Không thông tin liên hệ khi chưa được cung cấp (`siteConfig.contact` đang `null`).
 - Portfolio: chỉ ghi tính năng đã xác nhận. Database: Handle Vietnam, VIDI26. Phân quyền admin: chỉ VIDI26. Không nói Aegis là đối tác chính thức của VinUni.
 - Số liệu được phép hiển thị: chỉ những số đếm hiển nhiên từ nội dung (4 nhóm dịch vụ, 7 dự án trong portfolio, 4 bước làm việc).
-- Không định vị là công ty an ninh mạng; không chủ đề thần thoại Hy Lạp; không hình lá chắn lớn, matrix, robot, neon tràn lan.
+- Không định vị là công ty an ninh mạng; không chủ đề thần thoại Hy Lạp; không hình lá chắn lớn, matrix, robot, neon tràn lan. **Ngoại lệ (quyết định 27/10/2026):** riêng cảnh Factory (`/factory`) được dùng cánh tay máy công nghiệp làm đạo cụ chế tác; vẫn không robot hình người, không bộ giáp, không hình ảnh Marvel, màu theo token ultramarine. Cũng trong Factory, theo yêu cầu của chủ dự án, cổng Liên hệ có một nhân vật lễ tân người thật cách điệu (không mặt, vest xanh theo token) đứng chắp tay, vẫy chào khi chuột tìm tới.
 
 ## Thư viện mẫu giao diện (demo)
 

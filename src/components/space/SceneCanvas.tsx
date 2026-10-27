@@ -12,7 +12,6 @@ import { rooms } from "@/components/space/plan";
 import { spaceStore } from "@/components/space/space-store";
 import { useSpace } from "@/components/space/useSpace";
 import type { FactoryUi } from "@/content/factory/types";
-import { labItems } from "@/content/lab";
 import previews from "@/content/project-previews.json";
 import { projects } from "@/content/projects";
 import templatePreviews from "@/content/template-previews.json";
@@ -27,7 +26,6 @@ function buildManifest(ui: FactoryUi): SceneManifest {
   return {
     projects: projects.map((x) => ({ slug: x.slug, name: x.name, cover: p[x.slug]?.cover.src ?? "" })),
     templates: templates.map((x) => ({ slug: x.slug, name: x.name, cover: t[x.slug]?.cover.src ?? "", stage: x.stage, accent: x.palette[2] ?? x.stageInk })),
-    lab: labItems.map((x) => ({ id: x.id, name: ui.labNames[x.id] })),
     zones: Object.fromEntries(rooms.map((r) => [r.zone, { name: ui.zones[r.zone].name, tag: ui.zones[r.zone].tag }])) as SceneManifest["zones"],
   };
 }
@@ -55,7 +53,7 @@ function computeInsets() {
       const height = snap === "peek" ? PEEK_REM * rem : snap === "low" ? vh * 0.3 : snap === "full" ? vh - 136 : vh * 0.52;
       insets.bottom = height + NAV_REM * rem;
     }
-  } else if (hub) {
+  } else if (hub && document.documentElement.dataset.spaceLive !== "on") {
     const rect = hub.getBoundingClientRect();
     if (desktop) insets.left = rect.right;
     else insets.bottom = vh - rect.top;
@@ -112,10 +110,6 @@ export function SceneCanvas() {
                 onProgress: (p) => spaceStore.set("bootProgress", p),
                 onHover: (id) => spaceStore.set("hover", id),
                 onDrag: () => spaceStore.set("dragged", true),
-                onStep: (delta) => {
-                  const link = [...document.querySelectorAll<HTMLElement>(`.space-panel [data-step="${delta === 1 ? "next" : "prev"}"]`)].find((el) => el.getClientRects().length > 0);
-                  link?.click();
-                },
                 onPick: (id) => {
                   const el = document.querySelector<HTMLElement>(`[data-hotspot="${id}"]`);
                   if (el) el.click();
@@ -154,26 +148,33 @@ export function SceneCanvas() {
       const start = () => {
         if (cancelled) return;
         root.dataset.spaceLive = "on";
+        engine.setInsets(computeInsets()); // thẻ tổng quan đã ẩn khi 3D lên sóng: bỏ khoảng chừa của nó
         if (engine.hasPlayedIntro) {
           // Gắn lại engine đã chạy (đổi 3D/phẳng, quay lại từ trang mẫu): bỏ qua màn mở đầu
           spaceStore.set("staged", true);
           return;
         }
-        // Link sâu (không có màn khởi động): mở đầu ngắn hơn để nội dung không phải chờ
-        engine.playIntro(root.dataset.spaceBoot !== "playing", () => {
+        const afterIntro = () => {
           spaceStore.set("staged", true);
-          // Rảnh rồi mới nạp ảnh kệ mẫu (8 ảnh), để không tranh băng thông với phần khởi động
+          // Rảnh rồi mới nạp ảnh các mẫu giao diện (8 ảnh), để không tranh băng thông với phần khởi động
           window.setTimeout(() => void engine.loadShelf(), 2500);
-        });
+        };
+        if (root.dataset.spaceBoot === "playing") {
+          // Intro AEGIS: cảnh đã chạy phía sau các ô chữ; SpaceIntro điều khiển tiến độ bằng thao tác cuộn rồi báo bootPhase = done
+          engine.beginIntroScrub();
+          const unsub = spaceStore.subscribe(() => {
+            if (spaceStore.get().bootPhase === "done") {
+              unsub();
+              engine.finishIntroScrub();
+              afterIntro();
+            }
+          });
+          return;
+        }
+        // Link sâu (không có intro): mở đầu ngắn để nội dung không phải chờ
+        engine.playIntro(true, afterIntro);
       };
-      if (root.dataset.spaceBoot === "playing") {
-        const unsub = spaceStore.subscribe(() => {
-          if (spaceStore.get().bootPhase === "done") {
-            unsub();
-            start();
-          }
-        });
-      } else start();
+      start();
 
       // Khung nội dung xuất hiện / đổi nấc → tính lại độ lệch tâm
       const main = document.getElementById("noi-dung");

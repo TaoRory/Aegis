@@ -57,6 +57,19 @@ Sheet che nửa màn hình + camera lùi ra xem cả sa bàn làm cảnh "tù". 
 - **`html[lang]`:** root layout là `vi`; bootScript đặt `lang="en"` cho `/en/factory` từ khung hình đầu và `SpaceShell` đồng bộ khi chuyển ngôn ngữ.
 - **Bẫy:** trong chuỗi template của bootScript, `\/` mất dấu gạch chéo ngược và làm vỡ regex; dùng so sánh chuỗi. Trang con với tham số không hợp lệ (vd `/factory/services/web/demo`) vẫn trả 200 kèm giao diện 404 vì nội dung đã stream trong `<Suspense>`.
 
+## Camera tự do, lõi năng lượng và intro chữ khoét (Factory 3.0 "Forge")
+
+- **Camera:** dùng `OrbitControls` (`three/addons/controls/OrbitControls.js`) với giảm chấn, `zoomToCursor`, cảm ứng `DOLLY_PAN`. Giới hạn khoảng cách theo khu (`setLimits`), tâm nhìn kẹp trong xưởng, góc cực không chui xuống sàn. Chuyển khu = bay camera và tâm nhìn bằng gsap rồi trả quyền cho người dùng. Có nút ⟲ và phím R về góc mặc định; nhàn rỗi ~5 s ở tổng quan thì tự xoay chậm. Bỏ vuốt ngang để chuyển mục vì trùng với xoay.
+- **Bỏ thẻ giới thiệu ở tổng quan khi có 3D:** cảnh là chủ thể. `h1` và câu dẫn vẫn nằm trong DOM (thu còn 1×1 px) cho trình đọc màn hình. Nhãn hotspot chỉ hiện khi rê chuột/focus; trên cảm ứng chỉ nhãn gần tâm (`data-near`).
+- **Hình khối riêng cho từng khu**, nhưng bốn dịch vụ cùng một công thức (`bay.ts`): bệ bát giác, giàn khung, hai cánh tay máy (`arms.ts`, IK hai khớp, `InstancedMesh` gộp mọi cánh tay vào vài lệnh vẽ), tác phẩm hạt.
+- **Intro chữ khoét (`SpaceIntro.tsx`):** lớp phủ SVG có mặt nạ, chữ AEGIS rất lớn là ô cửa nhìn vào cảnh đang chạy. Cuộn ảo (bánh xe, vuốt, phím) gom thành tiến độ `p`; lớp phủ phóng to quanh khối đặc ở đỉnh chữ A (tìm bằng quét một cột điểm ảnh trên canvas), cùng lúc `engine.setIntroProgress(p)` đưa camera lùi và dựng các khu từ sàn. Chỉ một lần mỗi phiên (`sessionStorage`), có nút Bỏ qua, link sâu và giảm chuyển động không có intro.
+- **Bẫy của intro:** (1) hình phủ của mặt nạ chỉ cần bằng khung nhìn, không dùng toạ độ khổng lồ (Chrome vẽ ô đen khi mặt nạ phóng hàng chục lần); (2) làm mượt `p` bằng thời gian thật qua `requestAnimationFrame`, không dùng `gsap.to` (máy chậm bị gsap giới hạn bước thời gian nên trôi rất chậm); (3) failsafe CSS chỉ áp khi `SpaceIntro` chưa chạy (`data-intro-live`), nếu không sẽ làm lớp phủ biến mất giữa chừng trên máy chậm.
+- **Cánh tay máy thật hơn:** thanh côn bo cạnh (`RoundedBoxGeometry` biến dạng theo chiều dài), trục khớp, thanh chống thủy lực, động cơ nhỏ, vòng sáng ở khớp; mỗi cánh tay có chương trình riêng (hàn có tia lửa, kẹp–đặt có ngón mở/khép, quét) với điểm dừng, tốc độ, nhịp nghỉ khác nhau (hạt giống riêng) nên không đồng bộ. Gộp hình học trộn có/không chỉ mục phải đưa về không chỉ mục (`mergeAll`).
+- **Nhân vật tương tác (`figure.ts`):** thân gộp một mesh có màu đỉnh, mỗi tay hai mesh dùng IK hai khớp. Engine đưa tia từ camera qua con trỏ (`setPointer`) để nhân vật biết chuột lại gần; chuột tới thì vẫy chào ~3,4 s rồi chắp tay, chuột đi thì chắp ngay. Luôn quay mặt về camera để thấy chính diện từ mọi góc.
+- **Sương mù theo khoảng cách camera:** sương cố định 30–70 m làm cảnh trên điện thoại (camera xa 90 m) chìm hẳn vào nền; cho `near/far` tỉ lệ với khoảng cách camera tới tâm nhìn.
+- **Không tự xoay camera khi nhàn rỗi** (người dùng không thích). Sau khi `flyTo`, xả quán tính của OrbitControls bằng cách tắt giảm chấn và gọi `update()` một lần.
+- **Ngân sách đo được:** tổng quan 94 lệnh vẽ (desktop, có bloom) và 72 (điện thoại, không bloom), ~30k tam giác.
+
 ## Nội dung
 
-Khu "phòng thí nghiệm" và "nhật ký" chỉ ghi điều code thật sự làm; bài nhật ký phải có `confirmed: true` và cần chủ dự án duyệt. Không ngày tháng, số liệu hay khách hàng bịa.
+Từ Factory 3.0 không còn khu thí nghiệm và nhật ký; các khu còn lại chỉ ghi điều code thật sự làm; bài nhật ký phải có `confirmed: true` và cần chủ dự án duyệt. Không ngày tháng, số liệu hay khách hàng bịa.

@@ -35,6 +35,8 @@ export interface PoolSpec {
   z: number;
   w: number;
   d: number;
+  /** Góc quay quanh trục y (rad), mặc định 0 */
+  yaw?: number;
 }
 
 /** Các vệt sáng loang trên sàn (màn hình chiếu ánh sáng xuống sàn trước mặt): một mesh, độ sáng từng vệt qua thuộc tính đỉnh */
@@ -44,14 +46,17 @@ export function createPools(specs: PoolSpec[], color: Color, y = 0.04): Pools {
   const glow = new Float32Array(specs.length * 4);
   const index: number[] = [];
   specs.forEach((s, i) => {
+    const yaw = s.yaw ?? 0;
+    const c = Math.cos(yaw);
+    const sn = Math.sin(yaw);
     const corners = [
-      [s.x - s.w / 2, s.z - s.d / 2, 0, 0],
-      [s.x + s.w / 2, s.z - s.d / 2, 1, 0],
-      [s.x + s.w / 2, s.z + s.d / 2, 1, 1],
-      [s.x - s.w / 2, s.z + s.d / 2, 0, 1],
+      [-s.w / 2, -s.d / 2, 0, 0],
+      [s.w / 2, -s.d / 2, 1, 0],
+      [s.w / 2, s.d / 2, 1, 1],
+      [-s.w / 2, s.d / 2, 0, 1],
     ];
-    corners.forEach(([x, z, u, v], k) => {
-      positions.set([x, y, z], (i * 4 + k) * 3);
+    corners.forEach(([lx, lz, u, v], k) => {
+      positions.set([s.x + lx * c + lz * sn, y, s.z - lx * sn + lz * c], (i * 4 + k) * 3);
       uvs.set([u, v], (i * 4 + k) * 2);
     });
     index.push(i * 4, i * 4 + 2, i * 4 + 1, i * 4, i * 4 + 3, i * 4 + 2);
