@@ -1,51 +1,47 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 
 import { clamp01, measure, REF, smooth, WORD, type Layout } from "@/components/intro/aegis-mask";
+import { buildCircuit, circlePath } from "@/components/intro/circuit";
 import { useSite } from "@/components/layout/SiteLang";
 import { getLenis, INTRO_DONE_EVENT } from "@/lib/motion";
 
 const SESSION_KEY = "aegis-intro";
 
-const CELL = 96; // ô lưới lớn (px); lưới nhỏ chia mỗi ô làm 4
-const RINGS = 24;
-const RAYS = 24;
-
 /**
- * Lớp lưới kỹ thuật nằm dưới mặt nạ: chỉ lộ ra trong các ô cửa chữ AEGIS. Lưới ô vuông mảnh, các vòng tròn đồng tâm và tia toả ra
- * từ điểm phóng to (đỉnh chữ A) như màn ngắm / radar, vạch quét xoay chậm. Chỉ có đường nét, không chữ số. Thuần trang trí.
+ * Lớp mạch điện nằm dưới mặt nạ: chỉ lộ ra trong các ô cửa chữ AEGIS, như bên trong một bản mạch. Đường mạch ngang / dọc / chéo 45°
+ * có chân hàn và via, bus song song, chip có chân, xung sáng chạy dọc vài đường mạch; chip lớn ở đỉnh chữ A (điểm phóng to).
+ * Chỉ có đường nét, không chữ số. Thuần trang trí.
  */
-function TechGrid({ vw, vh, ax, ay }: { vw: number; vh: number; ax: number; ay: number }) {
-  const lines: { key: string; x1: number; y1: number; x2: number; y2: number; major: boolean }[] = [];
-  const step = CELL / 4;
-  for (let x = 0, n = 0; x <= vw; x += step, n++) lines.push({ key: `v${n}`, x1: x, y1: 0, x2: x, y2: vh, major: n % 4 === 0 });
-  for (let y = 0, n = 0; y <= vh; y += step, n++) lines.push({ key: `h${n}`, x1: 0, y1: y, x2: vw, y2: y, major: n % 4 === 0 });
-  const reach = Math.hypot(Math.max(ax, vw - ax), Math.max(ay, vh - ay)) + 40;
-  const crosses: { x: number; y: number }[] = [];
-  for (let x = 0; x <= vw; x += CELL) for (let y = 0; y <= vh; y += CELL) crosses.push({ x, y });
-  const sweep = `M ${ax} ${ay} L ${ax + reach} ${ay} A ${reach} ${reach} 0 0 0 ${ax + reach * Math.cos(-0.5)} ${ay + reach * Math.sin(-0.5)} Z`;
+function CircuitBoard({ vw, vh, ax, ay }: { vw: number; vh: number; ax: number; ay: number }) {
+  const board = useMemo(() => buildCircuit(vw, vh), [vw, vh]);
   return (
-    <g aria-hidden className="site-intro-grid">
+    <g aria-hidden className="site-intro-pcb">
       <rect x={0} y={0} width={vw} height={vh} className="site-intro-grid-fill" />
-      {lines.map(({ key, x1, y1, x2, y2, major }) => (
-        <line key={key} x1={x1} y1={y1} x2={x2} y2={y2} className={major ? "site-intro-grid-major" : "site-intro-grid-minor"} />
+      <path d={board.buses} className="site-intro-pcb-bus" />
+      <path d={board.traces} className="site-intro-pcb-trace" />
+      {board.chips.map((chip) => (
+        <g key={`${chip.x}-${chip.y}`}>
+          <path d={chip.pins} className="site-intro-pcb-trace" />
+          <rect x={chip.x} y={chip.y} width={chip.w} height={chip.h} className="site-intro-pcb-chip" />
+          <circle cx={chip.x + 8} cy={chip.y + 8} r={2} className="site-intro-pcb-via" />
+        </g>
       ))}
-      {Array.from({ length: RAYS }, (_, k) => {
-        const a = (k / RAYS) * Math.PI * 2;
-        return <line key={`r${k}`} x1={ax} y1={ay} x2={ax + Math.cos(a) * reach} y2={ay + Math.sin(a) * reach} className="site-intro-grid-ray" />;
-      })}
-      {Array.from({ length: RINGS }, (_, k) => (
-        <circle key={`c${k}`} cx={ax} cy={ay} r={(k + 1) * 64} className={k % 4 === 3 ? "site-intro-grid-ring site-intro-grid-ring-strong" : "site-intro-grid-ring"} />
+      <path d={circlePath(board.pads, vw < 640 ? 2.2 : 3.5)} className="site-intro-pcb-pad" />
+      <path d={circlePath(board.vias, vw < 640 ? 1.3 : 2)} className="site-intro-pcb-via" />
+      {board.pulses.map((pulse, k) => (
+        <circle
+          key={k}
+          cx={pulse.x}
+          cy={pulse.y}
+          r={vw < 640 ? 1.8 : 2.8}
+          className="site-intro-pcb-pulse"
+          style={{ "--dx": `${pulse.dx}px`, "--dy": `${pulse.dy}px`, animationDuration: `${pulse.dur}s`, animationDelay: `${pulse.delay}s` } as CSSProperties}
+        />
       ))}
-      {crosses.map(({ x, y }) => (
-        <path key={`${x}-${y}`} d={`M ${x - 4} ${y} H ${x + 4} M ${x} ${y - 4} V ${y + 4}`} className="site-intro-grid-cross" />
-      ))}
-      <g className="site-intro-sweep" style={{ transformOrigin: `${ax}px ${ay}px` }}>
-        <path d={sweep} className="site-intro-sweep-wedge" />
-        <line x1={ax} y1={ay} x2={ax + reach} y2={ay} className="site-intro-sweep-line" />
-      </g>
-      <circle cx={ax} cy={ay} r={5} className="site-intro-grid-core" />
+      <circle cx={ax} cy={ay} r={18} className="site-intro-pcb-pad" />
+      <circle cx={ax} cy={ay} r={7} className="site-intro-pcb-via" />
     </g>
   );
 }
@@ -212,7 +208,7 @@ export function SiteIntro() {
           </mask>
         </defs>
         <g ref={zoomRef}>
-          {l && <TechGrid vw={l.vw} vh={l.vh} ax={l.ax} ay={l.ay} />}
+          {l && <CircuitBoard vw={l.vw} vh={l.vh} ax={l.ax} ay={l.ay} />}
           <rect x={0} y={0} width={l?.vw ?? 1} height={l?.vh ?? 1} className="site-intro-cover" mask="url(#site-intro-mask)" />
           <text ref={outlineRef} className="site-intro-text site-intro-outline" x={l?.x ?? 0} y={l?.y ?? 0} fontSize={l?.fs ?? REF} fill="none">
             {WORD}
