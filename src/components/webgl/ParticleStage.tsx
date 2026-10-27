@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { stageStore } from "@/components/webgl/stage-store";
 import { getLenis, gsap, MQ, onIntroDone, ScrollTrigger } from "@/lib/motion";
+import { THEME_EVENT } from "@/lib/theme";
 import { onPointerMove } from "@/lib/pointer";
 
 /** Đọc màu token CSS (#rrggbb) thành vec3 0..1, để đổi theme không phải sửa shader */
@@ -23,11 +24,17 @@ function tokenColor(name: string, fallback: [number, number, number]): [number, 
  * vào Dịch vụ thì morph lần lượt: AI → phần mềm → web → marketing (tiến độ do Services cung cấp).
  */
 export function ParticleStage() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const host = hostRef.current;
+    if (!host) return;
+    // Canvas tạo mới mỗi lần gắn (không dùng phần tử do React giữ): engine.destroy() làm mất ngữ cảnh WebGL của canvas, và khi trang chủ
+    // được giữ lại rồi hiện lại (đi sang trang khác rồi bấm logo về) thì canvas cũ chỉ trả về ngữ cảnh đã mất, các hạt biến mất
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("aria-hidden", "true");
+    canvas.className = "particle-stage pointer-events-none fixed inset-0 z-0 h-svh w-full";
+    host.appendChild(canvas);
     let disposed = false;
     let cleanup = () => {};
 
@@ -44,17 +51,31 @@ export function ParticleStage() {
       const desktop = window.matchMedia("(min-width: 64rem)").matches;
       const lowQuality = document.documentElement.dataset.quality === "low";
       const weak = lowQuality || (navigator.hardwareConcurrency ?? 8) <= 4;
-      const count = Math.round((desktop ? 18000 : 10000) * (lowQuality ? 0.3 : weak ? 0.55 : 1));
+      const count = Math.round((desktop ? 26000 : 14000) * (lowQuality ? 0.3 : weak ? 0.55 : 1));
       const dpr = Math.min(window.devicePixelRatio || 1, lowQuality ? 1 : desktop ? 2 : 1.5);
 
       let engine: InstanceType<typeof ParticleEngine>;
       try {
-        engine = new ParticleEngine(canvas, createShapes(count), { dpr, pointSize: desktop ? 2 : 2.6 });
+        engine = new ParticleEngine(canvas, createShapes(count), { dpr, pointSize: desktop ? 3.4 : 3.6 });
       } catch (error) {
         console.warn("[ParticleStage] Bỏ qua hiệu ứng WebGL:", error);
         return;
       }
-      engine.setColors(tokenColor("--palette-paper", [0.92, 0.91, 0.89]), tokenColor("--palette-ultramarine-light", [0.55, 0.56, 1]));
+      // Màu hạt theo theme: nền tối dùng hạt sáng (giấy) cộng màu; nền sáng dùng hạt mực + xanh đậm, hoà trộn thường
+      const paintTheme = () => {
+        const light = document.documentElement.dataset.theme === "light";
+        engine.setLight(light);
+        engine.setColors(
+          light ? tokenColor("--palette-ink", [0.05, 0.05, 0.07]) : tokenColor("--palette-paper", [0.92, 0.91, 0.89]),
+          light ? tokenColor("--palette-ultramarine", [0.23, 0.25, 1]) : tokenColor("--palette-ultramarine-light", [0.55, 0.56, 1]),
+        );
+      };
+      paintTheme();
+      const onTheme = () => {
+        paintTheme();
+        engine.render();
+      };
+      window.addEventListener(THEME_EVENT, onTheme);
       canvas.dataset.ready = "on";
       // Kiểm thử tự động: ?debug-flow cho phép đọc trạng thái trường năng lượng từ trình duyệt
       if (window.location.search.includes("debug-flow")) (window as unknown as { __aegisParticles?: unknown }).__aegisParticles = engine;
@@ -66,7 +87,7 @@ export function ParticleStage() {
         return {
           // Điện thoại: artwork chiếm trọn nửa trên màn hình (chữ nằm ở nửa dưới), vừa khít bề ngang
           hero: isDesktop ? { x: aspect * 0.42, y: 0.02, scale: 0.62 } : { x: 0, y: 0.5, scale: Math.min(0.62, aspect * 0.86) },
-          services: isDesktop ? { x: aspect * 0.48, y: 0, scale: 0.58 } : { x: 0, y: 0.4, scale: Math.min(0.58, aspect * 0.95) },
+          services: isDesktop ? { x: aspect * 0.53, y: 0, scale: 0.54 } : { x: 0, y: 0.4, scale: Math.min(0.58, aspect * 0.95) },
         };
       };
 
@@ -98,6 +119,7 @@ export function ParticleStage() {
         window.addEventListener("resize", onResize);
         cleanup = () => {
           unsubscribe();
+          window.removeEventListener(THEME_EVENT, onTheme);
           window.removeEventListener("resize", onResize);
           engine.destroy();
         };
@@ -195,6 +217,7 @@ export function ParticleStage() {
         introTween.kill();
         triggers.forEach((t) => t.kill());
         unsubscribe();
+        window.removeEventListener(THEME_EVENT, onTheme);
         observer.disconnect();
         document.removeEventListener("visibilitychange", sync);
         window.removeEventListener("resize", onResize);
@@ -215,8 +238,9 @@ export function ParticleStage() {
       disposed = true;
       cancelIdle(handle);
       cleanup();
+      canvas.remove();
     };
   }, []);
 
-  return <canvas ref={canvasRef} aria-hidden className="particle-stage pointer-events-none fixed inset-0 z-0 h-svh w-full" />;
+  return <div ref={hostRef} aria-hidden />;
 }

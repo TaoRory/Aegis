@@ -1,3 +1,4 @@
+import type { SettingsCopy } from "@/content/settings-copy";
 import type { Locale, ZoneId } from "@/config/space";
 import type { ProcessStep, Project, ProjectCategory, Service, ServiceId, Value } from "@/content/types";
 
@@ -9,6 +10,11 @@ export interface FactoryUi {
   lang: Locale;
   name: string;
   homeLink: string;
+  /** Chữ nút "Bỏ qua đến nội dung chính" */
+  skip: string;
+  settings: SettingsCopy;
+  /** Đường về trang Web (bản /web/factory) */
+  webLink: string;
   language: { label: string; vi: string; en: string; switchTo: string };
   zones: Record<ZoneId, { name: string; short: string; tag: string }>;
   hub: { label: string; lines: string[]; lead: string; legend: string; servicesLabel: string };
@@ -46,7 +52,7 @@ export interface FactoryUi {
   serviceTitles: Record<ServiceId, string>;
   demoBadge: string;
   /** Nhãn điểm chạm trong khu dịch vụ */
-  hotspotLabels: { demo: string; proof: string; start: string };
+  hotspotLabels: { demo: string; proof: string; start: string; page: string };
 }
 
 export interface FactoryDict {
@@ -67,6 +73,8 @@ export interface FactoryDict {
     start: string;
     others: string;
     studioLink: string;
+    /** Liên kết sang trang Web & web app của trang chính (bản trung tính không có khu Dự án) */
+    webPage: string;
     open: string;
   };
   projects: Project[];

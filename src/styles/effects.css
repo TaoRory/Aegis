@@ -295,24 +295,184 @@
     visibility: visible;
   }
 
-  /* ---------- Preloader ---------- */
-  .preloader {
+  /* ---------- Màn mở đầu chữ AEGIS (SiteIntro.tsx) ---------- */
+  .site-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: none;
+    overflow: hidden;
+    touch-action: none;
+    overscroll-behavior: none;
+  }
+
+  [data-intro="playing"] .site-intro {
+    display: block;
+  }
+
+  /* Failsafe: nếu JS không chạy tới SiteIntro (không đặt data-intro-live) thì tự ẩn sau 8 giây */
+  [data-intro="playing"]:not([data-intro-live]) .site-intro {
+    animation: preloader-failsafe 0.01s 8s forwards;
+  }
+
+  .site-intro-svg {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .site-intro-text {
+    font-family: var(--font-family-sans);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+  }
+
+  .site-intro-cover {
+    fill: var(--bg);
+  }
+
+  .site-intro-outline {
+    stroke: var(--accent);
+    stroke-width: 1.5;
+    stroke-opacity: 0.8;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .site-intro-fill {
+    fill: var(--accent);
+    transition: opacity 0.7s ease;
+  }
+
+  .site-intro[data-ready="true"] .site-intro-fill {
+    opacity: 0;
+  }
+
+  /* Lưới kỹ thuật lộ ra trong các ô cửa chữ AEGIS: ô vuông mảnh + vòng tròn đồng tâm + tia + vạch quét, chỉ đường nét */
+  .site-intro-grid-fill {
+    fill: var(--bg);
+    opacity: 0.8;
+  }
+
+  .site-intro-grid-minor,
+  .site-intro-grid-major,
+  .site-intro-grid-ray,
+  .site-intro-grid-ring,
+  .site-intro-grid-cross,
+  .site-intro-sweep-line {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .site-intro-grid-minor {
+    stroke: color-mix(in oklab, var(--accent) 12%, transparent);
+    stroke-width: 0.6;
+  }
+
+  .site-intro-grid-major {
+    stroke: color-mix(in oklab, var(--accent) 24%, transparent);
+    stroke-width: 0.8;
+  }
+
+  .site-intro-grid-ray {
+    stroke: color-mix(in oklab, var(--accent) 20%, transparent);
+    stroke-width: 0.7;
+  }
+
+  .site-intro-grid-ring {
+    stroke: color-mix(in oklab, var(--accent) 34%, transparent);
+    stroke-width: 0.8;
+  }
+
+  .site-intro-grid-ring-strong {
+    stroke: color-mix(in oklab, var(--accent) 70%, transparent);
+    stroke-width: 1.2;
+  }
+
+  .site-intro-grid-cross {
+    stroke: var(--accent);
+    stroke-width: 1;
+    opacity: 0.55;
+  }
+
+  .site-intro-grid-core {
+    fill: var(--accent);
+  }
+
+  .site-intro-sweep-wedge {
+    fill: color-mix(in oklab, var(--accent) 16%, transparent);
+  }
+
+  .site-intro-sweep-line {
+    stroke: var(--accent);
+    stroke-width: 1.4;
+    opacity: 0.85;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .site-intro-sweep {
+      animation: site-intro-sweep 7s linear infinite;
+    }
+  }
+
+  .site-intro-ui {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .site-intro-hint {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(2.5rem, 8vh, 4.5rem);
+    display: grid;
+    justify-items: center;
+    gap: 0.4rem;
+    transform: translateX(-50%);
+    color: var(--fg);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .site-intro-hint-touch {
     display: none;
   }
 
-  [data-intro="playing"] .preloader {
-    display: flex;
-    /* Failsafe: nếu JS lỗi, tự ẩn sau 4 giây */
-    animation: preloader-failsafe 0.01s 4s forwards;
+  @media (hover: none) {
+    .site-intro-hint-mouse {
+      display: none;
+    }
+
+    .site-intro-hint-touch {
+      display: inline;
+    }
   }
 
-  .preloader-line {
+  .site-intro-arrow {
+    font-size: 1.1rem;
+    color: var(--accent);
+  }
+
+  .site-intro-skip {
     position: absolute;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--border-strong);
-    transform-origin: left;
+    right: clamp(1rem, 3vw, 2rem);
+    top: clamp(1rem, 3vh, 1.75rem);
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--border-strong);
+    color: var(--fg-muted);
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .site-intro-skip:hover,
+  .site-intro-skip:focus-visible {
+    color: var(--fg);
+    border-color: var(--fg);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .site-intro-arrow {
+      animation: space-nudge 1.6s ease-in-out infinite;
+    }
   }
 
   [data-intro="playing"] {
@@ -926,6 +1086,79 @@
     top: 50%;
     width: 100%;
     height: 1px;
+  }
+
+  /* Nút đổi ngôn ngữ VI | EN của trang chính (LangSwitch.tsx) */
+  .lang-switch {
+    height: 2.5rem;
+    border: 1px solid var(--border-strong);
+  }
+
+  .lang-switch-link {
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 0.75rem;
+    color: var(--fg-muted);
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .lang-switch-link:hover,
+  .lang-switch-link:focus-visible {
+    color: var(--fg);
+  }
+
+  .lang-switch-link[aria-current="true"] {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  /* Viên chứa công cụ ở góc phải header: nền đặc đổi theo theme (tối ở theme tối, sáng ở theme sáng) nên không bị chìm vào nền trang */
+  .header-tools {
+    padding: 0.3rem;
+    background: color-mix(in oklab, var(--palette-ink) 86%, transparent);
+    border: 1px solid color-mix(in oklab, var(--palette-paper) 14%, transparent);
+    backdrop-filter: blur(10px);
+    --fg: var(--palette-paper);
+    --fg-muted: var(--palette-graphite-light);
+    --bg: var(--palette-ink);
+    --border-strong: color-mix(in oklab, var(--palette-paper) 30%, transparent);
+    color: var(--fg);
+  }
+
+  html[data-theme="light"] .header-tools {
+    background: color-mix(in oklab, var(--palette-white) 90%, transparent);
+    border-color: color-mix(in oklab, var(--palette-ink) 12%, transparent);
+    --fg: var(--palette-ink);
+    --fg-muted: var(--palette-graphite);
+    --bg: var(--palette-bright);
+    --border-strong: color-mix(in oklab, var(--palette-ink) 28%, transparent);
+  }
+
+  /* Công tắc theme sáng/tối (ThemeToggle.tsx) */
+  .theme-toggle {
+    display: inline-grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    place-items: center;
+    border: 1px solid var(--border-strong);
+    color: var(--fg);
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .theme-toggle:hover,
+  .theme-toggle:focus-visible {
+    border-color: var(--fg);
+  }
+
+  .theme-toggle svg {
+    width: 1.15rem;
+    height: 1.15rem;
   }
 
   /* Con trỏ trong Xưởng: dạng ngắm kỹ thuật, sắc cạnh (khung bốn góc vuông, chấm hình thoi, nhãn vát góc) */
@@ -2098,6 +2331,18 @@
 @keyframes reveal-failsafe {
   to {
     visibility: visible;
+  }
+}
+
+@keyframes site-intro-sweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes space-nudge {
+  50% {
+    transform: translateY(0.35rem);
   }
 }
 

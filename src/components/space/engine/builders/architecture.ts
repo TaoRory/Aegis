@@ -131,6 +131,9 @@ function centerOf(room: Room): { x: number; z: number } {
  */
 export function buildArchitecture(ctx: BuildContext): Architecture {
   const { palette } = ctx;
+  const showcase = ctx.manifest.showcase;
+  // Bản trung tính không dựng sảnh dự án và băng chuyền mẫu: bỏ hai khu đó khỏi nét mặt bằng, bệ, vách và tấm sáng
+  const visibleRooms = rooms.filter((r) => showcase || (r.zone !== "work" && r.zone !== "studio"));
   const group = new Group();
   const walls = new Group();
   let time = 0;
@@ -156,7 +159,7 @@ export function buildArchitecture(ctx: BuildContext): Architecture {
 
   // Nét mặt bằng
   const linePositions: number[] = [];
-  for (const r of rooms) {
+  for (const r of visibleRooms) {
     const pts = outlinePoints(r);
     for (let i = 0; i < pts.length - 1; i++) linePositions.push(pts[i][0], 0.02, pts[i][1], pts[i + 1][0], 0.02, pts[i + 1][1]);
   }
@@ -180,10 +183,12 @@ export function buildArchitecture(ctx: BuildContext): Architecture {
     tier(1.55, 0.36, r.x, r.z); // bàn xoay đỡ tác phẩm
   }
   const hall = roomByZone.work;
-  plat.push(new RingGeometry(hall.r - HALL.band, hall.r + HALL.band, 72, 1, Math.PI / 2 - (hall.a1 ?? 0), (hall.a1 ?? 0) - (hall.a0 ?? 0)).rotateX(-Math.PI / 2).translate(0, 0.05, 0));
-  const studio = roomByZone.studio;
-  tier(studio.r, 0.2, studio.x, studio.z);
-  plat.push(new CylinderGeometry(0.5, 0.55, 2.8, 24).translate(studio.x, 1.4, studio.z)); // trụ băng chuyền
+  if (showcase) {
+    plat.push(new RingGeometry(hall.r - HALL.band, hall.r + HALL.band, 72, 1, Math.PI / 2 - (hall.a1 ?? 0), (hall.a1 ?? 0) - (hall.a0 ?? 0)).rotateX(-Math.PI / 2).translate(0, 0.05, 0));
+    const studio = roomByZone.studio;
+    tier(studio.r, 0.2, studio.x, studio.z);
+    plat.push(new CylinderGeometry(0.5, 0.55, 2.8, 24).translate(studio.x, 1.4, studio.z)); // trụ băng chuyền
+  }
   const gate = roomByZone.contact;
   tier(gate.r, 0.18, gate.x, gate.z);
   group.add(new Mesh(mergeAll(plat), platformMat));
@@ -205,7 +210,7 @@ export function buildArchitecture(ctx: BuildContext): Architecture {
   const a0 = hall.a0 ?? 0;
   const a1 = hall.a1 ?? 0;
   const arcWall = new Mesh(new CylinderGeometry(hall.r + HALL.band - 0.05, hall.r + HALL.band - 0.05, WALL_H, 96, 1, true, Math.PI - a1 - 0.06, a1 - a0 + 0.12).translate(0, WALL_H / 2, 0), wallMat);
-  walls.add(arcWall);
+  if (showcase) walls.add(arcWall);
 
   // Giàn chế tác của bốn trạm: hai trụ + cổng vòm phía sau bàn xoay. Kim loại tối và dải sáng gộp riêng.
   const metal: BufferGeometry[] = [];
@@ -241,7 +246,7 @@ export function buildArchitecture(ctx: BuildContext): Architecture {
   const pickables: Mesh[] = [];
   const anchors: Record<string, Vector3> = {};
   const glow = new Map<RoomZone, { mesh: Mesh; target: number; current: number }>();
-  for (const r of rooms) {
+  for (const r of visibleRooms) {
     let geometry: BufferGeometry;
     if (r.shape === "arc") geometry = new RingGeometry(r.r - HALL.band + 0.1, r.r + HALL.band - 0.1, 72, 1, Math.PI / 2 - (r.a1 ?? 0), (r.a1 ?? 0) - (r.a0 ?? 0)).rotateX(-Math.PI / 2);
     else if (r.shape === "octagon") geometry = new CircleGeometry(r.r - 0.1, 8, Math.PI / 8).rotateX(-Math.PI / 2);

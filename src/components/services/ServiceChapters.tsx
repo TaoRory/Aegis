@@ -1,23 +1,17 @@
 "use client";
 
 import { useRef, useState, type CSSProperties } from "react";
+import Link from "next/link";
 
-import { SelectServiceLink } from "@/components/services/SelectServiceLink";
 import { stageStore } from "@/components/webgl/stage-store";
+import { serviceHref } from "@/config/routes";
+import type { Locale } from "@/config/space";
+import type { SiteDict } from "@/content/site";
 import type { Service } from "@/content/types";
 import { cn } from "@/lib/cn";
-import { gsap, MQ, ScrollTrigger, scrollToTarget, useGSAP } from "@/lib/motion";
+import { getLenis, gsap, MQ, ScrollTrigger, scrollToTarget, useGSAP } from "@/lib/motion";
 
-/** Mỗi chương giữ hình một lúc rồi mới morph sang hình kế tiếp (ở 30% cuối của chương) */
-function phaseFromProgress(progress: number, count: number) {
-  const seg = Math.min(progress * count, count - 0.0001);
-  const index = Math.floor(seg);
-  const local = seg - index;
-  const t = index < count - 1 ? Math.min(1, Math.max(0, (local - 0.7) / 0.3)) : 0;
-  return index + t * t * (3 - 2 * t);
-}
-
-export function ServiceChapters({ services }: { services: Service[] }) {
+export function ServiceChapters({ services, lang, copy }: { services: Service[]; lang: Locale; copy: SiteDict["chapters"] }) {
   const ref = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
   const [active, setActive] = useState(0);
@@ -35,19 +29,81 @@ export function ServiceChapters({ services }: { services: Service[] }) {
       // Desktop: ghim sân khấu, chương thay nhau theo tiến độ cuộn
       mm.add(MQ.desktopMotion, () => {
         root.dataset.mode = "pinned";
+        const last = services.length - 1;
+        // Mỗi chương chiếm một đoạn cuộn ngắn; dừng cuộn là tự "hút" tới chương gần nhất THEO CHIỀU đang cuộn,
+        // nên chỉ một nấc lăn chuột là hình và chữ cùng sang dịch vụ kế tiếp
+        let settleTimer = 0;
+        let snapping = false;
+        let direction = 1;
+        let previous = 0;
+
         const st = ScrollTrigger.create({
           trigger: root,
           start: "top top",
-          end: () => `+=${window.innerHeight * services.length * 0.95}`,
+          end: () => `+=${window.innerHeight * last * 0.8}`,
           pin: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate(self) {
-            stageStore.setServicePhase(phaseFromProgress(self.progress, services.length));
-            setActive(Math.min(services.length - 1, Math.floor(self.progress * services.length)));
+            const segment = self.progress * last;
+            // Hình morph liên tục theo tiến độ (cùng nhịp với chữ đổi), không còn "giữ hình rồi mới đổi"
+            stageStore.setServicePhase(segment);
+            setActive(Math.min(last, Math.round(segment)));
             if (barRef.current) barRef.current.style.transform = `scaleX(${self.progress})`;
+            if (snapping) return;
+            if (Math.abs(self.progress - previous) > 1e-4) direction = self.progress > previous ? 1 : -1;
+            previous = self.progress;
+            window.clearTimeout(settleTimer);
+            settleTimer = window.setTimeout(settle, 130);
           },
         });
+
+        const goTo = (index: number) => {
+          const y = st.start + (index / last) * (st.end - st.start);
+          snapping = true;
+          window.setTimeout(() => (snapping = false), 1300); // chốt an toàn nếu onComplete không tới
+          const lenis = getLenis();
+          if (lenis) {
+            lenis.scrollTo(y, {
+              duration: 0.85,
+              easing: (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
+              force: true,
+              onComplete: () => {
+                snapping = false;
+                previous = st.progress;
+              },
+            });
+          } else scrollToTarget(y);
+        };
+
+        function settle() {
+          if (snapping || !st.isActive) return;
+          const segment = st.progress * last;
+          const target = direction > 0 ? Math.ceil(segment - 0.03) : Math.floor(segment + 0.03);
+          if (Math.abs(segment - target) < 0.03) return;
+          goTo(Math.max(0, Math.min(last, target)));
+        }
+
+        // Lăn chuột trong đoạn ghim: MỘT cử chỉ = một dịch vụ, chuyển ngay (không chờ Lenis làm mượt rồi mới hút).
+        // Cử chỉ mới = khoảng lặng > 150 ms giữa hai sự kiện lăn, để quán tính của chuột/trackpad không nhảy thêm chương.
+        // Ở chương đầu mà lăn lên, hoặc chương cuối mà lăn xuống, thì để trang cuộn bình thường ra khỏi đoạn ghim.
+        let lastWheelAt = 0;
+        const onWheel = (event: WheelEvent) => {
+          const dir = Math.sign(event.deltaY);
+          if (!st.isActive || !dir) return;
+          const segment = st.progress * last;
+          if ((dir > 0 && segment >= last - 0.02) || (dir < 0 && segment <= 0.02)) return;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          const now = performance.now();
+          const freshGesture = now - lastWheelAt > 150;
+          lastWheelAt = now;
+          if (snapping || !freshGesture) return;
+          direction = dir;
+          window.clearTimeout(settleTimer);
+          goTo(Math.max(0, Math.min(last, dir > 0 ? Math.floor(segment + 0.02) + 1 : Math.ceil(segment - 0.02) - 1)));
+        };
+        window.addEventListener("wheel", onWheel, { passive: false, capture: true });
 
         // Liên kết tới từng dịch vụ (hero, footer): cuộn tới đúng chương bên trong đoạn ghim
         const onClick = (event: MouseEvent) => {
@@ -58,12 +114,14 @@ export function ServiceChapters({ services }: { services: Service[] }) {
           if (index < 0) return;
           event.preventDefault();
           event.stopPropagation();
-          scrollToTarget(st.start + ((index + 0.3) / services.length) * (st.end - st.start));
+          goTo(index);
           history.pushState(null, "", hash);
         };
         document.addEventListener("click", onClick, true);
 
         return () => {
+          window.clearTimeout(settleTimer);
+          window.removeEventListener("wheel", onWheel, true);
           document.removeEventListener("click", onClick, true);
           delete root.dataset.mode;
           stageStore.setServicePhase(0);
@@ -108,16 +166,16 @@ export function ServiceChapters({ services }: { services: Service[] }) {
               className="service-chapter"
               style={{ "--i": index } as CSSProperties}
             >
-              <article aria-labelledby={`dich-vu-${service.id}-title`} data-num={pad(index + 1)} className="lg:max-w-[46rem]">
+              <article aria-labelledby={`dich-vu-${service.id}-title`} data-num={pad(index + 1)} className="lg:max-w-[47rem]">
                 <p className="label flex items-center gap-3 text-muted">
                   <span className="text-accent">BV-{pad(index + 1)}</span>
                   <span aria-hidden className="h-px w-10 bg-line-strong" />
-                  Bản vẽ số {pad(index + 1)} / {pad(services.length)}
+                  {copy.sheet} {pad(index + 1)} / {pad(services.length)}
                 </p>
                 <h3 id={`dich-vu-${service.id}-title`} className="mt-6 text-h3 font-semibold">
                   {service.title}
                 </h3>
-                <p className="mt-5 max-w-[36rem] text-lead text-muted">{service.summary}</p>
+                <p className="mt-5 max-w-[42rem] text-lead text-muted">{service.summary}</p>
 
                 <button
                   type="button"
@@ -126,15 +184,15 @@ export function ServiceChapters({ services }: { services: Service[] }) {
                   aria-controls={`dich-vu-${service.id}-chi-tiet`}
                   onClick={() => setExpanded((e) => ({ ...e, [service.id]: !e[service.id] }))}
                 >
-                  <span>{expanded[service.id] ? "Thu gọn" : "Xem chi tiết"}</span>
+                  <span>{expanded[service.id] ? copy.less : copy.more}</span>
                   <span aria-hidden className="service-more-icon" />
                 </button>
 
                 <div id={`dich-vu-${service.id}-chi-tiet`} data-open={!!expanded[service.id]} className="service-more-body">
                 <div className="mt-9 grid gap-8 border-t border-line pt-7 sm:grid-cols-2">
                   <div>
-                    <h4 className="label text-muted">Nhu cầu thường gặp</h4>
-                    <ul className="mt-4 space-y-3 text-[0.95rem] leading-relaxed text-muted">
+                    <h4 className="label text-muted">{copy.needs}</h4>
+                    <ul className="mt-4 space-y-3 text-[1.1rem] leading-relaxed text-muted">
                       {service.needs.map((item) => (
                         <li key={item} className="flex gap-3">
                           <span aria-hidden className="mt-[0.6em] h-px w-3 shrink-0 bg-line-strong" />
@@ -144,8 +202,8 @@ export function ServiceChapters({ services }: { services: Service[] }) {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="label text-muted">Aegis hỗ trợ</h4>
-                    <ul className="mt-4 space-y-3 text-[0.95rem] leading-relaxed">
+                    <h4 className="label text-muted">{copy.scope}</h4>
+                    <ul className="mt-4 space-y-3 text-[1.1rem] leading-relaxed">
                       {service.scope.map((item) => (
                         <li key={item} className="flex gap-3">
                           <span aria-hidden className="font-mono text-accent">+</span>
@@ -156,22 +214,22 @@ export function ServiceChapters({ services }: { services: Service[] }) {
                   </div>
                 </div>
 
-                <p className="mt-8 font-serif text-[clamp(1.2rem,1rem+0.7vw,1.6rem)] leading-snug italic">
+                <p className="mt-8 font-serif text-[clamp(1.35rem,1.1rem+0.9vw,2rem)] leading-snug italic">
                   “{service.value}”
                 </p>
                 </div>
 
-                <SelectServiceLink serviceId={service.id} className="btn-link mt-8 text-fg">
+                <Link href={serviceHref(lang, service.id)} className="btn-link mt-8 text-fg">
                   <span className="roll">
-                    <span className="roll-a">Trao đổi về dịch vụ này</span>
+                    <span className="roll-a">{copy.explore}</span>
                     <span className="roll-b" aria-hidden>
-                      Trao đổi về dịch vụ này
+                      {copy.explore}
                     </span>
                   </span>
                   <span aria-hidden className="btn-arrow">
                     →
                   </span>
-                </SelectServiceLink>
+                </Link>
               </article>
             </li>
           ))}

@@ -11,7 +11,8 @@ import { ReplayIntro, ShortcutsHelp } from "@/components/space/SpaceKeys";
 import { spaceStore } from "@/components/space/space-store";
 import { useSpace } from "@/components/space/useSpace";
 import { ZoneIcon } from "@/components/space/ZoneIcon";
-import { factoryHref, isServiceZone, locales, navOthers, navServices, SPACE_BASE, stripLocale, type Zone } from "@/config/space";
+import { homeHref, serviceHref } from "@/config/routes";
+import { factoryHref, isServiceZone, locales, navOthersFor, navServices, SPACE_BASES, stripLocale, type Zone } from "@/config/space";
 
 /** Ghi điểm vừa bấm (panel thu về đó) */
 const remember = (event: { clientX: number; clientY: number }) => spaceStore.set("lastTrigger", { x: event.clientX, y: event.clientY });
@@ -45,24 +46,26 @@ function useDismiss(open: boolean, close: () => void, rootRef: React.RefObject<H
  */
 export function SpaceHud() {
   const zone = useSpace("zone");
-  const { ui } = useFactory();
+  const { ui, lang, variant } = useFactory();
   const current = ui.zones[zone];
+  // Đường về trang chính: bản web về trang Web (nơi có nút vào Factory), bản trung tính về trang chủ
+  const back = variant === "web" ? { href: serviceHref(lang, "web"), label: ui.webLink } : { href: homeHref(lang), label: ui.homeLink };
 
   return (
     <>
       <div className="space-top hidden md:flex">
-        <Link href="/" className="space-home label" data-cursor="link">
-          {ui.homeLink}
+        <Link href={back.href} className="space-home label" data-cursor="link">
+          {back.label}
         </Link>
         <div className="flex items-center gap-2">
           <ResetView className="space-reset" />
           <ShortcutsHelp />
           <LangSwitch className="space-lang" />
           <SpaceMode />
-          <SettingsMenu />
+          <SettingsMenu copy={ui.settings} />
         </div>
       </div>
-      <PhoneBar atHub={zone === "hub"} />
+      <PhoneBar atHub={zone === "hub"} back={back} />
       <SpaceNotice />
 
       <div className="space-title" aria-live="polite">
@@ -90,7 +93,7 @@ function NavLink({ zone, className }: { zone: Zone; className?: string }) {
 
 /** Thanh điều hướng: 4 dịch vụ (cùng cỡ, không số thứ tự) | Dự án · Studio · Về Aegis · Liên hệ */
 function SpaceNav() {
-  const { ui, href } = useFactory();
+  const { ui, href, variant } = useFactory();
   const zone = useSpace("zone");
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
@@ -126,7 +129,7 @@ function SpaceNav() {
           </button>
         </li>
         <li aria-hidden className="space-nav-divider" />
-        {navOthers.map((z) => (
+        {navOthersFor(variant).map((z) => (
           <li key={z.id}>
             <NavLink zone={z} />
           </li>
@@ -152,15 +155,15 @@ function SpaceNav() {
  * khung của ngôn ngữ cũ ở trạng thái ẩn, và hai khung sẽ giành nhau một engine 3D. Đổi ngôn ngữ là thao tác hiếm nên chấp nhận.
  */
 function LangSwitch({ className }: { className?: string }) {
-  const { ui, lang } = useFactory();
+  const { ui, lang, variant } = useFactory();
   const pathname = useSpace("pathname");
-  const sub = stripLocale(pathname).slice(SPACE_BASE.length).replace(/^\//, "");
+  const sub = stripLocale(pathname).slice(SPACE_BASES[variant].length).replace(/^\//, "");
   return (
     <div role="group" aria-label={ui.language.label} className={className}>
       {locales.map((l) => (
         <a
           key={l}
-          href={factoryHref(l, sub)}
+          href={factoryHref(l, sub, variant)}
           hrefLang={l}
           lang={l}
           aria-current={l === lang ? "true" : undefined}
@@ -188,7 +191,7 @@ function ResetView({ className, label = false }: { className: string; label?: bo
 }
 
 /** Thanh trên của điện thoại: gọn như một HUD game, mọi thứ phụ gom vào một nút menu */
-function PhoneBar({ atHub }: { atHub: boolean }) {
+function PhoneBar({ atHub, back }: { atHub: boolean; back: { href: string; label: string } }) {
   const { ui, href } = useFactory();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -233,15 +236,15 @@ function PhoneBar({ atHub }: { atHub: boolean }) {
       </button>
       {open && (
         <div id={menuId} className="space-menu">
-          <Link href="/" className="space-menu-link label" data-cursor="link">
-            {ui.homeLink}
+          <Link href={back.href} className="space-menu-link label" data-cursor="link">
+            {back.label}
           </Link>
           <LangSwitch className="space-lang space-lang-menu" />
           <ResetView className="space-menu-link label" label />
           <ReplayIntro className="space-menu-link label" />
           <SpaceMode className="space-menu-link label" />
           <div className="space-menu-settings">
-            <SettingsMenu inline />
+            <SettingsMenu inline copy={ui.settings} />
           </div>
         </div>
       )}

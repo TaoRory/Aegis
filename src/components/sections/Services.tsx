@@ -1,15 +1,16 @@
 import { SplitReveal } from "@/components/motion/SplitReveal";
 import { ServiceChapters } from "@/components/services/ServiceChapters";
 import { Lines } from "@/components/ui/Rich";
-import { servicesSection } from "@/content/about";
-import { services } from "@/content/services";
+import type { Locale } from "@/config/space";
+import { getSiteDict } from "@/content/site";
 
-export function Services() {
+export function Services({ lang }: { lang: Locale }) {
+  const { servicesSection, services, chapters } = getSiteDict(lang);
   return (
     <section
       id="dich-vu"
       data-surface="dark"
-      data-chapter="Dịch vụ"
+      data-chapter={servicesSection.chapter}
       aria-labelledby="dich-vu-title"
       className="relative"
     >
@@ -25,7 +26,7 @@ export function Services() {
           <p className="max-w-[28rem] text-lead text-muted lg:col-span-4 lg:justify-self-end">{servicesSection.lead}</p>
         </div>
       </div>
-      <ServiceChapters services={services} />
+      <ServiceChapters services={services} lang={lang} copy={chapters} />
     </section>
   );
 }

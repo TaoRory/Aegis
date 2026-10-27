@@ -71,8 +71,10 @@ export async function POST(request: Request) {
     return reply({ ok: false, code: "RATE_LIMITED" }, 429);
   }
 
+  // Ngôn ngữ chỉ dùng cho chữ của thông báo lỗi; dữ liệu và email gửi cho Aegis vẫn theo bản tiếng Việt
+  const lang = body.lang === "en" ? "en" : "vi";
   const input = normalizeContact(body);
-  const errors = validateContact(input);
+  const errors = validateContact(input, lang);
   if (Object.keys(errors).length > 0) {
     return reply({ ok: false, code: "VALIDATION", errors }, 422);
   }

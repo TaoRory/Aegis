@@ -10,7 +10,7 @@ export const hero = {
   lines: ["Xây nền móng", "*vững chắc,*", "để tiến xa."],
   description:
     "Aegis là đội triển khai công nghệ cho doanh nghiệp: tư vấn giải pháp, trực tiếp xây dựng AI, phần mềm quản trị, website – web app, chạy marketing, rồi bàn giao sản phẩm dễ dùng nhất.",
-  secondaryCta: { label: "Xem dự án", href: "#du-an" },
+  secondaryCta: { label: "Xem dịch vụ", href: "#dich-vu" },
   scrollHint: "Cuộn để xem bản vẽ",
 };
 
@@ -83,19 +83,9 @@ export const projectsSection = {
 export const templatesSection = {
   label: "[05] — Mẫu giao diện",
   lines: ["Mỗi ngành", "*một style riêng.*"],
-  pageLabel: "[05] — Thư viện style",
+  pageLabel: "Thư viện style",
   pageLines: ["Tám style,", "*tám ngành.*"],
   lead: "Mỗi style là một công thức thiết kế cho một ngành: cảm xúc, typography, màu sắc và tương tác riêng, dựng thành website mẫu chạy thật. Doanh nghiệp có thể xem trực tiếp để hình dung website của mình.",
   cta: { label: "Xem toàn bộ thư viện", href: "/mau-giao-dien" },
 };
 
-export const contactSection = {
-  label: "[06] — Liên hệ",
-  lines: ["Bắt đầu từ", "*bản vẽ đầu tiên.*"],
-  lead: "Trả lời vài câu hỏi ngắn, chủ yếu là bấm chọn. Aegis đọc phiếu, tư vấn giải pháp và liên hệ lại để bắt tay triển khai.",
-  /** Trang chủ: câu 1 của form hiện ngay tại đây, chọn xong sang trang /lien-he */
-  pickerLabel: "Câu 01 · Bạn cần Aegis dựng gì?",
-  pageLabel: "[06] — Phiếu yêu cầu",
-  pageLines: ["Bản vẽ của bạn,", "*bắt đầu từ đây.*"],
-  pageLead: "Mỗi màn một câu hỏi, khoảng một phút. Các câu sau đổi theo hạng mục bạn chọn, để Aegis hiểu đúng bài toán ngay từ đầu.",
-};

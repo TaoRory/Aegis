@@ -8,8 +8,10 @@ import { useRouter } from "next/navigation";
 import type { TemplatePreview } from "@/components/templates/TemplateCard";
 import { SmartLink } from "@/components/ui/SmartLink";
 import { GalleryEngine, STEP, type GalleryCardState } from "@/components/webgl/gallery-engine";
-import { templateGroups, templateNotice, type DemoTemplate, type TemplateGroup } from "@/content/templates";
+import type { SiteDict } from "@/content/site/types";
+import type { DemoTemplate, TemplateGroup } from "@/content/templates";
 import { cn } from "@/lib/cn";
+import { fill } from "@/lib/fill";
 import { MQ } from "@/lib/motion";
 
 /**
@@ -63,11 +65,17 @@ const isPlainClick = (event: { button: number; metaKey: boolean; ctrlKey: boolea
 export function GalleryRing({
   templates,
   previews,
+  copy,
+  groups,
   variant = "page",
   className,
 }: {
   templates: DemoTemplate[];
   previews: Record<string, TemplatePreview>;
+  /** Chữ giao diện của thư viện theo ngôn ngữ */
+  copy: SiteDict["gallery"];
+  /** Tên các nhóm lọc theo ngôn ngữ (khớp DemoTemplate.group) */
+  groups: string[];
   variant?: Variant;
   className?: string;
 }) {
@@ -186,7 +194,7 @@ export function GalleryRing({
       canvas.className = "gallery-canvas";
       canvas.setAttribute("aria-hidden", "true");
       canvas.dataset.cursor = "drag";
-      canvas.dataset.cursorLabel = "Kéo ↔";
+      canvas.dataset.cursorLabel = copy.cursorDrag;
       host.appendChild(canvas);
       try {
         engine = new GalleryEngine(canvas, sources);
@@ -414,7 +422,7 @@ export function GalleryRing({
       }
 
       // Nhãn con trỏ theo thẻ đang rê tới
-      const label = c.hover >= 0 && allowed(c.hover) && Math.abs(c.hover - c.pos) < 0.6 ? "Mở mẫu ↗" : "Kéo ↔";
+      const label = c.hover >= 0 && allowed(c.hover) && Math.abs(c.hover - c.pos) < 0.6 ? copy.cursorOpen : copy.cursorDrag;
       if (canvas.dataset.cursorLabel !== label) canvas.dataset.cursorLabel = label;
 
       if (engine) {
@@ -470,19 +478,19 @@ export function GalleryRing({
       data-variant={variant}
       role="region"
       aria-roledescription="carousel"
-      aria-label="Thư viện style giao diện"
+      aria-label={copy.region}
       className={cn("gallery", className)}
     >
       <div
         ref={stageRef}
         tabIndex={0}
-        aria-label="Vòng xem style. Dùng phím mũi tên trái phải để xoay, Enter để mở mẫu đang chọn."
+        aria-label={copy.stage}
         role="group"
         className="gallery-stage"
       >
         <div ref={hostRef} className="gallery-canvas-host" aria-hidden />
 
-        <ul className="gallery-cards" aria-label="Danh sách style">
+        <ul className="gallery-cards" aria-label={copy.list}>
           {templates.map((template, index) => {
             const preview = previews[template.slug];
             const hidden = group !== "all" && template.group !== group;
@@ -502,7 +510,7 @@ export function GalleryRing({
                   navType="aegis-open"
                   tabIndex={hidden ? -1 : undefined}
                   data-cursor="view"
-                  data-cursor-label="Mở mẫu ↗"
+                  data-cursor-label={copy.cursorOpen}
                   className="gallery-card-link"
                   onFocus={() => api.current?.goTo(index)}
                   draggable={false}
@@ -531,7 +539,7 @@ export function GalleryRing({
                     <span className="label">/{pad2(index + 1)}</span> {template.name}
                     <span className="sr-only">
                       {" "}
-                      — {template.industry}, {template.emotion}. Mẫu demo, thương hiệu {template.brand} là giả định.
+                      {fill(copy.cardSr, { industry: template.industry, emotion: template.emotion, brand: template.brand })}
                     </span>
                   </span>
                 </SmartLink>
@@ -542,14 +550,14 @@ export function GalleryRing({
 
         {variant === "page" && (
           <p className="gallery-hint label" aria-hidden>
-            Kéo · ← → · lăn ngang
+            {copy.hint}
           </p>
         )}
 
         <div className="gallery-dock" data-surface="dark">
           <div className="gallery-info">
             <p className="label text-accent">
-              Style /{pad2(active + 1)} · {current.industry}
+              {copy.style} /{pad2(active + 1)} · {current.industry}
             </p>
             <p className="gallery-name" aria-live="polite">
               {current.name}
@@ -557,13 +565,13 @@ export function GalleryRing({
             <p className="gallery-sub">
               {current.emotion} · {current.signature}
             </p>
-            <p className="label gallery-note">Mẫu demo · {current.brand} là thương hiệu giả định</p>
+            <p className="label gallery-note">{fill(copy.note, { brand: current.brand })}</p>
           </div>
           <div className="gallery-actions">
-            <button type="button" className="gallery-arrow" aria-label="Style trước" onClick={() => api.current?.step(-1)} data-cursor="link">
+            <button type="button" className="gallery-arrow" aria-label={copy.prev} onClick={() => api.current?.step(-1)} data-cursor="link">
               ←
             </button>
-            <button type="button" className="gallery-arrow" aria-label="Style sau" onClick={() => api.current?.step(1)} data-cursor="link">
+            <button type="button" className="gallery-arrow" aria-label={copy.next} onClick={() => api.current?.step(1)} data-cursor="link">
               →
             </button>
             <SmartLink
@@ -578,9 +586,9 @@ export function GalleryRing({
               }}
             >
               <span className="roll">
-                <span className="roll-a">Mở mẫu {current.name}</span>
+                <span className="roll-a">{fill(copy.open, { name: current.name })}</span>
                 <span className="roll-b" aria-hidden>
-                  Mở mẫu {current.name}
+                  {fill(copy.open, { name: current.name })}
                 </span>
               </span>
               <span aria-hidden className="btn-arrow">
@@ -591,8 +599,8 @@ export function GalleryRing({
         </div>
 
         {variant === "page" && (
-          <div className="gallery-filters" role="group" aria-label="Lọc style theo nhóm">
-            {(["all", ...templateGroups] as const).map((g) => (
+          <div className="gallery-filters" role="group" aria-label={copy.filters}>
+            {(["all", ...groups] as const).map((g) => (
               <button
                 key={g}
                 type="button"
@@ -601,7 +609,7 @@ export function GalleryRing({
                 onClick={() => chooseGroup(g)}
                 data-cursor="link"
               >
-                {g === "all" ? "Tất cả" : g}
+                {g === "all" ? copy.all : g}
                 <span aria-hidden className="gallery-chip-count">
                   {g === "all" ? N : templates.filter((t) => t.group === g).length}
                 </span>
@@ -610,7 +618,7 @@ export function GalleryRing({
           </div>
         )}
 
-        <div className="gallery-rule" aria-label={`Style ${countLabel}`}>
+        <div className="gallery-rule" aria-label={fill(copy.rule, { count: countLabel })}>
           <span className="label gallery-rule-label" aria-hidden>
             {countLabel}
           </span>
@@ -622,7 +630,7 @@ export function GalleryRing({
                   key={template.slug}
                   type="button"
                   className="gallery-tick"
-                  aria-label={`Style ${index + 1}: ${template.name}`}
+                  aria-label={fill(copy.tick, { n: index + 1, name: template.name })}
                   aria-current={index === active ? "true" : undefined}
                   data-off={hidden ? "" : undefined}
                   disabled={hidden}
@@ -634,7 +642,7 @@ export function GalleryRing({
         </div>
       </div>
 
-      <p className="sr-only">{templateNotice}</p>
+      <p className="sr-only">{copy.notice}</p>
 
       {morph &&
         createPortal(

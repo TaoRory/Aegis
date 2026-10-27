@@ -3,8 +3,10 @@ import { TextScramble } from "@/components/fx/TextScramble";
 import { TemplateStage, type TemplatePreview } from "@/components/templates/TemplateCard";
 import { ButtonLink } from "@/components/ui/Button";
 import { SmartLink } from "@/components/ui/SmartLink";
+import type { SiteDict } from "@/content/site/types";
 import type { DemoTemplate } from "@/content/templates";
 import { cn } from "@/lib/cn";
+import { fill } from "@/lib/fill";
 
 /** Mục lục style: mỗi hàng là một tên style; rê chuột thì ảnh mẫu bám con trỏ, tên xáo chữ (Signal-A pattern). */
 export function StyleIndex({ templates, previews }: { templates: DemoTemplate[]; previews: Record<string, TemplatePreview> }) {
@@ -37,7 +39,17 @@ export function StyleIndex({ templates, previews }: { templates: DemoTemplate[];
 }
 
 /** Hồ sơ từng style: sân khấu xem trước + công thức tóm tắt + nút mở mẫu. Xen kẽ trái/phải. */
-export function StyleProfiles({ templates, previews }: { templates: DemoTemplate[]; previews: Record<string, TemplatePreview> }) {
+export function StyleProfiles({
+  templates,
+  previews,
+  copy,
+  cursorOpen,
+}: {
+  templates: DemoTemplate[];
+  previews: Record<string, TemplatePreview>;
+  copy: SiteDict["templatesPage"]["profile"];
+  cursorOpen: string;
+}) {
   return (
     <div>
       {templates.map((template, index) => {
@@ -52,30 +64,35 @@ export function StyleProfiles({ templates, previews }: { templates: DemoTemplate
             <SmartLink
               href={`/mau-giao-dien/${template.slug}`}
               data-cursor="view"
-              data-cursor-label="Mở mẫu ↗"
+              data-cursor-label={cursorOpen}
               className={cn("group block lg:col-span-7", flip && "lg:order-2")}
-              aria-label={`Mở mẫu style ${template.name}`}
+              aria-label={fill(copy.openAria, { name: template.name })}
             >
-              <TemplateStage template={template} preview={previews[template.slug]} sizes="(min-width: 1024px) 55vw, 100vw" />
+              <TemplateStage
+                template={template}
+                preview={previews[template.slug]}
+                alt={fill(copy.stageAlt, { brand: template.brand })}
+                sizes="(min-width: 1024px) 55vw, 100vw"
+              />
             </SmartLink>
             <div className={cn("lg:col-span-5", flip && "lg:order-1")}>
               <p className="label text-accent">
-                Style /{String(index + 1).padStart(2, "0")} · {template.industry}
+                {copy.style} /{String(index + 1).padStart(2, "0")} · {template.industry}
               </p>
               <h2 id={`style-${template.slug}-title`} className="mt-4 text-[clamp(2.8rem,1.6rem+4vw,5.5rem)] leading-[0.92] font-semibold tracking-[-0.045em]">
                 {template.name}
               </h2>
               <p className="mt-5 text-lead">{template.idea}</p>
               <dl className="label mt-8 grid grid-cols-[8rem_1fr] gap-y-3 border-t border-line pt-6 text-muted">
-                <dt>Signature</dt>
+                <dt>{copy.signature}</dt>
                 <dd className="text-fg normal-case tracking-normal">{template.signature}</dd>
-                <dt>Cảm xúc</dt>
+                <dt>{copy.emotion}</dt>
                 <dd className="text-fg">{template.emotion}</dd>
-                <dt>Font</dt>
+                <dt>{copy.font}</dt>
                 <dd className="text-fg">{template.fonts}</dd>
-                <dt>Bảng màu</dt>
+                <dt>{copy.palette}</dt>
                 <dd>
-                  <ul aria-label={`Bảng màu style ${template.name}`} className="flex gap-1.5">
+                  <ul aria-label={fill(copy.paletteAria, { name: template.name })} className="flex gap-1.5">
                     {template.palette.map((color) => (
                       <li key={color} className="size-5 rounded-full border border-line-strong" style={{ background: color }} title={color}>
                         <span className="sr-only">{color}</span>
@@ -83,18 +100,18 @@ export function StyleProfiles({ templates, previews }: { templates: DemoTemplate
                     ))}
                   </ul>
                 </dd>
-                <dt>Thử tương tác</dt>
+                <dt>{copy.tryIt}</dt>
                 <dd className="text-fg normal-case tracking-normal">{template.interactions.join(" · ")}</dd>
-                <dt>Cũng hợp với</dt>
+                <dt>{copy.fits}</dt>
                 <dd className="text-fg normal-case tracking-normal">{template.fits.join(" · ")}</dd>
-                <dt>Thương hiệu</dt>
+                <dt>{copy.brand}</dt>
                 <dd>
-                  {template.brand} <span className="text-muted">(giả định)</span>
+                  {template.brand} <span className="text-muted">{copy.fictional}</span>
                 </dd>
               </dl>
               <div className="mt-8">
                 <ButtonLink href={`/mau-giao-dien/${template.slug}`} arrow="↗">
-                  {`Mở mẫu ${template.name}`}
+                  {fill(copy.open, { name: template.name })}
                 </ButtonLink>
               </div>
             </div>

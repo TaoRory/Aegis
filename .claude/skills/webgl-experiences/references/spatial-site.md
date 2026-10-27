@@ -70,6 +70,12 @@ Sheet che nửa màn hình + camera lùi ra xem cả sa bàn làm cảnh "tù". 
 - **Không tự xoay camera khi nhàn rỗi** (người dùng không thích). Sau khi `flyTo`, xả quán tính của OrbitControls bằng cách tắt giảm chấn và gọi `update()` một lần.
 - **Ngân sách đo được:** tổng quan 94 lệnh vẽ (desktop, có bloom) và 72 (điện thoại, không bloom), ~30k tam giác.
 
+## Hai bản của một không gian (trung tính / web)
+
+- Một mã nguồn phục vụ hai địa chỉ gốc: `/factory` và `/web/factory`. Mỗi bản có cây route riêng (`(spatial)/[lang]/factory/**` và `(spatial)/[lang]/web/factory/**`) nhưng chỉ là các file mỏng gọi chung `components/space/views/*` kèm `variant`. Biến thể phải biết lúc build (không đọc từ pathname phía client: pathname lúc prerender là địa chỉ nội bộ `/vi/...`, sẽ lệch hydration).
+- Khu chỉ có ở một bản (trưng bày sản phẩm) được cờ `showcase` trong `config/space.ts`; engine nhận `manifest.showcase` để bỏ builder, nét mặt bằng, bệ, vách và tấm sáng của các khu đó. Engine là singleton: khi sang bản khác phải dispose và dựng lại (`engine.showcase`).
+- Cặp ngôn ngữ vẫn đổi bằng liên kết thường. Chuyển từ trang chính sang Factory cũng dùng liên kết thường để script đầu trang đặt cờ khóa cuộn và màn mở đầu.
+
 ## Nội dung
 
 Từ Factory 3.0 không còn khu thí nghiệm và nhật ký; các khu còn lại chỉ ghi điều code thật sự làm; bài nhật ký phải có `confirmed: true` và cần chủ dự án duyệt. Không ngày tháng, số liệu hay khách hàng bịa.

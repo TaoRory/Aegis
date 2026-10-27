@@ -8,7 +8,7 @@ import { usePanelEnter } from "@/components/space/Panel";
 import { spaceStore } from "@/components/space/space-store";
 import { ZoneIcon } from "@/components/space/ZoneIcon";
 import { Lines } from "@/components/ui/Rich";
-import { navOthers, navServices } from "@/config/space";
+import { navOthersFor, navServices } from "@/config/space";
 
 const remember = (event: { clientX: number; clientY: number }) => spaceStore.set("lastTrigger", { x: event.clientX, y: event.clientY });
 
@@ -19,7 +19,7 @@ const remember = (event: { clientX: number; clientY: number }) => spaceStore.set
 export function HubIntro() {
   const ref = useRef<HTMLElement>(null);
   usePanelEnter(ref);
-  const { ui, href } = useFactory();
+  const { ui, href, variant } = useFactory();
   const { hub } = ui;
 
   return (
@@ -46,7 +46,7 @@ export function HubIntro() {
           ))}
         </ul>
         <ul className="space-legend mt-3">
-          {navOthers.map((z) => (
+          {navOthersFor(variant).map((z) => (
             <li key={z.id}>
               <Link href={href(z.path)} onClick={remember} className="space-legend-link">
                 <ZoneIcon zone={z.id} className="size-5 text-accent" />

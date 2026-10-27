@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 
+import type { SettingsCopy } from "@/content/settings-copy";
 import { cn } from "@/lib/cn";
 
 /**
@@ -22,7 +23,7 @@ const readKey = () =>
   `${document.documentElement.dataset.quality === "low" ? "low" : "high"}|${document.documentElement.dataset.cursorPref === "off" ? "off" : "on"}`;
 const serverKey = () => "high|on";
 
-export function SettingsMenu({ inline = false, className }: { inline?: boolean; className?: string }) {
+export function SettingsMenu({ copy, inline = false, className }: { copy: SettingsCopy; inline?: boolean; className?: string }) {
   const [open, setOpen] = useState(false);
   const [quality, cursor] = useSyncExternalStore(subscribe, readKey, serverKey).split("|") as [Quality, CursorPref];
   const values = { quality, cursor };
@@ -85,22 +86,22 @@ export function SettingsMenu({ inline = false, className }: { inline?: boolean; 
 
   const body = (
     <div className="space-y-5">
-      {group("quality", "Chất lượng hiệu ứng", "Thấp: nhẹ máy hơn (ít hạt, không khói, thư viện style dạng CSS).", [
-        { value: "high", label: "Cao" },
-        { value: "low", label: "Thấp" },
+      {group("quality", copy.quality.label, copy.quality.hint, [
+        { value: "high", label: copy.quality.high },
+        { value: "low", label: copy.quality.low },
       ])}
-      {group("cursor", "Con trỏ riêng", "Tắt để dùng con trỏ gốc của trình duyệt.", [
-        { value: "on", label: "Bật" },
-        { value: "off", label: "Tắt" },
+      {group("cursor", copy.cursor.label, copy.cursor.hint, [
+        { value: "on", label: copy.cursor.on },
+        { value: "off", label: copy.cursor.off },
       ])}
-      <p className="text-xs leading-relaxed text-subtle">Đổi cài đặt sẽ tải lại trang. Hệ thống cũng tự giảm hiệu ứng khi bạn bật “giảm chuyển động”.</p>
+      <p className="text-xs leading-relaxed text-subtle">{copy.reload}</p>
     </div>
   );
 
   if (inline) {
     return (
       <div className={cn("border-t border-line pt-5", className)}>
-        <p className="label mb-4 text-accent">Cài đặt hiệu ứng</p>
+        <p className="label mb-4 text-accent">{copy.title}</p>
         {body}
       </div>
     );
@@ -116,12 +117,12 @@ export function SettingsMenu({ inline = false, className }: { inline?: boolean; 
         onClick={() => setOpen((v) => !v)}
         className="btn btn-box label h-10 border border-line-strong px-4 text-fg hover:border-fg"
       >
-        Cài đặt
+        {copy.button}
       </button>
       <div
         id={panelId}
         role="dialog"
-        aria-label="Cài đặt hiệu ứng"
+        aria-label={copy.title}
         hidden={!open}
         data-surface="dark"
         className="absolute top-[calc(100%+0.6rem)] right-0 z-50 w-72 rounded-sm border border-line-strong bg-bg p-5 text-fg shadow-none"

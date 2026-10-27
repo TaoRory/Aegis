@@ -25,12 +25,20 @@ description: Ngữ cảnh doanh nghiệp Aegis (dữ kiện đã xác nhận, 4 
 - Số liệu được phép hiển thị: chỉ những số đếm hiển nhiên từ nội dung (4 nhóm dịch vụ, 7 dự án trong portfolio, 4 bước làm việc).
 - Không định vị là công ty an ninh mạng; không chủ đề thần thoại Hy Lạp; không hình lá chắn lớn, matrix, robot, neon tràn lan. **Ngoại lệ (quyết định 27/10/2026):** riêng cảnh Factory (`/factory`) được dùng cánh tay máy công nghiệp làm đạo cụ chế tác; vẫn không robot hình người, không bộ giáp, không hình ảnh Marvel, màu theo token ultramarine. Cũng trong Factory, theo yêu cầu của chủ dự án, cổng Liên hệ có một nhân vật lễ tân người thật cách điệu (không mặt, vest xanh theo token) đứng chắp tay, vẫy chào khi chuột tìm tới.
 
+## Cấu trúc trang chính và quy tắc "không khoe sản phẩm" (chốt 27/10/2026)
+
+- **Sản phẩm đã làm (7 dự án, thư viện mẫu giao diện) chỉ hiện khi khách đã quan tâm tới mảng Web & web app**, để không khiến Aegis trông chỉ mạnh về web. Trang chủ `/` không có mục Dự án hay Mẫu giao diện; menu chỉ Giới thiệu · Dịch vụ · Liên hệ.
+- Mỗi dịch vụ có trang riêng, dùng id làm đường dẫn: `/web`, `/ai`, `/software`, `/marketing` (VI) và `/en/...` (EN). Trang AI, Phần mềm, Marketing: nhu cầu, phạm vi, giá trị, "cách làm việc" chung 4 bước và bộ câu hỏi liên hệ chọn sẵn dịch vụ; **không có sản phẩm, không có demo**. Trang `/web` thêm: dự án đã thực hiện, thư viện mẫu, và câu hỏi "Muốn tham quan Factory không?" với nút tới `/web/factory`.
+- **Factory có hai bản cùng mã nguồn:** `/factory` (trung tính, không có khu Dự án và Studio mẫu; web bay dẫn sang `/web`) và `/web/factory` (bản sao đầy đủ, có Dự án + Studio, đường về là `/web`). Biến `Variant` ("neutral" | "web") trong `src/config/space.ts`, `useFactory().variant`, `SceneManifest.showcase`. `/factory/work`, `/factory/studio` chuyển 308 sang `/web/factory/...`.
+- **Song ngữ trang chính:** tiếng Việt ở gốc, tiếng Anh ở `/en` (`/en/contact`, `/en/templates`). Nội dung: `src/content/site/{vi,en}.ts` (`getSiteDict(lang)`); EN dịch sát nội dung đã xác nhận, dùng chung `services-en.ts`, `templates-en.ts` với Factory. Form liên hệ: `contact-flow-i18n.ts` (câu hỏi), `contact-copy.ts` (chữ giao diện, thông báo lỗi), API nhận `lang` chỉ để đổi chữ thông báo lỗi. Các mẫu demo (`/mau-giao-dien/<slug>`) vẫn tiếng Việt.
+- Nút VI | EN dùng liên kết thường (tải lại trang) để `html[lang]` đúng; script đầu trang trong `app/layout.tsx` đặt `lang="en"` cho mọi địa chỉ dưới `/en` (không dùng regex trong chuỗi đó).
+
 ## Thư viện mẫu giao diện (demo)
 
 - Trang `/mau-giao-dien` và 6 mẫu `/mau-giao-dien/<slug>` (`src/content/templates.ts`). Đây là **mẫu demo do Aegis tự thiết kế**, thương hiệu và số liệu là **giả định**, phải luôn ghi rõ (DemoBar, DemoClosing, nhãn thư viện). Không trộn với 7 dự án thật.
 - Thêm/sửa mẫu: skill `template-gallery`, agent `template-builder`.
 
-## Factory "Aegis Foundation" (`/factory`, `/en/factory`; phiên bản UI 2, chạy song song)
+## Factory "Aegis Forge" (`/factory` trung tính và `/web/factory`, cùng bản `/en`; phiên bản UI 3, chạy song song)
 
 - Không gian 3D nhiều khu thay cho trang cuộn dài: **Lõi Aegis ở giữa, 4 khu dịch vụ NGANG HÀNG** (AI, Phần mềm quản trị, Web, Marketing) toả ra bốn hướng, Gallery (dự án thật), Studio (thí nghiệm + kệ 8 style + ghi chép) và Gate (liên hệ). Dòng năng lượng nối mọi khu về lõi.
 - **Bốn dịch vụ không bao giờ đánh số hay xếp thứ tự "bước"**: cùng cỡ, cùng kiến trúc, nav theo vị trí. Không dùng mã "BV-xx". Trước/sau giữa dịch vụ đi vòng tròn, không có bộ đếm.

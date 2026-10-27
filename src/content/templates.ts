@@ -9,7 +9,8 @@
  */
 
 export const templateGroups = ["Thương mại", "Công nghệ & truyền thông", "Dịch vụ", "Giáo dục"] as const;
-export type TemplateGroup = (typeof templateGroups)[number];
+/** Tên nhóm theo ngôn ngữ của trang (xem content/site), nên chỉ là chuỗi */
+export type TemplateGroup = string;
 
 export interface DemoTemplate {
   slug: string;

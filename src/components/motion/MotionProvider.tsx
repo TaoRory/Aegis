@@ -89,7 +89,7 @@ export function MotionProvider() {
     }
 
     // Header trong suốt (mix-blend) nên section cuộn sát đỉnh màn hình, không cần offset
-    const lenis = new Lenis({ lerp: 0.095, wheelMultiplier: 0.95, anchors: true, autoRaf: false });
+    const lenis = new Lenis({ lerp: 0.12, wheelMultiplier: 1.9, anchors: true, autoRaf: false });
     setLenis(lenis);
     lenis.on("scroll", ScrollTrigger.update);
 

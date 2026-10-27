@@ -8,7 +8,7 @@ import { CAROUSEL, hallSlot, SHOWROOM } from "@/components/space/engine/layout";
 import { HALL, links, outlinePoints, planBounds, rooms, type Room } from "@/components/space/plan";
 import { spaceStore } from "@/components/space/space-store";
 import { useSpace } from "@/components/space/useSpace";
-import { zoneById } from "@/config/space";
+import { hasZone, zoneById } from "@/config/space";
 
 /** Đơn vị SVG = 10 × mét (để cỡ chữ nằm trên ngưỡng tối thiểu của trình duyệt) */
 const U = 10;
@@ -89,7 +89,7 @@ const pathOf = (room: Room) => `M ${outlinePoints(room)
  */
 export function FlatMap() {
   const active = useSpace("zone");
-  const { ui, href } = useFactory();
+  const { ui, href, variant } = useFactory();
   const b = planBounds;
 
   const remember = (event: MouseEvent) => spaceStore.set("lastTrigger", { x: event.clientX, y: event.clientY });
@@ -112,12 +112,12 @@ export function FlatMap() {
 
         {/* Dòng năng lượng nối các khu về lõi */}
         <g className="space-links" aria-hidden>
-          {links.map((link) => (
+          {links.filter((link) => hasZone(link.zone, variant)).map((link) => (
             <polyline key={link.zone} points={link.points.map(([lx, lz]) => `${p(lx)},${p(lz)}`).join(" ")} data-active={active === link.zone} />
           ))}
         </g>
 
-        {rooms.map((room) => {
+        {rooms.filter((room) => hasZone(room.zone, variant)).map((room) => {
           const zone = zoneById[room.zone];
           const label = ui.zones[room.zone];
           const at = labelAt(room);

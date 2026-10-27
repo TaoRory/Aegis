@@ -13,21 +13,13 @@ import {
 import Image from "next/image";
 
 import { Button } from "@/components/ui/Button";
-import {
-  branchQuestions,
-  commonQuestions,
-  contactStep,
-  messageStep,
-  OTHER_OPTION,
-  OTHER_SERVICE,
-  questionsFor,
-  reviewStep,
-  serviceQuestion,
-  serviceShortLabel,
-  type ChoiceQuestion,
-} from "@/content/contact-flow";
+import type { Locale } from "@/config/space";
+import { OTHER_OPTION, OTHER_SERVICE, type ChoiceQuestion } from "@/content/contact-flow";
+import { wizardCopy, type WizardCopy } from "@/content/contact-copy";
+import { getFlow, type Flow } from "@/content/contact-flow-i18n";
 import previewData from "@/content/template-previews.json";
 import { cn } from "@/lib/cn";
+import { fill } from "@/lib/fill";
 import {
   answerLabels,
   contactLimits,
@@ -74,23 +66,13 @@ const AUTO_ADVANCE_MS = 380;
 
 const emptyDraft: Draft = { service: "", answers: {}, others: {}, message: "", name: "", contact: "", company: "" };
 
-const errorMessages: Record<Exclude<ContactResponse, { ok: true }>["code"] | "NETWORK", string> = {
-  VALIDATION: "Một vài câu trả lời cần kiểm tra lại.",
-  NOT_CONFIGURED: "Kênh tiếp nhận thông tin chưa được kết nối nên chưa gửi được. Vui lòng quay lại sau.",
-  RATE_LIMITED: "Bạn đã gửi nhiều lần trong thời gian ngắn. Vui lòng thử lại sau ít phút.",
-  SPAM: "Không gửi được. Vui lòng tải lại trang và thử lại.",
-  DELIVERY_FAILED: "Hệ thống chưa gửi được thông tin. Câu trả lời của bạn vẫn còn nguyên, vui lòng thử lại sau.",
-  BAD_REQUEST: "Yêu cầu không hợp lệ. Vui lòng tải lại trang và thử lại.",
-  NETWORK: "Không kết nối được tới máy chủ. Vui lòng kiểm tra mạng và thử lại.",
-};
-
 const previews = previewData as Record<string, { cover: { src: string; width: number; height: number } }>;
 
-function stepsFor(service: string): Step[] {
+function stepsForFlow(flow: Flow, service: string): Step[] {
   if (!service) return [{ kind: "service" }];
   return [
     { kind: "service" },
-    ...questionsFor(service).map((question) => ({ kind: "question" as const, question })),
+    ...flow.questionsFor(service).map((question) => ({ kind: "question" as const, question })),
     { kind: "message" },
     { kind: "contact" },
     { kind: "review" },
@@ -102,26 +84,47 @@ function stepKey(step: Step) {
 }
 
 /** Mọi bước có thể có (cả 4 nhánh) theo thứ tự hiển thị khi không có JS */
-const allSteps: Step[] = [
-  { kind: "service" },
-  ...Object.values(branchQuestions).flatMap((list) => list.map((question) => ({ kind: "question" as const, question }))),
-  ...commonQuestions.map((question) => ({ kind: "question" as const, question })),
-  { kind: "message" },
-  { kind: "contact" },
-  { kind: "review" },
-];
+function allStepsFor(flow: Flow): Step[] {
+  return [
+    { kind: "service" },
+    ...Object.values(flow.branchQuestions).flatMap((list) => list.map((question) => ({ kind: "question" as const, question }))),
+    ...flow.commonQuestions.map((question) => ({ kind: "question" as const, question })),
+    { kind: "message" },
+    { kind: "contact" },
+    { kind: "review" },
+  ];
+}
 
 /** Nhánh dịch vụ của một câu hỏi riêng (để ghi chú khi hiện form dài không có JS) */
-function branchOf(question: ChoiceQuestion) {
-  const entry = Object.entries(branchQuestions).find(([, list]) => list.includes(question));
+function branchOf(flow: Flow, question: ChoiceQuestion) {
+  const entry = Object.entries(flow.branchQuestions).find(([, list]) => list.includes(question));
   return entry?.[0];
 }
 
 /**
- * `sheetCode`: mã tờ in trên "phiếu" (trang liên hệ cũ dùng "BV-06", chương cuối của trang cuộn dài). Factory truyền chuỗi
+ * `sheetCode`: mã tờ in trên "phiếu" (trang liên hệ dùng "BV-04", chương cuối của trang cuộn dài). Factory truyền chuỗi
  * rỗng vì không dùng mã tờ bản vẽ.
+ * `lang`: ngôn ngữ chữ giao diện và câu hỏi (dữ liệu gửi đi luôn theo id/giá trị, không phụ thuộc ngôn ngữ).
+ * `presetService`: chọn sẵn một dịch vụ (trang dịch vụ nhúng form), bỏ qua câu 1; thiếu thì đọc ?dv= trên địa chỉ.
  */
-export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode = "BV-06" }: { isConfigured: boolean; scrollMode?: "window" | "element"; sheetCode?: string }) {
+export function ContactWizard({
+  isConfigured,
+  scrollMode = "window",
+  sheetCode = "BV-04",
+  lang = "vi",
+  presetService,
+}: {
+  isConfigured: boolean;
+  scrollMode?: "window" | "element";
+  sheetCode?: string;
+  lang?: Locale;
+  presetService?: string;
+}) {
+  const flow = useMemo(() => getFlow(lang), [lang]);
+  const t = wizardCopy[lang];
+  const { serviceQuestion, messageStep, contactStep, reviewStep, questionsFor, serviceShortLabel } = flow;
+  const allSteps = useMemo(() => allStepsFor(flow), [flow]);
+  const stepsFor = (service: string) => stepsForFlow(flow, service);
   const rootRef = useRef<HTMLDivElement>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
   const startedAt = useRef(0);
@@ -137,7 +140,7 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
   const [status, setStatus] = useState<Status>({ state: "idle" });
   const [restored, setRestored] = useState(false);
 
-  const steps = useMemo(() => stepsFor(draft.service), [draft.service]);
+  const steps = useMemo(() => stepsForFlow(flow, draft.service), [flow, draft.service]);
   const current = steps[Math.min(index, steps.length - 1)];
   const currentKey = stepKey(current);
 
@@ -152,16 +155,18 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
         const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "null") as typeof next | null;
         if (saved?.draft) next = { draft: { ...emptyDraft, ...saved.draft }, index: Number(saved.index) || 0 };
       } catch {}
-      const preset = new URLSearchParams(window.location.search).get("dv");
+      const preset = presetService ?? new URLSearchParams(window.location.search).get("dv");
       if (preset && !validateService(preset) && preset !== next.draft.service) {
         next = { draft: { ...next.draft, service: preset }, index: 1 };
       }
       if (next.draft.service && validateService(next.draft.service)) next = { draft: emptyDraft, index: 0 };
       setDraft(next.draft);
-      setIndex(Math.min(next.index, stepsFor(next.draft.service).length - 1));
+      setIndex(Math.min(next.index, stepsForFlow(flow, next.draft.service).length - 1));
       setRestored(true);
     };
     restore();
+    // chỉ chạy một lần khi mở trang (didRestore)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -209,19 +214,19 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
   const stepError = (step: Step, data: Draft): ContactErrors => {
     switch (step.kind) {
       case "service": {
-        const error = validateService(data.service);
+        const error = validateService(data.service, lang);
         return error ? { service: error } : {};
       }
       case "question": {
-        const error = validateQuestion(step.question, data);
+        const error = validateQuestion(step.question, data, lang);
         return error ? { [`q:${step.question.id}`]: error } : {};
       }
       case "message": {
-        const error = validateMessage(data);
+        const error = validateMessage(data, lang);
         return error ? { message: error } : {};
       }
       case "contact":
-        return validateContactInfo(data);
+        return validateContactInfo(data, lang);
       default:
         return {};
     }
@@ -315,7 +320,7 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
     event.preventDefault();
     if (current.kind !== "review" || status.state === "submitting" || !isConfigured) return;
 
-    const found = validateContact(draft);
+    const found = validateContact(draft, lang);
     if (Object.keys(found).length > 0) {
       setErrors(found);
       jumpToError(found);
@@ -327,7 +332,7 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...draft, website: honeypotRef.current?.value ?? "", elapsedMs: Math.round(clock() - startedAt.current) }),
+        body: JSON.stringify({ ...draft, lang, website: honeypotRef.current?.value ?? "", elapsedMs: Math.round(clock() - startedAt.current) }),
       });
       const result = (await response.json().catch(() => null)) as ContactResponse | null;
       if (result?.ok) {
@@ -342,9 +347,9 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
         setErrors(result.errors);
         jumpToError(result.errors);
       }
-      setStatus({ state: "error", message: errorMessages[code] });
+      setStatus({ state: "error", message: t.errors[code] });
     } catch {
-      setStatus({ state: "error", message: errorMessages.NETWORK });
+      setStatus({ state: "error", message: t.errors.NETWORK });
     }
   };
 
@@ -369,18 +374,16 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
     return (
       <div role="status" className="wizard-done">
         <div aria-hidden className="wizard-stamp label">
-          Đã nhận
+          {t.received}
           {sheetCode && <span>{sheetCode}</span>}
         </div>
         <h2 className="mt-10 text-h2 font-semibold">
-          Aegis đã nhận <em>phiếu của bạn.</em>
+          {t.receivedLead}
+          <em>{t.receivedEm}</em>
         </h2>
-        <p className="mt-6 max-w-lg text-lead text-muted">
-          Cảm ơn bạn. Aegis sẽ liên hệ lại qua {draft.contact.includes("@") ? "email" : "số điện thoại"} bạn để lại để trao đổi
-          chi tiết.
-        </p>
+        <p className="mt-6 max-w-lg text-lead text-muted">{fill(t.thanks, { channel: draft.contact.includes("@") ? t.channelEmail : t.channelPhone })}</p>
         <Button variant="outline" className="mt-10" onClick={reset}>
-          Gửi yêu cầu khác
+          {t.another}
         </Button>
       </div>
     );
@@ -397,7 +400,7 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
           {/* Tiến độ (chỉ khi có JS) */}
           <div className="wizard-progress label" aria-hidden={!restored}>
             <span>
-              Bước <span className="text-fg">{String(position + 1).padStart(2, "0")}</span> /{" "}
+              {t.step} <span className="text-fg">{String(position + 1).padStart(2, "0")}</span> /{" "}
               {total ? String(total).padStart(2, "0") : "··"}
             </span>
             <span className="wizard-progress-bar">
@@ -405,12 +408,12 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
             </span>
           </div>
           <p className="sr-only" aria-live="polite">
-            {restored ? `Bước ${position + 1}${total ? ` trên ${total}` : ""}` : ""}
+            {restored ? (total ? fill(t.stepAriaTotal, { n: position + 1, total }) : fill(t.stepAria, { n: position + 1 })) : ""}
           </p>
 
           <noscript>
             <p className="mb-10 border-l-2 border-warning pl-4 text-sm leading-relaxed text-muted">
-              Trình duyệt đang tắt JavaScript: bạn vẫn xem được toàn bộ câu hỏi bên dưới, nhưng cần bật JavaScript để gửi.
+              {t.noJs}
             </p>
           </noscript>
 
@@ -438,19 +441,19 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
           </div>
         </div>
 
-        <BriefSheet draft={draft} sheetCode={sheetCode} />
+        <BriefSheet draft={draft} sheetCode={sheetCode} flow={flow} t={t} lang={lang} />
       </form>
     </div>
   );
 
   function renderStep(step: Step): ReactNode {
     const number = step.kind === "service" ? 1 : steps.findIndex((s) => stepKey(s) === stepKey(step)) + 1;
-    const label = number > 0 ? `Câu ${String(number).padStart(2, "0")}` : "Câu hỏi";
+    const label = number > 0 ? fill(t.questionNumber, { n: String(number).padStart(2, "0") }) : t.questionFallback;
 
     switch (step.kind) {
       case "service":
         return (
-          <StepFrame id="service" label={label} title={serviceQuestion.title} hint={serviceQuestion.hint} error={errors.service}>
+          <StepFrame id="service" label={label} title={serviceQuestion.title} hint={serviceQuestion.hint} error={errors.service} t={t}>
             <div role="radiogroup" aria-labelledby="step-service-title" className="wizard-services" data-anim>
               {serviceQuestion.options.map((option, i) => (
                 <label key={option.value} className="wizard-service" onPointerDown={() => (pointerPick.current = true)}>
@@ -477,7 +480,7 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
                 </label>
               ))}
             </div>
-            <Nav onNext={() => next()} hideBack />
+            <Nav onNext={() => next()} hideBack t={t} />
           </StepFrame>
         );
 
@@ -485,10 +488,10 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
         const { question } = step;
         const errorKey = `q:${question.id}` as const;
         const picked = draft.answers[question.id] ?? [];
-        const branch = branchOf(question);
+        const branch = branchOf(flow, question);
         const options = [
           ...question.options,
-          ...(question.allowOther ? [{ value: OTHER_OPTION, label: "Khác", note: undefined }] : []),
+          ...(question.allowOther ? [{ value: OTHER_OPTION, label: t.otherOption, note: undefined }] : []),
         ];
         return (
           <StepFrame
@@ -498,6 +501,7 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
             title={question.title}
             hint={question.hint}
             error={errors[errorKey]}
+            t={t}
           >
             <div
               role={question.kind === "multi" ? "group" : "radiogroup"}
@@ -555,7 +559,7 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
             {question.allowOther && picked.includes(OTHER_OPTION) && (
               <div className="mt-6 max-w-xl" data-anim>
                 <label htmlFor={`other-${question.id}`} className="label text-muted">
-                  Ghi rõ lựa chọn “Khác”
+                  {t.otherSpecify}
                 </label>
                 <input
                   id={`other-${question.id}`}
@@ -574,7 +578,8 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
             <Nav
               onBack={() => go(index - 1)}
               onNext={() => next()}
-              nextLabel={question.optional && picked.length === 0 ? "Bỏ qua" : "Tiếp"}
+              nextLabel={question.optional && picked.length === 0 ? t.skip : t.next}
+              t={t}
             />
           </StepFrame>
         );
@@ -589,10 +594,11 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
             title={other ? messageStep.titleOther : messageStep.title}
             hint={other ? messageStep.hintOther : messageStep.hint}
             error={errors.message}
+            t={t}
           >
             <div data-anim>
               <label htmlFor="message" className="sr-only">
-                Mô tả thêm
+                {t.moreLabel}
               </label>
               <textarea
                 id="message"
@@ -613,7 +619,8 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
             <Nav
               onBack={() => go(index - 1)}
               onNext={() => next()}
-              nextLabel={!other && !draft.message.trim() ? "Bỏ qua" : "Tiếp"}
+              nextLabel={!other && !draft.message.trim() ? t.skip : t.next}
+              t={t}
             />
           </StepFrame>
         );
@@ -621,11 +628,11 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
 
       case "contact":
         return (
-          <StepFrame id="contact" label={label} title={contactStep.title} hint={contactStep.hint}>
+          <StepFrame id="contact" label={label} title={contactStep.title} hint={contactStep.hint} t={t}>
             <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2" data-anim>
               <TextField
                 id="name"
-                label="Họ tên"
+                label={t.nameLabel}
                 required
                 autoComplete="name"
                 maxLength={contactLimits.name.max}
@@ -635,7 +642,7 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
               />
               <TextField
                 id="contact"
-                label="Email hoặc SĐT / Zalo"
+                label={t.contactLabel}
                 required
                 autoComplete="email"
                 inputMode="email"
@@ -646,8 +653,8 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
               />
               <TextField
                 id="company"
-                label="Công ty"
-                hint="Không bắt buộc"
+                label={t.companyLabel}
+                hint={t.optional}
                 autoComplete="organization"
                 maxLength={contactLimits.company.max}
                 value={draft.company}
@@ -656,51 +663,49 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
                 className="sm:col-span-2"
               />
             </div>
-            <Nav onBack={() => go(index - 1)} onNext={() => next()} nextLabel="Xem lại phiếu" />
+            <Nav onBack={() => go(index - 1)} onNext={() => next()} nextLabel={t.toReview} t={t} />
           </StepFrame>
         );
 
       case "review":
         return (
-          <StepFrame id="review" label={sheetCode ? `Phiếu ${sheetCode}` : "Phiếu yêu cầu"} title={reviewStep.title} hint={reviewStep.hint}>
+          <StepFrame id="review" label={sheetCode ? fill(t.sheetCoded, { code: sheetCode }) : t.sheetPlain} title={reviewStep.title} hint={reviewStep.hint} t={t}>
             <dl className="wizard-review" data-anim>
               {draft.service && (
-                <ReviewRow term="Hạng mục" onEdit={() => go(0)}>
+                <ReviewRow term={t.reviewService} onEdit={() => go(0)} t={t}>
                   {serviceShortLabel(draft.service)}
                 </ReviewRow>
               )}
               {draft.service &&
                 questionsFor(draft.service).map((question) => {
-                  const labels = answerLabels(question, draft);
+                  const labels = answerLabels(question, draft, lang);
                   return (
                     <ReviewRow
                       key={question.id}
                       term={question.title}
                       onEdit={() => go(steps.findIndex((s) => stepKey(s) === `q:${question.id}`))}
+                      t={t}
                     >
-                      {labels.length > 0 ? labels.join(" · ") : <span className="text-subtle">Bỏ qua</span>}
+                      {labels.length > 0 ? labels.join(" · ") : <span className="text-subtle">{t.skip}</span>}
                     </ReviewRow>
                   );
                 })}
-              <ReviewRow term="Mô tả thêm" onEdit={() => go(steps.findIndex((s) => s.kind === "message"))}>
+              <ReviewRow term={t.reviewMore} onEdit={() => go(steps.findIndex((s) => s.kind === "message"))} t={t}>
                 {draft.message.trim() ? (
                   <span className="whitespace-pre-line">{draft.message.trim()}</span>
                 ) : (
-                  <span className="text-subtle">Không có</span>
+                  <span className="text-subtle">{t.none}</span>
                 )}
               </ReviewRow>
-              <ReviewRow term="Liên hệ" onEdit={() => go(steps.findIndex((s) => s.kind === "contact"))}>
+              <ReviewRow term={t.reviewContact} onEdit={() => go(steps.findIndex((s) => s.kind === "contact"))} t={t}>
                 {[draft.name, draft.contact, draft.company].map((v) => v.trim()).filter(Boolean).join(" · ")}
               </ReviewRow>
             </dl>
 
             {!isConfigured && (
               <div className="mt-8 border-l-2 border-warning py-1 pl-4 text-sm leading-relaxed" data-anim>
-                <p className="label text-warning">Trạng thái: chờ kết nối</p>
-                <p className="mt-2 text-muted">
-                  Kênh tiếp nhận của form đang chờ kết nối nên phiếu hiện chưa thể gửi đi. Form sẽ hoạt động ngay khi kênh
-                  nhận được cấu hình.
-                </p>
+                <p className="label text-warning">{t.pending}</p>
+                <p className="mt-2 text-muted">{t.pendingBody}</p>
               </div>
             )}
 
@@ -714,10 +719,10 @@ export function ContactWizard({ isConfigured, scrollMode = "window", sheetCode =
 
             <div className="wizard-nav" data-anim>
               <button type="button" className="wizard-back label" onClick={() => go(index - 1)}>
-                ← Quay lại
+                {t.back}
               </button>
               <Button type="submit" disabled={!isConfigured || submitting} arrow={isConfigured && !submitting ? "→" : false}>
-                {!isConfigured ? "Chưa thể gửi" : submitting ? "Đang gửi…" : "Gửi phiếu"}
+                {!isConfigured ? t.cannotSend : submitting ? t.sending : t.send}
               </Button>
             </div>
           </StepFrame>
@@ -734,6 +739,7 @@ function StepFrame({
   hint,
   error,
   children,
+  t,
 }: {
   id: string;
   label: string;
@@ -742,12 +748,13 @@ function StepFrame({
   hint?: string;
   error?: string;
   children: ReactNode;
+  t: WizardCopy;
 }) {
   return (
     <div role="group" aria-labelledby={`step-${id}-title`} aria-describedby={error ? `step-${id}-error` : undefined}>
       <p className="label text-muted" data-anim>
         <span className="text-accent">{label}</span>
-        {branch && <span className="wizard-branch"> · Nếu chọn {branch}</span>}
+        {branch && <span className="wizard-branch"> · {fill(t.branch, { name: branch })}</span>}
       </p>
       <h2 id={`step-${id}-title`} data-step-title tabIndex={-1} className="wizard-title" data-anim>
         {title}
@@ -770,39 +777,41 @@ function StepFrame({
 function Nav({
   onBack,
   onNext,
-  nextLabel = "Tiếp",
+  nextLabel,
   hideBack,
+  t,
 }: {
   onBack?: () => void;
   onNext: () => void;
   nextLabel?: string;
   hideBack?: boolean;
+  t: WizardCopy;
 }) {
   return (
     <div className="wizard-nav" data-anim>
       {hideBack ? <span /> : (
         <button type="button" className="wizard-back label" onClick={onBack}>
-          ← Quay lại
+          {t.back}
         </button>
       )}
       <div className="flex items-center gap-5">
         <span aria-hidden className="wizard-kbd label">
           Enter ↵
         </span>
-        <Button onClick={onNext}>{nextLabel}</Button>
+        <Button onClick={onNext}>{nextLabel ?? t.next}</Button>
       </div>
     </div>
   );
 }
 
-function ReviewRow({ term, onEdit, children }: { term: string; onEdit: () => void; children: ReactNode }) {
+function ReviewRow({ term, onEdit, children, t }: { term: string; onEdit: () => void; children: ReactNode; t: WizardCopy }) {
   return (
     <div className="wizard-review-row">
       <dt className="label text-muted">{term}</dt>
       <dd>{children}</dd>
       <dd>
         <button type="button" className="wizard-edit label" onClick={onEdit}>
-          Sửa<span className="sr-only"> {term}</span>
+          {t.edit}<span className="sr-only"> {term}</span>
         </button>
       </dd>
     </div>
@@ -868,23 +877,24 @@ function TextField({
 }
 
 /** Phiếu bản vẽ thu nhỏ bên cạnh: mỗi câu trả lời được "đóng" vào phiếu ngay khi chọn (desktop) */
-function BriefSheet({ draft, sheetCode }: { draft: Draft; sheetCode: string }) {
+function BriefSheet({ draft, sheetCode, flow, t, lang }: { draft: Draft; sheetCode: string; flow: Flow; t: WizardCopy; lang: Locale }) {
   const rows = draft.service
-    ? questionsFor(draft.service)
-        .map((question) => ({ id: question.id, title: question.title, value: answerLabels(question, draft).join(" · ") }))
+    ? flow
+        .questionsFor(draft.service)
+        .map((question) => ({ id: question.id, title: question.title, value: answerLabels(question, draft, lang).join(" · ") }))
         .filter((row) => row.value)
     : [];
   return (
     <aside aria-hidden className="wizard-sheet">
       <div className="wizard-sheet-inner">
         <div className="flex items-center justify-between border-b border-line pb-3">
-          <span className="label text-muted">Phiếu yêu cầu</span>
+          <span className="label text-muted">{t.briefTitle}</span>
           {sheetCode && <span className="label text-accent">{sheetCode}</span>}
         </div>
         <dl className="mt-4 space-y-4">
           <div>
-            <dt className="label text-subtle">Hạng mục</dt>
-            <dd className="mt-1">{draft.service ? serviceShortLabel(draft.service) : "—"}</dd>
+            <dt className="label text-subtle">{t.briefService}</dt>
+            <dd className="mt-1">{draft.service ? flow.serviceShortLabel(draft.service) : "—"}</dd>
           </div>
           {rows.map((row) => (
             <Fragment key={row.id}>
@@ -896,7 +906,7 @@ function BriefSheet({ draft, sheetCode }: { draft: Draft; sheetCode: string }) {
           ))}
         </dl>
         <div aria-hidden className="wizard-sheet-mark label">
-          + Aegis · tỉ lệ 1:1
+          {t.briefMark}
         </div>
       </div>
     </aside>

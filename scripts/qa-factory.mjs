@@ -1,4 +1,5 @@
-// Kiểm tra Factory "Aegis Forge" (phiên bản 3, /factory và /en/factory) bằng trình duyệt thật (Playwright).
+// Kiểm tra Factory "Aegis Forge" (phiên bản 3) bằng trình duyệt thật (Playwright): bản trung tính (/factory, /en/factory, không khoe sản phẩm)
+// và bản web (/web/factory, /en/web/factory, có thêm khu Dự án và Studio mẫu).
 // Chạy: pnpm build && pnpm start   (cửa sổ khác)  rồi  pnpm qa:factory [baseUrl]
 // Phần 0: định tuyến (chuyển hướng slug cũ, /vi nội bộ). Phần 1: quét mọi route vi + en (desktop + mobile).
 // Phần 2: intro AEGIS + tương tác 3D desktop (camera tự do, nhãn hover, nav, phím, hotspot, đổi ngôn ngữ). Phần 2b: điện thoại. Phần 2c: ba demo minh họa.
@@ -36,19 +37,14 @@ const introScale = (page) =>
 const SERVICES = ["ai", "software", "web", "marketing"];
 const DEMOS = ["ai", "software", "marketing"];
 const PROJECTS = ["vidi26", "handle-vietnam", "integritas-vu-legal", "tedx-vinuniversity-2026", "rethink", "tedx-vinuniversity-2025", "rethink-halloween"];
-const subRoutes = [
-  "",
-  "/about",
-  "/services",
-  ...SERVICES.map((s) => `/services/${s}`),
-  ...DEMOS.map((s) => `/services/${s}/demo`),
-  "/work",
-  ...PROJECTS.map((p) => `/work/${p}`),
-  "/studio",
-  "/contact",
-];
-const routesFor = (lang) => subRoutes.map((s) => (lang === "en" ? "/en" : "") + "/factory" + s);
-const expected = [...routesFor("vi"), ...routesFor("en")];
+const baseRoutes = ["", "/about", "/services", ...SERVICES.map((s) => `/services/${s}`), ...DEMOS.map((s) => `/services/${s}/demo`), "/contact"];
+// Khu trưng bày sản phẩm chỉ có ở bản web
+const showcaseRoutes = ["/work", ...PROJECTS.map((p) => `/work/${p}`), "/studio"];
+const routesFor = (lang, variant) => {
+  const base = (lang === "en" ? "/en" : "") + (variant === "web" ? "/web/factory" : "/factory");
+  return [...baseRoutes, ...(variant === "web" ? showcaseRoutes : [])].map((s) => base + s);
+};
+const expected = [...routesFor("vi", "neutral"), ...routesFor("en", "neutral"), ...routesFor("vi", "web"), ...routesFor("en", "web")];
 
 // ---------- Phần 0: định tuyến ----------
 const head = async (path) => {
@@ -56,25 +52,33 @@ const head = async (path) => {
   return { status: res.status, location: res.headers.get("location") ?? "" };
 };
 const redirects = [
-  ["/factory/trung-bay", "/factory/work"],
-  ["/factory/trung-bay/vidi26", "/factory/work/vidi26"],
-  ["/factory/thi-nghiem", "/factory/studio"],
-  ["/factory/thi-nghiem/nen-mong", "/factory/studio"],
-  ["/factory/studio/lab/nen-mong", "/factory/studio"],
-  ["/en/factory/studio/lab/suong-mu", "/en/factory/studio"],
-  ["/factory/mau-giao-dien", "/factory/studio"],
-  ["/factory/nhat-ky", "/factory/studio"],
+  // Địa chỉ cũ (bố cục 7 phòng) về bản web, nơi có khu Dự án và Studio
+  ["/factory/trung-bay", "/web/factory/work"],
+  ["/factory/trung-bay/vidi26", "/web/factory/work/vidi26"],
+  ["/factory/thi-nghiem", "/web/factory/studio"],
+  ["/factory/thi-nghiem/nen-mong", "/web/factory/studio"],
+  ["/factory/studio/lab/nen-mong", "/web/factory/studio"],
+  ["/en/factory/studio/lab/suong-mu", "/en/web/factory/studio"],
+  ["/factory/mau-giao-dien", "/web/factory/studio"],
+  ["/factory/nhat-ky", "/web/factory/studio"],
+  // Bản trung tính không có Dự án và Studio mẫu
+  ["/factory/work", "/web/factory/work"],
+  ["/factory/work/vidi26", "/web/factory/work/vidi26"],
+  ["/factory/studio", "/web/factory/studio"],
+  ["/en/factory/work", "/en/web/factory/work"],
+  ["/en/factory/studio", "/en/web/factory/studio"],
   ["/factory/dich-vu", "/factory/services"],
   ["/factory/ve-aegis", "/factory/about"],
   ["/factory/lien-he", "/factory/contact"],
-  ["/en/factory/trung-bay/vidi26", "/en/factory/work/vidi26"],
-  ["/vi/factory/work", "/factory/work"],
+  ["/vi/factory/services", "/factory/services"],
+  ["/vi/web/factory", "/web/factory"],
+  ["/vi/web/factory/work", "/web/factory/work"],
 ];
 for (const [from, to] of redirects) {
   const r = await head(from);
   check(`[route] ${from} → 308 ${to}`, r.status === 308 && r.location.endsWith(to), `${r.status} ${r.location}`);
 }
-check("[route] /factory/khong-co trả 404", (await head("/factory/khong-co")).status === 404);
+check("[route] /factory/khong-co và /web/factory/khong-co trả 404", (await head("/factory/khong-co")).status === 404 && (await head("/web/factory/khong-co")).status === 404);
 for (const r of expected) {
   const res = await head(r);
   check(`[route] ${r} trả 200`, res.status === 200, String(res.status));
@@ -191,7 +195,9 @@ try {
   });
   check("[3d] không còn thẻ thông tin ở tổng quan (chỉ h1 ẩn cho trình đọc)", Boolean(hubBox) && hubBox.w <= 2 && hubBox.h <= 2 && (await page.locator("h1").count()) === 1, JSON.stringify(hubBox));
   await page.waitForSelector(".space-hotspot", { timeout: 20000 }).catch(() => {});
-  check("[3d] hotspot hiện ở tổng quan (8 khu)", (await page.locator(".space-hotspot").count()) === 8, `${await page.locator(".space-hotspot").count()}`);
+  check("[3d] bản trung tính: hotspot ở tổng quan chỉ 6 khu (không Dự án, Studio)", (await page.locator(".space-hotspot").count()) === 6, `${await page.locator(".space-hotspot").count()}`);
+  check("[3d] bản trung tính: thanh nav không có Dự án và Mẫu", !/dự án|mẫu/i.test(await page.locator(".space-nav:visible").innerText()));
+  check("[3d] bản trung tính: đường về là trang chủ", (await page.locator(".space-top a.space-home").getAttribute("href")) === "/");
   const labelOpacity = () => page.evaluate(() => Number(getComputedStyle(document.querySelector(".space-hotspot .space-hotspot-label")).opacity));
   check("[3d] nhãn kim cương ẩn khi chưa rê chuột", (await labelOpacity()) < 0.05, `${await labelOpacity()}`);
   await page.locator(".space-hotspot .space-diamond").first().hover({ force: true }).catch(() => {});
@@ -270,17 +276,23 @@ try {
   check("[3d] phím số mở khu tương ứng", page.url().endsWith("/factory/services/ai"), page.url());
 
   // Mở sản phẩm bằng hotspot
-  await page.goto(`${baseUrl}/factory/work?debug-space`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${baseUrl}/web/factory?debug-space`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.dataset.spaceLive === "on", null, { timeout: 60000 }).catch(() => {});
+  await page.waitForTimeout(3500);
+  check("[web] bản web: hotspot ở tổng quan đủ 8 khu", (await page.locator(".space-hotspot").count()) === 8, `${await page.locator(".space-hotspot").count()}`);
+  check("[web] bản web: có Dự án và Mẫu trên thanh nav", /dự án/i.test(await page.locator(".space-nav:visible").innerText()) && /mẫu/i.test(await page.locator(".space-nav:visible").innerText()));
+  check("[web] bản web: đường về là trang Web & web app", (await page.locator(".space-top a.space-home").getAttribute("href")) === "/web");
+  await page.goto(`${baseUrl}/web/factory/work?debug-space`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.dataset.spaceLive === "on", null, { timeout: 60000 }).catch(() => {});
   await page.waitForTimeout(3500);
   const hotspot = page.locator('.space-hotspot[data-hotspot="project:vidi26"]');
   check("[3d] hotspot dự án VIDI26 có mặt", (await hotspot.count()) === 1);
   await hotspot.first().locator(".space-diamond").click({ timeout: 10000 });
-  await page.waitForURL("**/factory/work/vidi26", { timeout: 15000 }).catch(() => {});
+  await page.waitForURL("**/web/factory/work/vidi26", { timeout: 15000 }).catch(() => {});
   await page.waitForTimeout(2500);
   check("[3d] bấm hotspot mở hồ sơ dự án", page.url().endsWith("/work/vidi26"), page.url());
   check("[3d] camera bay tới màn hình VIDI26", (await page.evaluate(() => window.__aegisSpace?.info?.().focus)) === "vidi26");
-  check("[3d] hồ sơ dự án nối ngược về khu dịch vụ Web", (await page.locator('.space-panel a[href="/factory/services/web"]').count()) >= 1);
+  check("[3d] hồ sơ dự án nối ngược về khu dịch vụ Web", (await page.locator('.space-panel a[href="/web/factory/services/web"]').count()) >= 1);
   await page.screenshot({ path: `${outDir}/3d-product.jpg`, type: "jpeg", quality: 70 });
 
   // Chuyển giữa các dự án: phím ← → và bộ chuyển nổi cạnh bảng (vuốt ngang nhường cho xoay camera)
@@ -302,10 +314,10 @@ try {
 
   // Đổi ngôn ngữ, giữ nguyên khu
   await page.locator(".space-top .space-lang").getByRole("link", { name: "Switch to English" }).click();
-  await page.waitForURL("**/en/factory/work/vidi26", { timeout: 15000 }).catch(() => {});
+  await page.waitForURL("**/en/web/factory/work/vidi26", { timeout: 15000 }).catch(() => {});
   await page.waitForTimeout(3500);
   await page.waitForFunction(() => document.documentElement.dataset.spaceLive === "on", null, { timeout: 60000 }).catch(() => {});
-  check("[lang] chuyển EN giữ nguyên khu", page.url().endsWith("/en/factory/work/vidi26"), page.url());
+  check("[lang] chuyển EN giữ nguyên khu và bản web", page.url().endsWith("/en/web/factory/work/vidi26"), page.url());
   check("[lang] html lang = en sau khi chuyển", (await page.evaluate(() => document.documentElement.lang)) === "en");
   check("[lang] nav hiển thị tiếng Anh", /work/i.test(await page.locator(".space-nav:visible").innerText()));
   check("[lang] cảnh 3D vẫn chạy sau khi đổi ngôn ngữ", (await page.locator(".space-canvas").count()) === 1);
@@ -314,9 +326,9 @@ try {
   check("[lang] điểm chạm hiện bằng tiếng Anh", (await page.locator(".space-hotspot").count()) === 7);
   await page.screenshot({ path: `${outDir}/3d-en.jpg`, type: "jpeg", quality: 70 });
   await page.locator(".space-top .space-lang").getByRole("link", { name: "Chuyển sang tiếng Việt" }).click();
-  await page.waitForURL("**/factory/work/vidi26", { timeout: 15000 }).catch(() => {});
+  await page.waitForURL("**/web/factory/work/vidi26", { timeout: 15000 }).catch(() => {});
   await page.waitForTimeout(2500);
-  check("[lang] chuyển lại VI về đúng URL không tiền tố", !page.url().includes("/en/") && page.url().endsWith("/factory/work/vidi26"), page.url());
+  check("[lang] chuyển lại VI về đúng URL không tiền tố", !page.url().includes("/en/") && page.url().endsWith("/web/factory/work/vidi26"), page.url());
 
   // Chuyển bản phẳng và nhớ lựa chọn
   await page.getByRole("button", { name: /Bản phẳng/i }).click();
@@ -377,7 +389,7 @@ try {
 
   // Giao diện điện thoại: thanh trên gọn, nav 5 mục, "Dịch vụ" mở bảng 2 × 2 với bốn ô bằng nhau
   check("[mobile] có nút menu gọn ở thanh trên", (await page.getByRole("button", { name: "Menu" }).count()) === 1);
-  check("[mobile] thanh nav có 5 biểu tượng (Dịch vụ + 4 khu)", (await page.locator(".space-nav .space-nav-icon:visible").count()) === 5);
+  check("[mobile] thanh nav (bản trung tính) có 3 biểu tượng: Dịch vụ + Về Aegis + Liên hệ", (await page.locator(".space-nav .space-nav-icon:visible").count()) === 3);
   await page.locator(".space-nav-services-toggle button").tap();
   await page.waitForTimeout(400);
   const tiles = await page.evaluate(() => [...document.querySelectorAll(".space-services-sheet .space-service-tile")].map((a) => a.getBoundingClientRect()));
@@ -399,12 +411,12 @@ try {
   await page.waitForTimeout(300);
 
   // Bộ chuyển mục ‹ 01/07 › trên trang dự án (khu dịch vụ không có bộ đếm vì không có thứ tự)
-  await page.goto(`${baseUrl}/factory/work/vidi26?debug-space`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${baseUrl}/web/factory/work/vidi26?debug-space`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.dataset.spaceLive === "on", null, { timeout: 90000 }).catch(() => {});
   await page.waitForTimeout(3500);
   check("[mobile] có bộ chuyển mục 01 / 07 ở Dự án", (await page.locator(".space-stepper-count").innerText().catch(() => "")).includes("01 / 07"));
   await page.getByRole("link", { name: /Mục sau/ }).tap();
-  await page.waitForURL("**/factory/work/handle-vietnam", { timeout: 15000 }).catch(() => {});
+  await page.waitForURL("**/web/factory/work/handle-vietnam", { timeout: 15000 }).catch(() => {});
   check("[mobile] chạm › chuyển sang dự án kế tiếp", page.url().endsWith("/work/handle-vietnam"), page.url());
   await page.waitForTimeout(3000);
   await page.goto(`${baseUrl}/factory/services/ai`, { waitUntil: "domcontentloaded" });
@@ -459,6 +471,7 @@ try {
     const base = `${baseUrl}${lang === "en" ? "/en" : ""}/factory/services`;
     for (const id of DEMOS) {
       await page.goto(`${base}/${id}/demo`, { waitUntil: "networkidle" });
+      await page.waitForSelector(".space-demo-badge", { timeout: 15000 }).catch(() => {});
       await page.waitForTimeout(800);
       const badge = await page.locator(".space-demo-badge").innerText().catch(() => "");
       check(`[demo ${lang}/${id}] có nhãn "demo minh họa, dữ liệu giả định"`, /(giả định|fictional)/i.test(badge), badge);
@@ -513,7 +526,7 @@ try {
   check("[fallback] có thông báo bản phẳng", (await page.locator(".space-notice").count()) === 1);
   check("[fallback] mặt bằng phẳng hiển thị", await page.locator(".space-map").isVisible());
   const rooms = await page.locator(".space-room").count();
-  check("[fallback] mặt bằng có 8 khu là liên kết thật", rooms === 8, `${rooms}`);
+  check("[fallback] mặt bằng (bản trung tính) có 6 khu là liên kết thật", rooms === 6, `${rooms}`);
   await page.locator(".space-room").first().click();
   await page.waitForTimeout(1200);
   check("[fallback] bấm khu trên mặt bằng mở khu", /\/factory\/about/.test(page.url()), page.url());
@@ -527,14 +540,14 @@ try {
   check("[reduced-motion] không có intro", bootRm === "");
   const deep = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const deepPage = await deep.newPage();
-  await deepPage.goto(`${baseUrl}/factory/work`, { waitUntil: "domcontentloaded" });
-  check("[intro] link sâu (/factory/work) vào thẳng, không intro", (await deepPage.evaluate(() => document.documentElement.dataset.spaceBoot ?? "")) === "");
+  await deepPage.goto(`${baseUrl}/web/factory/work`, { waitUntil: "domcontentloaded" });
+  check("[intro] link sâu (/web/factory/work) vào thẳng, không intro", (await deepPage.evaluate(() => document.documentElement.dataset.spaceBoot ?? "")) === "");
   await deep.close();
   await rm.close();
 
   const nojs = await browser.newContext({ viewport: { width: 1440, height: 900 }, javaScriptEnabled: false });
   const njPage = await nojs.newPage();
-  await njPage.goto(`${baseUrl}/factory/work`, { waitUntil: "load" });
+  await njPage.goto(`${baseUrl}/web/factory/work`, { waitUntil: "load" });
   check("[no-js] nội dung Dự án vẫn có trong HTML", (await njPage.locator("h1").count()) === 1 && (await njPage.locator(".space-card").count()) === 7);
   await njPage.goto(`${baseUrl}/en/factory/services/ai`, { waitUntil: "load" });
   check("[no-js] khu dịch vụ tiếng Anh vẫn có nội dung", (await njPage.locator("h1").innerText()).includes("Enterprise AI"));

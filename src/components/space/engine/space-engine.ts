@@ -230,9 +230,9 @@ export class SpaceEngine {
     options.onProgress(0.2);
 
     // Mỗi phần cảnh gắn với khu sáng lên khi khu đó được mở ("hub" = không thuộc khu nào, luôn ở trạng thái nền)
+    const showcase = options.manifest.showcase;
     const builds: [string, ZoneId, ZoneBuild][] = [
-      ["hall", "work", buildHall(ctx)],
-      ["carousel", "studio", buildCarousel(ctx)],
+      ...(showcase ? ([["hall", "work", buildHall(ctx)], ["carousel", "studio", buildCarousel(ctx)]] as [string, ZoneId, ZoneBuild][]) : []),
       ["core", "about", buildCore(ctx)],
       ["launchpad", "contact", buildLaunchpad(ctx)],
       ...buildBays(ctx).map(({ zone, build }): [string, ZoneId, ZoneBuild] => [`bay-${zone}`, zone, build]),
@@ -245,11 +245,11 @@ export class SpaceEngine {
     }
     options.onProgress(0.35);
 
-    // Texture khởi động: chỉ phòng trưng bày (ảnh dự án). Kệ mẫu nạp lười.
-    const hall = builds[0][2];
+    // Texture khởi động: chỉ phòng trưng bày (ảnh dự án, bản web). Kệ mẫu nạp lười.
+    const hall = builds.find(([key]) => key === "hall")?.[2];
     let loaded = 0;
-    const total = Math.max(1, hall.loadCount ?? 1);
-    await hall.load?.(() => {
+    const total = Math.max(1, hall?.loadCount ?? 1);
+    await hall?.load?.(() => {
       loaded += 1;
       options.onProgress(0.35 + 0.5 * (loaded / total));
     });
@@ -789,6 +789,11 @@ export class SpaceEngine {
         cancelable: true,
       }),
     );
+  }
+
+  /** Bản Factory đã dựng engine này (web có sảnh dự án và băng chuyền mẫu): đổi bản thì phải dựng lại */
+  get showcase() {
+    return this.options.manifest.showcase;
   }
 
   /** Cho Hotspots biết điểm neo tồn tại */

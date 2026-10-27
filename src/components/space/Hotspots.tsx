@@ -33,8 +33,8 @@ export function Hotspots() {
     engineRef.current?.forwardDrag(event.nativeEvent);
   };
   const visible = mode === "3d" && staged;
-  const { ui, lang } = useFactory();
-  const items = visible ? hotspotsFor(zone, lang, ui) : [];
+  const { ui, lang, variant } = useFactory();
+  const items = visible ? hotspotsFor(zone, lang, ui, variant) : [];
 
   // Đăng ký phần tử với engine sau mỗi lần danh sách đổi
   useEffect(() => {

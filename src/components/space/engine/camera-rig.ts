@@ -53,6 +53,8 @@ export function rigFor(zone: ZoneId, focus: string | null, manifest: SceneManife
     case "contact":
       return { pos: [DOOR.x - 0.8, phone ? 5.4 : 6.2, DOOR.z - 7.6], target: [DOOR.x, 1.3, DOOR.z + 0.6], fov: phone ? 48 : 40, span: 7.6, spanV: 5 };
     default:
+      // Bản trung tính không có sảnh dự án và băng chuyền mẫu: mặt bằng gọn hơn và lệch về phía nam, nên tâm nhìn dời xuống và camera gần hơn
+      if (!manifest.showcase) return { pos: [0, 25, 30.4], target: [0, 0, 4.2], fov: 35, span: 27, spanV: 22 };
       return { pos: [0, 31, 34], target: [0, 0, 1.2], fov: 35, span: 40, spanV: 26 };
   }
 }

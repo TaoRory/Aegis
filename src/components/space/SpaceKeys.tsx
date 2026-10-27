@@ -8,20 +8,21 @@ import { spaceStore } from "@/components/space/space-store";
 import { engineRef } from "@/components/space/engine-ref";
 import { useFactory } from "@/components/space/factory-context";
 import { useSpace } from "@/components/space/useSpace";
-import { navOthers, navServices } from "@/config/space";
+import { navOthersFor, navServices, type Variant } from "@/config/space";
 
 /**
  * Phím tắt toàn Xưởng: 1–8 mở khu theo thanh điều hướng, M về tổng quan, ? mở bảng phím tắt. B đổi 3D/phẳng. (Esc do Panel xử lý.)
  * Tắt khi đang gõ vào ô nhập hoặc khi focus đang nằm trong nội dung <main> (tránh đụng phím số của form liên hệ).
  */
 /** Thứ tự phím số theo thanh điều hướng: bốn dịch vụ rồi các khu còn lại */
-const keyZones = [...navServices, ...navOthers];
+const keyZonesFor = (variant: Variant) => [...navServices, ...navOthersFor(variant)];
 
 export function SpaceKeys() {
   const router = useRouter();
-  const { href } = useFactory();
+  const { href, variant } = useFactory();
 
   useEffect(() => {
+    const keyZones = keyZonesFor(variant);
     const onKey = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
@@ -49,7 +50,7 @@ export function SpaceKeys() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router, href]);
+  }, [router, href, variant]);
 
   return null;
 }
@@ -101,8 +102,9 @@ export function ShortcutsHelp() {
     };
   }, [open]);
 
-  const { ui } = useFactory();
-  const rows = ui.hud.shortcutRows;
+  const { ui, variant } = useFactory();
+  // "N" trong chữ phím số là số khu có trong bản này (6 ở bản trung tính, 8 ở bản web)
+  const rows = ui.hud.shortcutRows.map(([key, text]) => [key.replace("N", String(keyZonesFor(variant).length)), text] as const);
 
   return (
     <div ref={rootRef} className="relative hidden lg:block">

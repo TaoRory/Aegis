@@ -6,6 +6,8 @@ import type { RoomZone } from "@/components/space/plan";
 
 /** Dữ liệu cảnh do React cung cấp (chuỗi/URL thuần, đã theo ngôn ngữ), để engine không import trực tiếp nội dung */
 export interface SceneManifest {
+  /** Bản web (/web/factory): có sảnh dự án và băng chuyền mẫu; bản trung tính không dựng hai khu này */
+  showcase: boolean;
   projects: { slug: string; name: string; cover: string }[];
   templates: { slug: string; name: string; cover: string; stage: string; accent: string }[];
   /** Nhãn bảng tên của từng khu (theo ngôn ngữ) */

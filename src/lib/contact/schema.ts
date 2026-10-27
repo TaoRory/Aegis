@@ -1,4 +1,7 @@
+import type { Locale } from "@/config/space";
 import { OTHER_OPTION, OTHER_SERVICE, questionsFor, serviceQuestion, type ChoiceQuestion } from "@/content/contact-flow";
+import { contactMessages } from "@/content/contact-copy";
+import { fill } from "@/lib/fill";
 
 /**
  * Validation dùng chung cho form liên hệ (trình duyệt) và API (server).
@@ -86,72 +89,74 @@ function allowedValues(question: ChoiceQuestion) {
 }
 
 /** Lỗi của một câu hỏi lựa chọn (dùng cho từng bước trong form và cho server) */
-export function validateQuestion(question: ChoiceQuestion, input: Pick<ContactInput, "answers" | "others">) {
+export function validateQuestion(question: ChoiceQuestion, input: Pick<ContactInput, "answers" | "others">, lang: Locale = "vi") {
+  const m = contactMessages[lang];
   const picked = input.answers[question.id] ?? [];
-  if (picked.length === 0) return question.optional ? undefined : "Vui lòng chọn một câu trả lời.";
+  if (picked.length === 0) return question.optional ? undefined : m.chooseOne;
   const allowed = allowedValues(question);
-  if (picked.some((value) => !allowed.includes(value))) return "Lựa chọn không hợp lệ.";
-  if (question.kind !== "multi" && picked.length > 1) return "Chỉ chọn một câu trả lời.";
+  if (picked.some((value) => !allowed.includes(value))) return m.invalidChoice;
+  if (question.kind !== "multi" && picked.length > 1) return m.onlyOne;
   if (picked.includes(OTHER_OPTION)) {
     const other = (input.others[question.id] ?? "").trim();
-    if (!other) return "Vui lòng ghi rõ lựa chọn “Khác”.";
-    if (other.length > contactLimits.other.max) return `Tối đa ${contactLimits.other.max} ký tự.`;
+    if (!other) return m.specifyOther;
+    if (other.length > contactLimits.other.max) return fill(m.maxChars, { n: contactLimits.other.max });
   }
   return undefined;
 }
 
-export function validateService(service: string) {
-  return serviceQuestion.options.some((o) => o.value === service) ? undefined : "Vui lòng chọn hạng mục bạn cần.";
+export function validateService(service: string, lang: Locale = "vi") {
+  return serviceQuestion.options.some((o) => o.value === service) ? undefined : contactMessages[lang].chooseService;
 }
 
-export function validateMessage(input: Pick<ContactInput, "service" | "message">) {
+export function validateMessage(input: Pick<ContactInput, "service" | "message">, lang: Locale = "vi") {
+  const m = contactMessages[lang];
   const { message, messageOther } = contactLimits;
   const value = input.message.trim();
-  if (input.service === OTHER_SERVICE && value.length < messageOther.min)
-    return `Vui lòng mô tả ngắn bài toán (tối thiểu ${messageOther.min} ký tự).`;
-  if (value.length > message.max) return `Nội dung tối đa ${message.max} ký tự.`;
+  if (input.service === OTHER_SERVICE && value.length < messageOther.min) return fill(m.describe, { n: messageOther.min });
+  if (value.length > message.max) return fill(m.messageMax, { n: message.max });
   return undefined;
 }
 
-export function validateContactInfo(input: Pick<ContactInput, "name" | "contact" | "company">) {
+export function validateContactInfo(input: Pick<ContactInput, "name" | "contact" | "company">, lang: Locale = "vi") {
+  const m = contactMessages[lang];
   const errors: ContactErrors = {};
   const { name, contact, company } = contactLimits;
   const nameValue = input.name.trim();
   const contactValue = input.contact.trim();
 
-  if (nameValue.length < name.min) errors.name = "Vui lòng nhập họ tên.";
-  else if (nameValue.length > name.max) errors.name = `Họ tên tối đa ${name.max} ký tự.`;
+  if (nameValue.length < name.min) errors.name = m.nameRequired;
+  else if (nameValue.length > name.max) errors.name = fill(m.nameMax, { n: name.max });
 
-  if (!contactValue) errors.contact = "Vui lòng nhập email hoặc số điện thoại.";
+  if (!contactValue) errors.contact = m.contactRequired;
   else if (
     contactValue.length > contact.max ||
     !(isEmail(contactValue) || PHONE_PATTERN.test(normalizePhone(contactValue)))
   )
-    errors.contact = "Email hoặc số điện thoại chưa đúng định dạng.";
+    errors.contact = m.contactFormat;
 
-  if (input.company.trim().length > company.max) errors.company = `Tên công ty tối đa ${company.max} ký tự.`;
+  if (input.company.trim().length > company.max) errors.company = fill(m.companyMax, { n: company.max });
   return errors;
 }
 
-export function validateContact(input: ContactInput): ContactErrors {
-  const service = validateService(input.service);
+export function validateContact(input: ContactInput, lang: Locale = "vi"): ContactErrors {
+  const service = validateService(input.service, lang);
   if (service) return { service };
 
   const errors: ContactErrors = {};
   for (const question of questionsFor(input.service)) {
-    const error = validateQuestion(question, input);
+    const error = validateQuestion(question, input, lang);
     if (error) errors[`q:${question.id}`] = error;
   }
-  const message = validateMessage(input);
+  const message = validateMessage(input, lang);
   if (message) errors.message = message;
-  return { ...errors, ...validateContactInfo(input) };
+  return { ...errors, ...validateContactInfo(input, lang) };
 }
 
 /** Nhãn hiển thị của câu trả lời (dùng cho bản xem lại và email) */
-export function answerLabels(question: ChoiceQuestion, input: Pick<ContactInput, "answers" | "others">) {
+export function answerLabels(question: ChoiceQuestion, input: Pick<ContactInput, "answers" | "others">, lang: Locale = "vi") {
   return (input.answers[question.id] ?? []).map((value) =>
     value === OTHER_OPTION
-      ? `Khác: ${input.others[question.id] ?? ""}`
+      ? `${contactMessages[lang].otherPrefix}: ${input.others[question.id] ?? ""}`
       : (question.options.find((o) => o.value === value)?.label ?? value),
   );
 }

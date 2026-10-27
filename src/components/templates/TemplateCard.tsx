@@ -15,11 +15,14 @@ export function TemplateStage({
   template,
   preview,
   sizes,
+  alt,
   className,
 }: {
   template: DemoTemplate;
   preview?: TemplatePreview;
   sizes: string;
+  /** Mô tả ảnh theo ngôn ngữ của trang */
+  alt: string;
   className?: string;
 }) {
   const scrollDuration = preview ? Math.max(3, (preview.full.height / preview.full.width) * 1.8) : 0;
@@ -41,7 +44,7 @@ export function TemplateStage({
                 src={preview.cover.src}
                 width={preview.cover.width}
                 height={preview.cover.height}
-                alt={`Ảnh chụp mẫu giao diện ${template.brand}`}
+                alt={alt}
                 sizes={sizes}
                 className="size-full object-cover object-top"
               />

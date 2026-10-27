@@ -9,6 +9,7 @@ import type { SceneManifest } from "@/components/space/engine/types";
 import { useFactory } from "@/components/space/factory-context";
 import { hrefForId } from "@/components/space/hotspot-data";
 import { rooms } from "@/components/space/plan";
+import { hasZone, type Variant } from "@/config/space";
 import { spaceStore } from "@/components/space/space-store";
 import { useSpace } from "@/components/space/useSpace";
 import type { FactoryUi } from "@/content/factory/types";
@@ -20,13 +21,14 @@ import { MQ } from "@/lib/motion";
 
 type Previews = Record<string, { cover: { src: string } }>;
 
-function buildManifest(ui: FactoryUi): SceneManifest {
+function buildManifest(ui: FactoryUi, variant: Variant): SceneManifest {
   const p = previews as Previews;
   const t = templatePreviews as Previews;
   return {
+    showcase: variant === "web",
     projects: projects.map((x) => ({ slug: x.slug, name: x.name, cover: p[x.slug]?.cover.src ?? "" })),
     templates: templates.map((x) => ({ slug: x.slug, name: x.name, cover: t[x.slug]?.cover.src ?? "", stage: x.stage, accent: x.palette[2] ?? x.stageInk })),
-    zones: Object.fromEntries(rooms.map((r) => [r.zone, { name: ui.zones[r.zone].name, tag: ui.zones[r.zone].tag }])) as SceneManifest["zones"],
+    zones: Object.fromEntries(rooms.filter((r) => hasZone(r.zone, variant)).map((r) => [r.zone, { name: ui.zones[r.zone].name, tag: ui.zones[r.zone].tag }])) as SceneManifest["zones"],
   };
 }
 
@@ -72,12 +74,14 @@ export function SceneCanvas() {
   const paused = useSpace("paused");
   const zone = useSpace("zone");
   const focus = useSpace("focus");
-  const { ui } = useFactory();
-  // Bản ghi mới nhất của chữ giao diện, đọc trong callback của engine (không làm effect chạy lại)
+  const { ui, variant } = useFactory();
+  // Bản ghi mới nhất của chữ giao diện và bản Factory, đọc trong callback của engine (không làm effect chạy lại)
   const uiRef = useRef(ui);
+  const variantRef = useRef(variant);
   useEffect(() => {
     uiRef.current = ui;
-  }, [ui]);
+    variantRef.current = variant;
+  }, [ui, variant]);
 
   // 1) Chọn chế độ khi mount
   useEffect(() => {
@@ -99,12 +103,19 @@ export function SceneCanvas() {
 
     const attach = async () => {
       engineRef.cancelDispose();
+      // Engine còn lại từ bản Factory khác (trung tính ↔ web): bỏ đi và dựng lại cho đúng các khu của bản này
+      const stale = engineRef.current;
+      if (stale && !stale.isDisposed && stale.showcase !== (variantRef.current === "web")) {
+        stale.dispose();
+        engineRef.set(null);
+        engineRef.setCreating(null);
+      }
       try {
         if (!engineRef.current || engineRef.current.isDisposed) {
           if (!engineRef.creating) {
             const creating = import("@/components/space/engine/space-engine").then(({ SpaceEngine }) =>
               SpaceEngine.create({
-                manifest: buildManifest(uiRef.current),
+                manifest: buildManifest(uiRef.current, variantRef.current),
                 mobile: window.innerWidth < 768,
                 reduced: window.matchMedia(MQ.reduced).matches,
                 onProgress: (p) => spaceStore.set("bootProgress", p),
@@ -114,7 +125,7 @@ export function SceneCanvas() {
                   const el = document.querySelector<HTMLElement>(`[data-hotspot="${id}"]`);
                   if (el) el.click();
                   else {
-                    const href = hrefForId(id, uiRef.current.lang);
+                    const href = hrefForId(id, uiRef.current.lang, variantRef.current);
                     if (href) router.push(href);
                   }
                 },

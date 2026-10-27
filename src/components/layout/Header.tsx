@@ -1,26 +1,31 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { usePathname } from "next/navigation";
 import { flushSync } from "react-dom";
 
+import { LangSwitch } from "@/components/layout/LangSwitch";
 import { SettingsMenu } from "@/components/layout/SettingsMenu";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { useSite } from "@/components/layout/SiteLang";
 import { ButtonLink, Roll } from "@/components/ui/Button";
 import { localizeHref, SmartLink } from "@/components/ui/SmartLink";
 import { Wordmark } from "@/components/ui/Wordmark";
-import { siteConfig } from "@/config/site";
+import { homeHref } from "@/config/routes";
 import { cn } from "@/lib/cn";
 import { getLenis, scrollToTarget } from "@/lib/motion";
 
-/** id section trên trang chủ ứng với từng mục menu dạng "/#id" */
-const sectionIds = siteConfig.nav.filter((item) => item.href.includes("#")).map((item) => item.href.split("#")[1]);
-
-function isActive(href: string, active: string | null, pathname: string) {
-  return href.includes("#") ? pathname === "/" && active === href.split("#")[1] : pathname.startsWith(href);
+function isActive(href: string, active: string | null, pathname: string, onHome: boolean) {
+  return href.includes("#") ? onHome && active === href.split("#")[1] : pathname.startsWith(href);
 }
 
 export function Header() {
   const pathname = usePathname();
+  const { lang, chrome, nav, cta, settings } = useSite();
+  const home = homeHref(lang);
+  const onHome = (pathname.replace(/\/+$/, "") || "/") === home;
+  /** id section trên trang chủ ứng với từng mục menu dạng "/#id" */
+  const sectionIds = useMemo(() => nav.filter((item) => item.href.includes("#")).map((item) => item.href.split("#")[1]), [nav]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<string | null>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -41,7 +46,7 @@ export function Header() {
     );
     sections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
-  }, []);
+  }, [sectionIds]);
 
   // Ẩn header khi cuộn xuống, hiện lại khi cuộn lên hoặc gần đầu trang (không đè nội dung khi đọc)
   useEffect(() => {
@@ -94,7 +99,7 @@ export function Header() {
   const navigateFromMenu = (event: MouseEvent<HTMLAnchorElement>) => {
     const href = event.currentTarget.getAttribute("href");
     const hash = href?.includes("#") ? `#${href.split("#")[1]}` : null;
-    const target = hash && window.location.pathname === "/" ? document.querySelector<HTMLElement>(hash) : null;
+    const target = hash && (window.location.pathname.replace(/\/+$/, "") || "/") === home ? document.querySelector<HTMLElement>(hash) : null;
     if (!href || !hash || !target) return setOpen(false);
     event.preventDefault();
     event.stopPropagation();
@@ -116,17 +121,17 @@ export function Header() {
       >
         <div className="container-page flex h-(--header-h) items-center justify-between gap-6">
           <SmartLink
-            href={pathname === "/" ? "#trang-chu" : "/"}
-            aria-label={`${siteConfig.name} – về trang chủ`}
+            href={onHome ? "#trang-chu" : home}
+            aria-label={chrome.homeAria}
             onClick={() => setOpen(false)}
           >
             <Wordmark />
           </SmartLink>
 
-          <nav aria-label="Điều hướng chính" className="hidden lg:block">
+          <nav aria-label={chrome.navMain} className="hidden lg:block">
             <ul className="flex items-center gap-8">
-              {siteConfig.nav.map((item) => {
-                const current = isActive(item.href, active, pathname);
+              {nav.map((item) => {
+                const current = isActive(item.href, active, pathname, onHome);
                 return (
                   <li key={item.href}>
                     <SmartLink
@@ -151,10 +156,10 @@ export function Header() {
             className="label inline-flex h-11 items-center gap-2 lg:hidden"
             aria-expanded={open}
             aria-controls="menu-di-dong"
-            aria-label={open ? "Đóng menu" : "Mở menu"}
+            aria-label={open ? chrome.menuCloseAria : chrome.menuOpenAria}
             onClick={() => setOpen((value) => !value)}
           >
-            <span aria-hidden>{open ? "Đóng" : "Menu"}</span>
+            <span aria-hidden>{open ? chrome.menuClose : chrome.menuOpen}</span>
             <span aria-hidden className="relative block h-2 w-5">
               <span className={cn("absolute left-0 h-px w-5 bg-current transition-transform duration-300", open ? "top-1 rotate-45" : "top-0")} />
               <span className={cn("absolute left-0 h-px w-5 bg-current transition-transform duration-300", open ? "top-1 -rotate-45" : "top-2")} />
@@ -168,13 +173,18 @@ export function Header() {
         data-hidden={hidden && !open}
         className="site-header header-cta fixed top-0 z-50 flex h-(--header-h) items-center"
       >
-        <SettingsMenu className="mr-3 hidden lg:block" />
+        {/* Công cụ (ngôn ngữ, theme, cài đặt) nằm trong một viên nền đặc theo theme để luôn đọc được trên cả nền tối, nền sáng và nền giấy */}
+        <div className="header-tools mr-3 hidden items-center gap-1.5 lg:flex">
+          <LangSwitch />
+          <ThemeToggle />
+          <SettingsMenu copy={settings} />
+        </div>
         {/* Điện thoại: nút pill gọn như "Let's talk" của Emotion; từ sm trở lên: nút đầy đủ */}
-        <ButtonLink href={localizeHref(siteConfig.cta.href, pathname)} arrow={false} className="header-cta-pill h-9 rounded-full px-4 sm:hidden">
-          Trao đổi
+        <ButtonLink href={localizeHref(cta.href, pathname)} arrow={false} className="header-cta-pill h-9 rounded-full px-4 sm:hidden">
+          {chrome.ctaShort}
         </ButtonLink>
-        <ButtonLink href={localizeHref(siteConfig.cta.href, pathname)} className="h-10 px-4 max-sm:hidden">
-          {siteConfig.cta.label}
+        <ButtonLink href={localizeHref(cta.href, pathname)} className="h-10 px-4 max-sm:hidden">
+          {cta.label}
         </ButtonLink>
       </div>
 
@@ -186,14 +196,14 @@ export function Header() {
         data-surface="dark"
         className="mobile-menu fixed inset-0 z-40 flex flex-col bg-bg pt-(--header-h) lg:hidden"
       >
-        <nav aria-label="Điều hướng di động" className="container-page flex flex-1 flex-col justify-between py-8">
+        <nav aria-label={chrome.navMobile} className="container-page flex flex-1 flex-col justify-between py-8">
           <ul>
-            {siteConfig.nav.map((item, index) => (
+            {nav.map((item, index) => (
               <li key={item.href} className="mobile-menu-item border-b border-line" style={{ "--i": index } as CSSProperties}>
                 <SmartLink
                   href={localizeHref(item.href, pathname)}
                   onClick={navigateFromMenu}
-                  aria-current={isActive(item.href, active, pathname) ? "location" : undefined}
+                  aria-current={isActive(item.href, active, pathname, onHome) ? "location" : undefined}
                   className="flex items-baseline justify-between py-4 text-[clamp(2.5rem,12vw,4rem)] leading-none font-semibold tracking-[-0.04em] aria-[current]:text-accent"
                 >
                   {item.label}
@@ -204,12 +214,16 @@ export function Header() {
               </li>
             ))}
           </ul>
-          <div className="mobile-menu-item" style={{ "--i": siteConfig.nav.length } as CSSProperties}>
-            <ButtonLink href={localizeHref(siteConfig.cta.href, pathname)} className="w-full" onClick={navigateFromMenu}>
-              {siteConfig.cta.label}
+          <div className="mobile-menu-item" style={{ "--i": nav.length } as CSSProperties}>
+            <ButtonLink href={localizeHref(cta.href, pathname)} className="w-full" onClick={navigateFromMenu}>
+              {cta.label}
             </ButtonLink>
-            <p className="label mt-6 text-muted">{siteConfig.tagline}</p>
-            <SettingsMenu inline className="mt-8" />
+            <p className="label mt-6 text-muted">{chrome.tagline}</p>
+            <div className="mt-6 flex items-center gap-3">
+              <LangSwitch />
+              <ThemeToggle />
+            </div>
+            <SettingsMenu copy={settings} inline className="mt-8" />
           </div>
         </nav>
       </div>

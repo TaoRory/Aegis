@@ -2,6 +2,7 @@ import { about, process, servicesSection, values } from "@/content/about";
 import { projectCategories, projects } from "@/content/projects";
 import { services } from "@/content/services";
 import { templateNotice, templates } from "@/content/templates";
+import { settingsCopy } from "@/content/settings-copy";
 import type { FactoryDict, FactoryUi } from "@/content/factory/types";
 import type { ProjectCategory } from "@/content/types";
 
@@ -14,6 +15,9 @@ const ui: FactoryUi = {
   lang: "vi",
   name: "Xưởng Aegis",
   homeLink: "← Trang chính Aegis",
+  skip: "Bỏ qua đến nội dung chính",
+  settings: settingsCopy.vi,
+  webLink: "← Trang Web & web app",
   language: { label: "Ngôn ngữ", vi: "VI", en: "EN", switchTo: "Switch to English" },
   zones: {
     hub: { name: "Tổng quan", short: "Tổng quan", tag: "MẶT BẰNG" },
@@ -42,7 +46,7 @@ const ui: FactoryUi = {
     flatNotice: "Thiết bị chưa hỗ trợ không gian 3D, Xưởng đang hiển thị bản phẳng.",
     shortcuts: "Phím tắt",
     shortcutRows: [
-      ["1 – 8", "Mở khu theo thanh điều hướng"],
+      ["1 – N", "Mở khu theo thanh điều hướng"],
       ["M", "Về tổng quan"],
       ["← →", "Dự án / nguyên mẫu trước, sau (hoặc vuốt ngang trên cảnh)"],
       ["Esc", "Đóng khung nội dung"],
@@ -77,7 +81,7 @@ const ui: FactoryUi = {
   },
   serviceTitles: Object.fromEntries(services.map((s) => [s.id, s.title])) as FactoryUi["serviceTitles"],
   demoBadge: "Demo minh họa · thương hiệu và dữ liệu giả định",
-  hotspotLabels: { demo: "Demo minh họa", proof: "Dự án đã làm", start: "Trao đổi" },
+  hotspotLabels: { demo: "Demo minh họa", proof: "Dự án đã làm", start: "Trao đổi", page: "Trang Web & web app" },
 };
 
 export const vi: FactoryDict = {
@@ -98,6 +102,7 @@ export const vi: FactoryDict = {
     start: "Trao đổi về dịch vụ này",
     others: "Các dịch vụ khác",
     studioLink: "Thư viện mẫu giao diện",
+    webPage: "Xem trang Web & web app",
     open: "Xem khu dịch vụ",
   },
   projects,

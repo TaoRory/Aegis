@@ -15,7 +15,7 @@ import {
 } from "three";
 
 import type { ZoneId } from "@/config/space";
-import { links, outlinePoints, roomByZone, rooms } from "@/components/space/plan";
+import { links as allLinks, outlinePoints, roomByZone, rooms as allRooms } from "@/components/space/plan";
 import type { BuildContext } from "@/components/space/engine/types";
 import { disposeGroup } from "@/components/space/engine/types";
 
@@ -282,6 +282,9 @@ export interface Atmosphere {
 }
 
 export function buildAtmosphere(ctx: BuildContext): Atmosphere {
+  // Bản trung tính không có sảnh dự án và băng chuyền mẫu: nét viền, dòng năng lượng và chỉ số khu chỉ gồm các khu còn lại
+  const rooms = allRooms.filter((r) => ctx.manifest.showcase || (r.zone !== "work" && r.zone !== "studio"));
+  const links = allLinks.filter((l) => ctx.manifest.showcase || (l.zone !== "work" && l.zone !== "studio"));
   const { palette, mobile } = ctx;
   const group = new Group();
   const city = new Group();

@@ -1,13 +1,15 @@
 import { SplitReveal } from "@/components/motion/SplitReveal";
 import { Rich } from "@/components/ui/Rich";
 import { ScrollRevealText } from "@/components/ui/ScrollRevealText";
-import { about, values } from "@/content/about";
+import type { Locale } from "@/config/space";
+import { getSiteDict } from "@/content/site";
 
-export function About() {
+export function About({ lang }: { lang: Locale }) {
+  const { about, values } = getSiteDict(lang);
   return (
     <section
       id="gioi-thieu"
-      data-chapter="Về Aegis"
+      data-chapter={about.chapter}
       aria-labelledby="gioi-thieu-title"
       data-surface="light"
       className="paper relative z-10 section-y"
@@ -39,7 +41,9 @@ export function About() {
         <div className="mt-28 lg:mt-40">
           <div className="flex items-center justify-between border-b border-line pb-4 text-muted">
             <p className="label">{about.valuesLabel}</p>
-            <p className="label">0{values.length} / Nguyên tắc</p>
+            <p className="label">
+              0{values.length} / {about.principles}
+            </p>
           </div>
           <ol>
             {values.map((value, index) => (

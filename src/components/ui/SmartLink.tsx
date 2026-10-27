@@ -22,7 +22,11 @@ export function SmartLink({
   return <Link href={href} transitionTypes={[navType]} {...props} />;
 }
 
-/** "/#id" → "#id" khi đang ở trang chủ (để cuộn tại chỗ), giữ nguyên ở trang khác */
+/** "/#id" hoặc "/en#id" → "#id" khi đang ở chính trang đó (để cuộn tại chỗ), giữ nguyên ở trang khác */
 export function localizeHref(href: string, pathname: string) {
-  return pathname === "/" && href.startsWith("/#") ? href.slice(1) : href;
+  const hash = href.indexOf("#");
+  if (hash < 0) return href;
+  const base = href.slice(0, hash).replace(/\/+$/, "") || "/";
+  const here = pathname.replace(/\/+$/, "") || "/";
+  return base === here ? href.slice(hash) : href;
 }

@@ -82,7 +82,7 @@ void main() {
   float depth = clamp(persp - 0.55, 0.15, 1.25);
   float twinkle = 0.82 + 0.18 * sin(uTime * (1.2 + aSeed * 2.0) + aSeed * 30.0);
   gl_PointSize = uPointSize * pow(persp, 1.6) * (0.5 + aSeed * 0.95) * (1.0 + vAccent * 1.6) * (1.0 + flow.z * 0.45);
-  vAlpha = (0.38 + 0.72 * fract(aSeed * 3.17)) * depth * twinkle;
+  vAlpha = (0.62 + 0.9 * fract(aSeed * 3.17)) * depth * twinkle;
 }`;
 
 const FRAGMENT = /* glsl */ `#version 300 es
@@ -97,8 +97,8 @@ out vec4 outColor;
 void main() {
   float d = length(gl_PointCoord - 0.5) * 2.0;
   if (d > 1.0) discard;
-  float core = smoothstep(0.55, 0.0, d);
-  float halo = exp(-d * d * 3.5) * (0.28 + vAccent * 0.5);
+  float core = smoothstep(0.9, 0.0, d) * 1.15;
+  float halo = exp(-d * d * 3.0) * (0.4 + vAccent * 0.6);
   float a = clamp((core + halo) * vAlpha * uOpacity * (1.0 + vEnergy * 0.8), 0.0, 1.0);
   vec3 c = mix(uColor, uAccent, clamp(max(vAccent * 0.85, vEnergy * 0.75), 0.0, 1.0));
   c += uAccent * vEnergy * 0.55;
@@ -256,9 +256,16 @@ export class ParticleEngine {
     this.pair = -1;
   }
 
+  private light = false;
+
   setColors(color: RGB, accent: RGB) {
     this.color = color;
     this.accent = accent;
+  }
+
+  /** Nền sáng (theme sáng): hoà trộn thường thay vì cộng màu, để hạt tối hiện rõ trên nền sáng */
+  setLight(light: boolean) {
+    this.light = light;
   }
 
   /** Tay/chuột đi qua (toạ độ client trong canvas toàn màn hình) */
@@ -315,7 +322,8 @@ export class ParticleEngine {
 
     gl.enable(gl.BLEND);
     // Cộng màu (phát sáng khi chồng lên nhau), alpha vẫn hoà trộn bình thường
-    gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    if (this.light) gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    else gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.flow.texture);
 

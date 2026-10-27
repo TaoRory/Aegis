@@ -1,11 +1,13 @@
 import { VelocityMarquee } from "@/components/fx/VelocityMarquee";
-import { services } from "@/content/services";
+import type { Locale } from "@/config/space";
+import { getSiteDict } from "@/content/site";
 
 /**
  * Dải chữ khổng lồ giữa các chương: tên 4 nhóm dịch vụ, chạy theo tốc độ và chiều cuộn (Emotion/Signal-A pattern).
  * Chỉ trang trí (nội dung đã có ở mục Dịch vụ) nên ẩn với trình đọc màn hình.
  */
-export function ServicesMarquee() {
+export function ServicesMarquee({ lang }: { lang: Locale }) {
+  const { services } = getSiteDict(lang);
   return (
     <div aria-hidden data-surface="dark" className="ink relative z-10 border-y border-line py-6 lg:py-10">
       <VelocityMarquee speed={0.7}>

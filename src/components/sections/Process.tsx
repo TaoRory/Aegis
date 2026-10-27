@@ -4,7 +4,7 @@ import { useRef, type CSSProperties } from "react";
 
 import { SplitReveal } from "@/components/motion/SplitReveal";
 import { Lines } from "@/components/ui/Rich";
-import { process } from "@/content/about";
+import type { SiteDict } from "@/content/site";
 import { gsap, MQ, ScrollTrigger, useGSAP } from "@/lib/motion";
 
 const SVG_H = 64;
@@ -15,7 +15,7 @@ const RISE = 10;
  * Dựng đường bậc thang kiểu bản vẽ trên track: đi ngang rồi nâng một bậc tại mỗi bước
  * (gợi hình nền móng xếp tầng), kèm vạch kích thước và nút vuông. Trả về phần tử path cần "vẽ".
  */
-function buildStairs(svg: SVGSVGElement, track: HTMLElement, steps: HTMLElement[]) {
+function buildStairs(svg: SVGSVGElement, track: HTMLElement, steps: HTMLElement[], unit: string) {
   const width = track.scrollWidth;
   const xs = steps.map((step) => step.offsetLeft);
   const ys = xs.map((_, i) => BASE_Y - RISE * (i + 1));
@@ -32,14 +32,14 @@ function buildStairs(svg: SVGSVGElement, track: HTMLElement, steps: HTMLElement[
     `<path class="path-base" d="${d}" fill="none" stroke-width="1" />` +
     `<path class="path-draw" d="${d}" fill="none" stroke-width="1.5" />` +
     nodes +
-    `<text class="dim" x="${width}" y="${BASE_Y + 22}" text-anchor="end">${String(steps.length).padStart(2, "0")} BƯỚC</text>`;
+    `<text class="dim" x="${width}" y="${BASE_Y + 22}" text-anchor="end">${String(steps.length).padStart(2, "0")} ${unit}</text>`;
   const draw = svg.querySelector<SVGPathElement>(".path-draw")!;
   const length = draw.getTotalLength();
   draw.style.strokeDasharray = String(length);
   return { draw, length, nodes: [...svg.querySelectorAll<SVGRectElement>(".node")] };
 }
 
-export function Process() {
+export function Process({ process }: { process: SiteDict["process"] }) {
   const ref = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -62,14 +62,14 @@ export function Process() {
         section.dataset.mode = "track";
         const svg = section.querySelector<SVGSVGElement>("[data-path]");
         if (!svg) return;
-        let stairs = buildStairs(svg, track, steps);
+        let stairs = buildStairs(svg, track, steps, process.unit);
         const draw = { progress: 0 };
         const paint = () => {
           stairs.draw.style.strokeDashoffset = String(stairs.length * (1 - draw.progress));
           stairs.nodes.forEach((node, i) => (node.dataset.reached = steps[i].dataset.reached));
         };
         const rebuild = () => {
-          stairs = buildStairs(svg, track, steps);
+          stairs = buildStairs(svg, track, steps, process.unit);
           paint();
         };
         ScrollTrigger.addEventListener("refresh", rebuild);
@@ -118,7 +118,7 @@ export function Process() {
     <section
       ref={ref}
       id="cach-lam-viec"
-      data-chapter="Cách làm việc"
+      data-chapter={process.chapter}
       aria-labelledby="cach-lam-viec-title"
       data-surface="light"
       className="process paper relative z-10 overflow-hidden"
@@ -150,7 +150,7 @@ export function Process() {
               </li>
             ))}
             <li aria-hidden className="process-end label text-muted">
-              <span className="text-accent">↳</span> Vận hành ổn định
+              <span className="text-accent">↳</span> {process.stable}
             </li>
           </ol>
         </div>

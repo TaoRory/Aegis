@@ -5,8 +5,10 @@ import Image from "next/image";
 import { flushSync } from "react-dom";
 
 import { TextScramble } from "@/components/fx/TextScramble";
+import type { SiteDict } from "@/content/site/types";
 import type { Project, ProjectCategory, ProjectPreviews } from "@/content/types";
 import { cn } from "@/lib/cn";
+import { fill } from "@/lib/fill";
 import { gsap, MQ } from "@/lib/motion";
 
 type Filter = ProjectCategory | "all";
@@ -15,6 +17,7 @@ interface ProjectIndexProps {
   projects: Project[];
   previews: ProjectPreviews;
   categories: { id: Filter; label: string }[];
+  copy: SiteDict["projectIndex"];
 }
 
 function displayUrl(url: string) {
@@ -27,7 +30,7 @@ function displayUrl(url: string) {
  * Thiết bị có chuột: ảnh xem trước bay theo con trỏ, các dòng khác mờ đi.
  * Cảm ứng: ảnh hiển thị ngay trong dòng.
  */
-export function ProjectIndex({ projects, previews, categories }: ProjectIndexProps) {
+export function ProjectIndex({ projects, previews, categories, copy }: ProjectIndexProps) {
   const [filter, setFilter] = useState<Filter>("all");
   const [hovered, setHovered] = useState<string | null>(null);
   const [previewReady, setPreviewReady] = useState(false);
@@ -103,7 +106,7 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
   return (
     <div>
       <div className="flex flex-col gap-6 border-b border-line pb-6 sm:flex-row sm:items-center sm:justify-between">
-        <div role="group" aria-label="Lọc dự án theo loại" className="no-scrollbar -mx-(--gutter) flex gap-2 overflow-x-auto px-(--gutter) pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+        <div role="group" aria-label={copy.filter} className="no-scrollbar -mx-(--gutter) flex gap-2 overflow-x-auto px-(--gutter) pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
           {categories.map((category) => {
             const selected = category.id === filter;
             return (
@@ -124,12 +127,12 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
           })}
         </div>
         <p className="label text-muted" aria-live="polite">
-          Hiển thị {String(visible.length).padStart(2, "0")} / {String(projects.length).padStart(2, "0")} dự án
+          {fill(copy.showing, { n: String(visible.length).padStart(2, "0"), total: String(projects.length).padStart(2, "0") })}
         </p>
       </div>
 
       <p aria-hidden className="project-swipe-hint label text-muted">
-        Vuốt ngang để xem thêm <span>→</span>
+        {copy.swipe} <span>→</span>
       </p>
 
       <ul
@@ -156,7 +159,7 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
                 target="_blank"
                 rel="noopener noreferrer"
                 data-cursor="view"
-                data-cursor-label="Xem ↗"
+                data-cursor-label={copy.cursor}
                 className="project-link grid gap-x-6 gap-y-3 py-7 max-lg:flex max-lg:flex-col max-lg:gap-0 max-lg:py-0 lg:grid-cols-12 lg:items-baseline lg:py-9"
               >
                 <span className="label text-muted lg:col-span-1">{String(index + 1).padStart(2, "0")}</span>
@@ -181,7 +184,7 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
                   <span aria-hidden className="project-arrow text-lg text-fg">
                     ↗
                   </span>
-                  <span className="sr-only">Xem website {project.name} (mở trong tab mới)</span>
+                  <span className="sr-only">{fill(copy.open, { name: project.name })}</span>
                 </span>
 
                 {/* Ảnh trong dòng: chỉ hiện trên thiết bị cảm ứng / không có hover */}
@@ -191,7 +194,7 @@ export function ProjectIndex({ projects, previews, categories }: ProjectIndexPro
                       src={preview.cover.src}
                       width={preview.cover.width}
                       height={preview.cover.height}
-                      alt={`Ảnh chụp trang chủ website ${project.name}`}
+                      alt={fill(copy.shotAlt, { name: project.name })}
                       sizes="100vw"
                       className="size-full object-cover object-top"
                     />

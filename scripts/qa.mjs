@@ -1,4 +1,4 @@
-// Kiểm tra nhanh giao diện và chức năng bằng trình duyệt thật (Playwright).
+// Kiểm tra nhanh giao diện và chức năng của trang chính (trang chủ, trang dịch vụ, liên hệ, thư viện mẫu; tiếng Việt và /en) bằng trình duyệt thật (Playwright).
 // Chạy: pnpm build && pnpm start   (cửa sổ khác)  rồi  pnpm qa [baseUrl]
 // Kết quả và ảnh chụp lưu tại qa-output/
 import { mkdir, writeFile } from "node:fs/promises";
@@ -26,6 +26,11 @@ for (const vp of viewports) {
     viewport: { width: vp.width, height: vp.height },
     isMobile: vp.isMobile,
     hasTouch: vp.hasTouch,
+  });
+  await context.addInitScript(() => {
+    try {
+      sessionStorage.setItem("aegis-intro", "1");
+    } catch {}
   });
   const page = await context.newPage();
   const consoleErrors = [];
@@ -103,40 +108,102 @@ for (const vp of viewports) {
     await page.waitForTimeout(400);
     check("[mobile] Esc đóng menu", (await toggle.getAttribute("aria-expanded")) === "false");
     await toggle.click();
-    await page.locator("#menu-di-dong").getByRole("link", { name: /Dự án/ }).click();
+    await page.locator("#menu-di-dong").getByRole("link", { name: /Dịch vụ/ }).click();
     await page.waitForTimeout(3000);
-    const top = await page.evaluate(() => document.getElementById("du-an").getBoundingClientRect().top);
+    const top = await page.evaluate(() => document.getElementById("dich-vu").getBoundingClientRect().top);
     check("[mobile] bấm mục menu cuộn tới section và đóng menu",
       Math.abs(top) < 120 && (await toggle.getAttribute("aria-expanded")) === "false", `top=${Math.round(top)}`);
   }
 
   if (vp.name === "desktop") {
-    // Bộ lọc dự án
+    // Trang chủ không còn phần khoe dự án / mẫu giao diện: sản phẩm đã làm chỉ hiện ở trang Web & web app
+    check("[desktop] trang chủ không có mục Dự án và Mẫu giao diện", (await page.locator("#du-an, #mau-giao-dien").count()) === 0);
+    check("[desktop] menu chính chỉ có Giới thiệu · Dịch vụ · Liên hệ", (await page.locator("header nav ul li").count()) === 3);
+
+    // Độ nhạy cuộn: một nấc lăn chuột 100 phải đi được ≥ 110px (hệ số 1,3)
+    await page.mouse.move(700, 450);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(500);
+    await page.mouse.wheel(0, 100);
+    await page.waitForTimeout(1500);
+    const scrolled = await page.evaluate(() => window.scrollY);
+    check("[desktop] một nấc lăn chuột 100 đi được ≥ 110px", scrolled >= 110, `${Math.round(scrolled)}px`);
+    await page.evaluate(() => window.scrollTo(0, 0));
+
+    // Trang Web & web app: dự án, mẫu giao diện, lời mời tham quan Factory
+    await page.goto(`${baseUrl}/web`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(1500);
     const counts = {};
     for (const label of ["Doanh nghiệp", "Giáo dục & tổ chức", "Sự kiện", "Tất cả"]) {
       await page.getByRole("button", { name: new RegExp(`^${label}`) }).click();
       await page.waitForTimeout(600);
       counts[label] = await page.locator("#du-an li[data-project]").count();
     }
-    check("[desktop] bộ lọc dự án", counts["Tất cả"] === 7 && counts["Doanh nghiệp"] === 2 && counts["Sự kiện"] === 3,
-      JSON.stringify(counts));
+    check("[desktop] /web: bộ lọc dự án", counts["Tất cả"] === 7 && counts["Doanh nghiệp"] === 2 && counts["Sự kiện"] === 3, JSON.stringify(counts));
+    check("[desktop] /web: có thư viện mẫu giao diện", (await page.locator("#mau-giao-dien").count()) === 1);
+    const invite = page.locator("#tham-quan").getByRole("link", { name: /Tham quan Factory/ });
+    check("[desktop] /web: nút hỏi tham quan Factory trỏ tới /web/factory", (await invite.getAttribute("href")) === "/web/factory");
+    for (const id of ["ai", "software", "marketing"]) {
+      await page.goto(`${baseUrl}/${id}`, { waitUntil: "networkidle" });
+      await page.waitForTimeout(800);
+      check(`[desktop] /${id}: không có dự án, mẫu giao diện hay nút Factory`, (await page.locator("#du-an, #mau-giao-dien, #tham-quan").count()) === 0);
+      check(`[desktop] /${id}: có đúng 1 h1 và bộ câu hỏi chọn sẵn dịch vụ`, (await page.locator("h1").count()) === 1 && (await page.locator(".wizard").count()) === 1);
+    }
+    await page.goto(`${baseUrl}/marketing`, { waitUntil: "networkidle" });
+    await page.waitForSelector('.wizard-step[data-step-key="q:mkt_goal"][data-current]', { timeout: 10_000 }).then(
+      () => check("[desktop] /marketing: form vào thẳng câu riêng của Marketing", true),
+      () => check("[desktop] /marketing: form vào thẳng câu riêng của Marketing", false),
+    );
+
+    // Đổi ngôn ngữ giữ nguyên trang
+    await page.goto(`${baseUrl}/web`, { waitUntil: "networkidle" });
+    await page.locator(".header-cta .lang-switch a[hreflang=\"en\"]").click();
+    await page.waitForURL("**/en/web", { timeout: 10_000 }).catch(() => {});
+    await page.waitForTimeout(1200);
+    check("[desktop] nút EN chuyển /web → /en/web", page.url().endsWith("/en/web"), page.url());
+    check("[desktop] /en/web: html lang = en, h1 tiếng Anh", (await page.evaluate(() => document.documentElement.lang)) === "en" && /Website and web app/.test(await page.locator("h1").innerText()));
+    await page.locator(".header-cta .lang-switch a[hreflang=\"vi\"]").click();
+    await page.waitForURL(/\/web$/, { timeout: 10_000 }).catch(() => {});
+    check("[desktop] nút VI chuyển /en/web → /web", /\/web$/.test(page.url()) && !page.url().includes("/en/"), page.url());
+    await page.goto(`${baseUrl}/lien-he`, { waitUntil: "networkidle" });
+    await page.locator(".header-cta .lang-switch a[hreflang=\"en\"]").click();
+    await page.waitForURL("**/en/contact", { timeout: 10_000 }).catch(() => {});
+    check("[desktop] nút EN chuyển /lien-he → /en/contact", page.url().endsWith("/en/contact"), page.url());
+    await page.waitForSelector(".wizard", { timeout: 10_000 }).catch(() => {});
+    check("[desktop] /en/contact: câu hỏi và nút bằng tiếng Anh", /question \d+/i.test(await page.locator(".wizard").innerText()) && /step|back|next|skip/i.test(await page.locator(".wizard").innerText()));
+    await page.goto(baseUrl, { waitUntil: "networkidle" });
+    await page.waitForTimeout(1200);
 
     // Link trong hero tới chương Marketing (bên trong đoạn ghim) rồi "Trao đổi về dịch vụ này" chọn sẵn dịch vụ
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(600);
     await page.locator('#trang-chu a[href="#dich-vu-marketing"]').click();
     await page.waitForTimeout(3000);
-    const chapterVisible = await page.locator("#dich-vu-marketing").getByRole("link", { name: /Trao đổi về dịch vụ này/ }).isVisible();
+    const chapterVisible = await page.locator("#dich-vu-marketing").getByRole("link", { name: /Tìm hiểu dịch vụ này/ }).isVisible();
     check("[desktop] link tới chương Marketing hiển thị đúng chương", chapterVisible);
     await page.screenshot({ path: `${outDir}/desktop-service-chapter.png` });
-    await page.locator("#dich-vu-marketing").getByRole("link", { name: /Trao đổi về dịch vụ này/ }).click();
-    await page.waitForURL(/\/lien-he\?dv=marketing/, { timeout: 10_000 });
-    await page.waitForSelector('.wizard-step[data-step-key="q:mkt_goal"][data-current]', { timeout: 10_000 });
-    check("[desktop] chọn sẵn dịch vụ từ chương dịch vụ → form vào thẳng câu riêng của Marketing", true);
+    await page.locator("#dich-vu-marketing").getByRole("link", { name: /Tìm hiểu dịch vụ này/ }).click();
+    await page.waitForURL(/\/marketing$/, { timeout: 10_000 });
+    check("[desktop] chương dịch vụ dẫn tới trang dịch vụ riêng", true);
     await page.goto(baseUrl, { waitUntil: "networkidle" });
     await page.waitForTimeout(1200);
 
-    // Hover dự án: ảnh nổi theo con trỏ
+    // Một nấc lăn chuột phải chuyển sang dịch vụ kế tiếp (cả chữ lẫn hình)
+    const activeId = () => page.evaluate(() => document.querySelector("#dich-vu-marketing, #dich-vu-web, #dich-vu-software, #dich-vu-ai") && [...document.querySelectorAll(".service-chapter")].find((el) => el.getAttribute("data-active") === "true")?.id);
+    await page.locator('#trang-chu a[href="#dich-vu-ai"]').click();
+    await page.waitForTimeout(2500);
+    const before = await activeId();
+    await page.mouse.move(700, 450);
+    await page.mouse.wheel(0, 120);
+    await page.waitForTimeout(2600);
+    const after = await activeId();
+    check("[desktop] một nấc lăn chuột chuyển sang dịch vụ kế tiếp", before === "dich-vu-ai" && after === "dich-vu-software", `${before} → ${after}`);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(600);
+
+    // Hover dự án (trên trang Web): ảnh nổi theo con trỏ
+    await page.goto(`${baseUrl}/web`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(1200);
     const row = page.locator("#du-an li[data-project]").nth(1);
     await row.scrollIntoViewIfNeeded();
     await page.waitForTimeout(800);
@@ -162,14 +229,68 @@ for (const vp of viewports) {
   await context.close();
 }
 
+// Màn mở đầu chữ AEGIS (thay màn đếm số cũ) và công tắc theme sáng/tối
+{
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+  check("[intro] lần đầu vào trang chủ có màn chữ AEGIS", (await page.evaluate(() => document.documentElement.dataset.intro)) === "playing");
+  await page.waitForSelector(".site-intro[data-ready='true']", { timeout: 15000 }).catch(() => {});
+  check("[intro] có nút Bỏ qua và gợi ý cuộn", (await page.locator(".site-intro-skip").count()) === 1 && (await page.locator(".site-intro-hint").count()) === 1);
+  await page.mouse.move(700, 450);
+  await page.mouse.wheel(0, 500);
+  await page.waitForFunction(() => Number(document.querySelector(".site-intro svg > g")?.getAttribute("transform")?.match(/scale\(([\d.]+)\)/)?.[1] ?? 1) > 1.5, null, { timeout: 8000 }).catch(() => {});
+  const zoom = await page.evaluate(() => Number(document.querySelector(".site-intro svg > g")?.getAttribute("transform")?.match(/scale\(([\d.]+)\)/)?.[1] ?? 1));
+  check("[intro] cuộn chuột phóng to chữ AEGIS", zoom > 1.5, `scale ${zoom}`);
+  await page.screenshot({ path: `${outDir}/site-intro.png` });
+  await page.locator(".site-intro-skip").click();
+  await page.waitForFunction(() => !document.documentElement.dataset.intro, null, { timeout: 15000 }).catch(() => {});
+  check("[intro] Bỏ qua → vào trang, gỡ màn mở đầu", (await page.locator(".site-intro").count()) === 0 && !(await page.evaluate(() => document.documentElement.dataset.intro)));
+  await page.reload({ waitUntil: "domcontentloaded" });
+  check("[intro] chỉ một lần mỗi phiên", !(await page.evaluate(() => document.documentElement.dataset.intro)));
+
+  // Theme sáng/tối: mặc định SÁNG, công tắc đổi sang tối và nhớ lại
+  await page.waitForTimeout(1500);
+  const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  check("[theme] mặc định là theme sáng", (await page.evaluate(() => document.documentElement.dataset.theme)) === "light");
+  const lightBg = await bg();
+  await page.screenshot({ path: `${outDir}/theme-light.png` });
+  await page.locator(".header-cta .theme-toggle").click();
+  await page.waitForTimeout(400);
+  check("[theme] bấm công tắc → html[data-theme=dark]", (await page.evaluate(() => document.documentElement.dataset.theme)) === "dark");
+  check("[theme] nền trang đổi sang tối", (await bg()) !== lightBg, `${lightBg} → ${await bg()}`);
+  await page.screenshot({ path: `${outDir}/theme-dark.png` });
+  const toolsBox = await page.locator(".header-tools").boundingBox();
+  check("[theme] công cụ ở header có viên nền riêng (đọc được trên nền tối)", Boolean(toolsBox) && toolsBox.width > 150, JSON.stringify(toolsBox));
+  await page.reload({ waitUntil: "networkidle" });
+  check("[theme] nhớ lựa chọn tối sau khi tải lại", (await page.evaluate(() => document.documentElement.dataset.theme)) === "dark");
+  await page.goto(`${baseUrl}/web`, { waitUntil: "networkidle" });
+  check("[theme] theme tối áp dụng cả trang dịch vụ", (await page.evaluate(() => document.documentElement.dataset.theme)) === "dark");
+  await page.goto(`${baseUrl}/mau-giao-dien/atelier`, { waitUntil: "networkidle" });
+  check("[theme] mẫu demo không bị theme của trang chính", !(await page.evaluate(() => document.documentElement.dataset.theme)));
+  await page.goto(`${baseUrl}/factory`, { waitUntil: "domcontentloaded" });
+  check("[theme] Factory không bị theme của trang chính", !(await page.evaluate(() => document.documentElement.dataset.theme)));
+  await page.evaluate(() => localStorage.removeItem("aegis-theme"));
+  check("[intro/theme] không lỗi console", errors.length === 0, errors.join(" | ").slice(0, 300));
+  await context.close();
+}
+
 // Thư viện mẫu và từng trang mẫu demo: tràn ngang (mobile + desktop), nhãn demo, lỗi console
 const galleryHtml = await (await fetch(`${baseUrl}/mau-giao-dien`)).text();
 const templatePaths = [...new Set([...galleryHtml.matchAll(/href="(\/mau-giao-dien\/[a-z0-9-]+)"/g)].map((m) => m[1]))];
 check("[mẫu] thư viện liệt kê các mẫu", templatePaths.length > 0, templatePaths.join(", "));
 for (const vp of [viewports[0], viewports[2]]) {
   const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, isMobile: vp.isMobile, hasTouch: vp.hasTouch });
+  await context.addInitScript(() => {
+    try {
+      sessionStorage.setItem("aegis-intro", "1");
+    } catch {}
+  });
   const page = await context.newPage();
-  for (const route of ["/mau-giao-dien", "/lien-he", ...templatePaths]) {
+  for (const route of ["/mau-giao-dien", "/lien-he", "/web", "/ai", "/software", "/marketing", "/en", "/en/web", "/en/ai", "/en/contact", "/en/templates", ...templatePaths]) {
     const errors = [];
     page.removeAllListeners("pageerror");
     page.removeAllListeners("console");
@@ -214,8 +335,8 @@ r = await api({ ...valid, website: "spam.com" });
 check("[api] honeypot → chặn", r.body?.code === "SPAM", JSON.stringify(r));
 r = await api({ ...valid, elapsedMs: 100 });
 check("[api] gửi quá nhanh → chặn", r.body?.code === "SPAM", JSON.stringify(r));
-r = await api({ ...valid, service: "xyz" });
-check("[api] dịch vụ lạ → 422", r.status === 422 && r.body?.errors?.service, JSON.stringify(r.body));
+r = await api({ ...valid, service: "xyz", lang: "en" });
+check("[api] dịch vụ lạ → 422 kèm thông báo theo ngôn ngữ (en)", r.status === 422 && /choose the category/i.test(r.body?.errors?.service ?? ""), JSON.stringify(r.body));
 r = await api({ ...valid, contact: "khong-hop-le", answers: { web_type: ["hack"], timeline: ["asap"] } });
 check(
   "[api] liên hệ sai + lựa chọn lạ → 422 kèm lỗi từng câu",
