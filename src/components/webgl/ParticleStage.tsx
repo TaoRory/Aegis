@@ -56,7 +56,7 @@ export function ParticleStage() {
 
       let engine: InstanceType<typeof ParticleEngine>;
       try {
-        engine = new ParticleEngine(canvas, createShapes(count), { dpr, pointSize: desktop ? 3.4 : 3.6 });
+        engine = new ParticleEngine(canvas, createShapes(count), { dpr, pointSize: desktop ? 3.4 : 2.6 });
       } catch (error) {
         console.warn("[ParticleStage] Bỏ qua hiệu ứng WebGL:", error);
         return;
@@ -86,8 +86,8 @@ export function ParticleStage() {
         const aspect = window.innerWidth / Math.max(1, window.innerHeight);
         return {
           // Điện thoại: artwork chiếm trọn nửa trên màn hình (chữ nằm ở nửa dưới), vừa khít bề ngang
-          hero: isDesktop ? { x: aspect * 0.42, y: 0.02, scale: 0.62 } : { x: 0, y: 0.5, scale: Math.min(0.62, aspect * 0.86) },
-          services: isDesktop ? { x: aspect * 0.53, y: 0, scale: 0.54 } : { x: 0, y: 0.4, scale: Math.min(0.58, aspect * 0.95) },
+          hero: isDesktop ? { x: aspect * 0.42, y: 0.02, scale: 0.62 } : { x: 0, y: 0.6, scale: Math.min(0.42, aspect * 0.62) },
+          services: isDesktop ? { x: aspect * 0.53, y: 0, scale: 0.54 } : { x: 0, y: 0.5, scale: Math.min(0.37, aspect * 0.68) },
         };
       };
 

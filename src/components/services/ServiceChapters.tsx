@@ -129,7 +129,7 @@ export function ServiceChapters({ services, lang, copy }: { services: Service[];
       });
 
       // Mobile / giảm chuyển động: chương xếp dọc; chương nào vào giữa màn hình thì hạt morph sang hình đó
-      mm.add(`not ${MQ.desktopMotion}`, () => {
+      mm.add("(max-width: 63.99rem), (max-height: 39.99rem), (prefers-reduced-motion: reduce)", () => {
         const reduced = window.matchMedia(MQ.reduced).matches;
         const proxy = { phase: stageStore.servicePhase };
         const triggers = chapters.map((chapter, index) =>
@@ -219,7 +219,7 @@ export function ServiceChapters({ services, lang, copy }: { services: Service[];
                 </p>
                 </div>
 
-                <Link href={serviceHref(lang, service.id)} className="btn-link mt-8 text-fg">
+                <Link href={serviceHref(lang, service.id)} className="btn-link service-explore">
                   <span className="roll">
                     <span className="roll-a">{copy.explore}</span>
                     <span className="roll-b" aria-hidden>
