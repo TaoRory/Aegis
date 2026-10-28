@@ -19,6 +19,8 @@
   --palette-graphite: #55595f;
   --palette-graphite-light: #a3a6ae;
   --palette-graphite-mid: #7d818b;
+  /* Chữ phụ trên nền sáng: ≥ 4.5:1 trên cả giấy lẫn nền bright (graphite-mid chỉ đạt trên nền mực) */
+  --palette-graphite-subtle: #62666f;
   --palette-ultramarine: #3b3fff;
   --palette-ultramarine-deep: #2a2ed6;
   --palette-ultramarine-light: #8c8fff;
@@ -40,7 +42,7 @@
   --surface: var(--palette-paper-light);
   --fg: var(--palette-ink);
   --fg-muted: var(--palette-graphite);
-  --fg-subtle: var(--palette-graphite-mid);
+  --fg-subtle: var(--palette-graphite-subtle);
   --border: color-mix(in oklab, var(--palette-ink) 13%, transparent);
   --border-strong: color-mix(in oklab, var(--palette-ink) 30%, transparent);
   --accent: var(--palette-ultramarine);
@@ -129,7 +131,7 @@ html[data-theme="light"]:not([data-space]) [data-surface="dark"] {
   --surface: var(--palette-white);
   --fg: var(--palette-ink);
   --fg-muted: var(--palette-graphite);
-  --fg-subtle: var(--palette-graphite-mid);
+  --fg-subtle: var(--palette-graphite-subtle);
   --border: color-mix(in oklab, var(--palette-ink) 13%, transparent);
   --border-strong: color-mix(in oklab, var(--palette-ink) 30%, transparent);
   --accent: var(--palette-ultramarine);
@@ -149,8 +151,8 @@ html[data-theme="light"]:not([data-space]) [data-surface="dark"] {
   --bg-elevated: var(--palette-ultramarine-deep);
   --surface: var(--palette-ultramarine-deep);
   --fg: var(--palette-white);
-  --fg-muted: var(--palette-ultramarine-pale);
-  --fg-subtle: var(--palette-ultramarine-light);
+  --fg-muted: color-mix(in oklab, var(--palette-white) 92%, var(--palette-ultramarine));
+  --fg-subtle: color-mix(in oklab, var(--palette-white) 85%, var(--palette-ultramarine));
   --border: color-mix(in oklab, var(--palette-white) 22%, transparent);
   --border-strong: color-mix(in oklab, var(--palette-white) 45%, transparent);
   --accent: var(--palette-white);

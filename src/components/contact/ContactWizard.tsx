@@ -917,6 +917,6 @@ function inputClass(error: boolean) {
   return cn(
     "field-input block w-full border-0 border-b bg-transparent px-0 py-2.5 text-[1.25rem] text-fg transition-[border-color] duration-300",
     "placeholder:text-subtle focus:outline-none",
-    error ? "border-danger" : "border-line-strong hover:border-fg focus:border-accent",
+    error ? "border-danger" : "border-muted hover:border-fg focus:border-accent",
   );
 }
