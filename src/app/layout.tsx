@@ -12,10 +12,8 @@ import "@/styles/globals.css";
 const title = `${siteConfig.name} — Giải pháp công nghệ & marketing cho doanh nghiệp`;
 
 export const metadata: Metadata = {
-  ...(siteConfig.url && {
-    metadataBase: new URL(siteConfig.url),
-    alternates: { canonical: "/" },
-  }),
+  // Không đặt canonical ở đây: mọi trang con sẽ thừa hưởng và trỏ về trang chủ. Trang chính tự khai báo trong components/pages/metadata.ts.
+  ...(siteConfig.url && { metadataBase: new URL(siteConfig.url) }),
   title: { default: title, template: `%s | ${siteConfig.name}` },
   description: siteConfig.description,
   applicationName: siteConfig.name,
@@ -25,7 +23,6 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     title,
     description: siteConfig.description,
-    ...(siteConfig.url && { url: "/" }),
   },
   twitter: {
     card: "summary_large_image",

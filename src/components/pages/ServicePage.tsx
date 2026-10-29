@@ -8,6 +8,7 @@ import { FactoryInvite } from "@/components/sections/FactoryInvite";
 import { Process } from "@/components/sections/Process";
 import { Projects } from "@/components/sections/Projects";
 import { TemplatesTeaser } from "@/components/sections/TemplatesTeaser";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { RoundButton } from "@/components/ui/Button";
 import { Lines } from "@/components/ui/Rich";
 import { homeHref, serviceHref } from "@/config/routes";
@@ -15,6 +16,7 @@ import type { Locale } from "@/config/space";
 import { getSiteDict } from "@/content/site";
 import type { ServiceId } from "@/content/types";
 import { isContactDeliveryConfigured } from "@/lib/contact/delivery";
+import { serviceJsonLd } from "@/lib/seo/jsonld";
 
 /**
  * Trang một dịch vụ (/web, /ai, /software, /marketing và bản /en): tóm tắt, nhu cầu thường gặp, phạm vi, giá trị, cách làm việc,
@@ -30,6 +32,7 @@ export function ServicePage({ lang, id }: { lang: Locale; id: ServiceId }) {
 
   return (
     <>
+      <JsonLd data={serviceJsonLd(lang, id)} />
       <PageTransition />
       <section
         data-surface="dark"

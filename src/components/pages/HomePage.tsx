@@ -8,9 +8,11 @@ import { Hero } from "@/components/sections/Hero";
 import { Process } from "@/components/sections/Process";
 import { Services } from "@/components/sections/Services";
 import { ServicesMarquee } from "@/components/sections/ServicesMarquee";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { ParticleStage } from "@/components/webgl/ParticleStage";
 import type { Locale } from "@/config/space";
 import { getSiteDict } from "@/content/site";
+import { homeJsonLd } from "@/lib/seo/jsonld";
 
 /**
  * Trang chủ (/ và /en): Hero, Giới thiệu, bốn dịch vụ ngang hàng, Cách làm việc, Liên hệ.
@@ -20,6 +22,7 @@ export function HomePage({ lang }: { lang: Locale }) {
   const { process } = getSiteDict(lang);
   return (
     <>
+      <JsonLd data={homeJsonLd(lang)} />
       <PageTransition />
       <SiteIntro />
       <ParticleStage />

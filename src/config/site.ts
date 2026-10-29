@@ -3,8 +3,13 @@
  * Nội dung chi tiết (dịch vụ, dự án, giá trị…) nằm trong src/content.
  */
 
-/** Tên miền production, khai báo qua biến môi trường. Không hardcode. */
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || undefined;
+/**
+ * Tên miền production, khai báo qua biến môi trường. Không hardcode.
+ * Ưu tiên NEXT_PUBLIC_SITE_URL; khi build trên Vercel mà chưa đặt biến này thì dùng tên miền production Vercel tự cấp
+ * (VERCEL_PROJECT_PRODUCTION_URL, chỉ có lúc build/server). Thiếu cả hai thì không có canonical tuyệt đối, sitemap rỗng.
+ */
+const vercelProduction = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || (vercelProduction && `https://${vercelProduction}`))?.replace(/\/$/, "") || undefined;
 
 export const siteConfig = {
   name: "Aegis",
