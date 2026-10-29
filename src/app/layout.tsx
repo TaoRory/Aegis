@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { Cursor } from "@/components/motion/Cursor";
 import { MotionProvider } from "@/components/motion/MotionProvider";
+import { RouteCover } from "@/components/motion/RouteCover";
 import { siteConfig } from "@/config/site";
 import { fontVariables } from "@/styles/fonts";
 import { themeMeta } from "@/styles/theme-meta";
@@ -60,6 +61,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         {/* Nút "Bỏ qua đến nội dung chính" nằm trong vỏ của từng khu vực (SiteShell, SpaceShell, DemoLayout) để đúng ngôn ngữ */}
         <MotionProvider />
         {children}
+        <RouteCover />
         <Cursor />
       </body>
     </html>

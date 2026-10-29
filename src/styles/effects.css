@@ -412,6 +412,160 @@
     stroke: color-mix(in oklab, var(--accent) 70%, transparent);
   }
 
+  /* ---------- Màn chuyển trang "vẽ bản vẽ" (RouteCover.tsx): luôn nền mực, chữ giấy, vạch dẫn xanh ---------- */
+  .route-cover {
+    --rc-line: color-mix(in oklab, var(--palette-paper) 9%, transparent);
+    --rc-accent: var(--palette-ultramarine-light);
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 95;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: minmax(0, 1fr);
+    place-items: center;
+    height: 100lvh;
+    padding: 1.25rem var(--gutter) calc(1.25rem + 100lvh - 100svh);
+    overflow: hidden;
+    visibility: hidden;
+    clip-path: inset(100% 0 0 0);
+    background: var(--palette-ink);
+    color: var(--palette-paper);
+    pointer-events: none;
+  }
+
+  .route-cover[data-active="true"] {
+    pointer-events: auto;
+  }
+
+  .route-cover-cols {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    padding-inline: var(--gutter);
+  }
+
+  .route-cover-cols span {
+    border-inline: 1px solid var(--rc-line);
+  }
+
+  @media (max-width: 63.99rem) {
+    .route-cover-cols {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .route-cover-cols span:nth-child(n + 5) {
+      display: none;
+    }
+  }
+
+  .route-cover-meta {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    color: color-mix(in oklab, var(--palette-paper) 72%, transparent);
+  }
+
+  .route-cover-meta > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .route-cover-meta > span + span {
+    flex: none;
+    padding-left: 1.5rem;
+  }
+
+  .route-cover-to {
+    color: var(--palette-paper);
+  }
+
+  .route-cover-count {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .route-cover-stage {
+    position: relative;
+  }
+
+  .route-cover-mark {
+    display: block;
+    width: min(72vw, 34rem);
+    height: auto;
+    overflow: visible;
+    color: var(--palette-paper);
+  }
+
+  .route-cover-mark path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 4;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    stroke-dasharray: 1 2;
+  }
+
+  .route-cover-mark circle {
+    fill: var(--rc-accent);
+  }
+
+  .route-cover-guide {
+    position: absolute;
+    background: color-mix(in oklab, var(--rc-accent) 55%, transparent);
+  }
+
+  .route-cover-guide-h {
+    left: -100vw;
+    right: -100vw;
+    height: 1px;
+  }
+
+  .route-cover-guide-v {
+    top: -100vh;
+    bottom: -100vh;
+    width: 1px;
+  }
+
+  .route-cover-box {
+    position: absolute;
+    inset: -14px;
+    outline: 1px dashed color-mix(in oklab, var(--rc-accent) 70%, transparent);
+    background: color-mix(in oklab, var(--rc-accent) 6%, transparent);
+  }
+
+  .route-cover-box::before,
+  .route-cover-box::after {
+    content: "";
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border: solid var(--rc-accent);
+  }
+
+  .route-cover-box::before {
+    top: -5px;
+    left: -5px;
+    border-width: 1px 0 0 1px;
+  }
+
+  .route-cover-box::after {
+    right: -5px;
+    bottom: -5px;
+    border-width: 0 1px 1px 0;
+  }
+
+  .route-cover-label {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: -1px;
+    font-size: 0.65rem;
+    white-space: nowrap;
+    color: var(--rc-accent);
+  }
+
   .site-intro-ui {
     position: absolute;
     inset: 0;
@@ -2500,6 +2654,12 @@
   :root:active-view-transition-type(aegis-back)::view-transition-new(root) {
     mix-blend-mode: normal;
     animation: 0.9s cubic-bezier(0.76, 0, 0.24, 1) both vt-wipe-back;
+  }
+
+  /* Chuyển trang bằng tấm phủ RouteCover: tấm phủ đã che kín nên không cần hiệu ứng trên ảnh chụp trang */
+  :root:active-view-transition-type(aegis-cover)::view-transition-old(root),
+  :root:active-view-transition-type(aegis-cover)::view-transition-new(root) {
+    animation: none;
   }
 
   /* Mở mẫu từ thư viện: ảnh thẻ phóng ra, phần còn lại của trang chỉ mờ đi */
