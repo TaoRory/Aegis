@@ -221,7 +221,8 @@ export function ProjectIndex({ projects, previews, categories, copy }: ProjectIn
                   height={preview.cover.height}
                   alt=""
                   sizes="420px"
-                  loading="eager"
+                  loading="lazy"
+                  fetchPriority="low"
                   className={cn("project-float-img", hovered === project.slug && "is-current")}
                 />
               );

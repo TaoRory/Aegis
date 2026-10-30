@@ -41,6 +41,7 @@ export function ParticleStage() {
     const setup = async () => {
       const probe = document.createElement("canvas").getContext("webgl2");
       if (!probe) return;
+      probe.getExtension("WEBGL_lose_context")?.loseContext(); // chỉ dò hỗ trợ, trả context ngay
       const [{ ParticleEngine }, { createShapes }] = await Promise.all([
         import("@/components/webgl/particle-engine"),
         import("@/components/webgl/shapes"),

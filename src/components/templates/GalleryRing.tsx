@@ -11,6 +11,7 @@ import { GalleryEngine, STEP, type GalleryCardState } from "@/components/webgl/g
 import type { SiteDict } from "@/content/site/types";
 import type { DemoTemplate, TemplateGroup } from "@/content/templates";
 import { cn } from "@/lib/cn";
+import { optimizedImageUrl } from "@/lib/image-url";
 import { fill } from "@/lib/fill";
 import { MQ } from "@/lib/motion";
 
@@ -162,8 +163,10 @@ export function GalleryRing({
     setActive(start);
 
     // ---- Khởi tạo WebGL2 (nếu được), nếu không dùng vòng 3D bằng CSS ----
-    const sources = templates.map((t) => ({ src: previews[t.slug]?.full.src ?? "", color: t.stage }));
-    const dprCap = window.matchMedia("(max-width: 47.99rem)").matches ? 1.25 : 1.75;
+    // Texture chỉ cần ~512px rộng: lấy bản thu nhỏ qua Next image optimizer (AVIF/WebP) thay vì ảnh -full gốc 900px
+    const small = window.matchMedia("(max-width: 47.99rem)").matches;
+    const sources = templates.map((t) => ({ src: optimizedImageUrl(previews[t.slug]?.full.src ?? "", small ? 384 : 640), color: t.stage }));
+    const dprCap = small ? 1.25 : 1.75;
     let engine: GalleryEngine | null = null;
     let retryTimer = 0;
     let openTimer = 0;

@@ -9,6 +9,15 @@ import { getLenis, INTRO_DONE_EVENT } from "@/lib/motion";
 
 const SESSION_KEY = "aegis-intro";
 
+/** Các phần tử phía sau lớp phủ intro cần tạm inert: header, footer, và các anh em của intro trong <main> */
+function frozenBehindIntro(intro: HTMLElement | null): HTMLElement[] {
+  const out: HTMLElement[] = [];
+  document.querySelectorAll<HTMLElement>("header, footer, .header-cta").forEach((n) => out.push(n));
+  const main = document.getElementById("noi-dung");
+  if (main) for (const child of main.children) if (child !== intro && child instanceof HTMLElement) out.push(child);
+  return out;
+}
+
 /**
  * Lớp mạch điện nằm dưới mặt nạ: chỉ lộ ra trong các ô cửa chữ AEGIS, như bên trong một bản mạch. Đường mạch ngang / dọc / chéo 45°
  * có chân hàn và via, bus song song, chip có chân, xung sáng chạy dọc vài đường mạch; chip lớn ở đỉnh chữ A (điểm phóng to).
@@ -74,6 +83,11 @@ export function SiteIntro() {
     root.dataset.introLive = "on";
     getLenis()?.stop();
     window.scrollTo(0, 0);
+    // Khoá focus vào lớp phủ: mọi thứ phía sau (header, footer, các section cùng cấp với intro trong <main>) tạm inert,
+    // focus đặt sẵn ở nút Bỏ qua. Không inert chính <main> vì intro nằm trong đó.
+    const frozen = frozenBehindIntro(rootRef.current);
+    frozen.forEach((n) => (n.inert = true));
+    rootRef.current?.querySelector<HTMLButtonElement>(".site-intro-skip")?.focus({ preventScroll: true });
     let cancelled = false;
     const run = () => {
       const el = textRef.current;
@@ -87,6 +101,7 @@ export function SiteIntro() {
     return () => {
       cancelled = true;
       delete root.dataset.introLive;
+      frozen.forEach((n) => (n.inert = false));
       window.removeEventListener("resize", run);
     };
   }, []);
@@ -118,6 +133,7 @@ export function SiteIntro() {
     } catch {}
     const root = document.documentElement;
     delete root.dataset.intro;
+    frozenBehindIntro(rootRef.current).forEach((n) => (n.inert = false));
     getLenis()?.start();
     if (!st.announced) window.dispatchEvent(new Event(INTRO_DONE_EVENT));
     setGone(true);
@@ -171,6 +187,8 @@ export function SiteIntro() {
     };
     const onKey = (event: KeyboardEvent) => {
       if (st.done || !layoutRef.current) return;
+      // Space/Enter trên nút Bỏ qua là bấm nút, không phải cuộn
+      if ((event.target as HTMLElement | null)?.closest("button, a")) return;
       if (event.key === "ArrowDown" || event.key === "PageDown" || event.key === " ") go(st.target + 0.2);
       else if (event.key === "ArrowUp" || event.key === "PageUp") go(st.target - 0.2);
       else if (event.key === "End") go(1, 4);

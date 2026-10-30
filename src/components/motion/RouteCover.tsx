@@ -83,9 +83,12 @@ export function RouteCover() {
     let raf = 0;
     let failsafe = 0;
 
+    const live = root.parentElement?.querySelector<HTMLElement>(".route-cover-live") ?? null;
     const finish = () => {
       busy = false;
       root.dataset.active = "false";
+      document.body.removeAttribute("aria-busy");
+      if (live) live.textContent = "";
       gsap.set(root, { visibility: "hidden" });
     };
 
@@ -137,6 +140,9 @@ export function RouteCover() {
     const start = (url: URL) => {
       busy = true;
       root.dataset.active = "true";
+      // Trình đọc màn hình: lớp phủ là aria-hidden nên báo bằng vùng live riêng + aria-busy
+      document.body.setAttribute("aria-busy", "true");
+      if (live) live.textContent = live.dataset.text ?? "";
       const from = location.pathname + location.search;
       let drawn = false;
       let arrived = false;
@@ -195,6 +201,8 @@ export function RouteCover() {
   }, [router]);
 
   return (
+    <>
+      <p className="route-cover-live sr-only" aria-live="polite" data-text={copy.loading} />
     <div ref={rootRef} aria-hidden className="route-cover" data-active="false">
       <div className="route-cover-cols">
         {Array.from({ length: COLS }, (_, i) => (
@@ -227,5 +235,6 @@ export function RouteCover() {
         <span className="route-cover-count">0%</span>
       </div>
     </div>
+    </>
   );
 }

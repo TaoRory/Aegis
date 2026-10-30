@@ -252,6 +252,12 @@
     transform: translateY(-110%);
   }
 
+  /* Người dùng bàn phím tab vào header đang ẩn: hiện lại để thấy focus */
+  .site-header[data-hidden="true"]:focus-within,
+  .header-cta[data-hidden="true"]:focus-within {
+    transform: none;
+  }
+
   .header-cta {
     right: calc(var(--gutter) + 5.75rem);
   }

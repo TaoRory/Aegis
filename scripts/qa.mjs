@@ -352,6 +352,112 @@ check("[api] khác origin → 403", r.status === 403, JSON.stringify(r));
 r = await api(valid);
 check("[api] hợp lệ → phản hồi trung thực theo cấu hình", [200, 503, 502].includes(r.status), JSON.stringify(r));
 
+// ---- Đợt hoàn thiện UX/SEO: 404, redirect slug tiếng Anh, footer, meta description, theme-color, khoá focus menu/intro ----
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await ctx.addInitScript(() => {
+    try {
+      sessionStorage.setItem("aegis-intro", "1");
+    } catch {}
+  });
+  const page = await ctx.newPage();
+
+  for (const [path, re] of [
+    ["/khong-ton-tai", /chưa được dựng/],
+    ["/en/khong-ton-tai", /hasn.t been built/],
+  ]) {
+    const res = await page.goto(`${baseUrl}${path}`, { waitUntil: "load" });
+    await page.waitForTimeout(800);
+    const titles = await page.locator("title").count();
+    const title = await page.title();
+    const h1 = await page.locator("h1").innerText();
+    check(
+      `[seo] ${path}: 404 có thương hiệu, 1 <title> chứa 404, header + footer, đúng ngôn ngữ`,
+      res?.status() === 404 && titles === 1 && /404/.test(title) && (await page.locator("header").count()) === 1 && (await page.locator("footer").count()) === 1 && re.test(h1),
+      `${res?.status()} | ${title} | ${h1.replace(/\s+/g, " ")}`,
+    );
+  }
+
+  for (const [from, to] of [
+    ["/contact", "/en/contact"],
+    ["/templates", "/en/templates"],
+  ]) {
+    const res = await fetch(`${baseUrl}${from}`, { redirect: "manual" });
+    check(`[seo] ${from} → 308 ${to}`, res.status === 308 && (res.headers.get("location") ?? "").endsWith(to), `${res.status} ${res.headers.get("location")}`);
+  }
+
+  const descPages = ["/", "/en", "/web", "/en/web", "/ai", "/software", "/marketing", "/lien-he", "/en/contact", "/mau-giao-dien", "/en/templates"];
+  const lengths = [];
+  for (const path of descPages) {
+    const html = await (await fetch(`${baseUrl}${path}`)).text();
+    const m = html.match(/<meta name="description" content="([^"]*)"/);
+    const text = (m?.[1] ?? "").replace(/&amp;/g, "&").replace(/&#x27;/g, "'").replace(/&quot;/g, '"');
+    lengths.push(`${path}=${text.length}`);
+    if (text.length < 100 || text.length > 160) check(`[seo] ${path}: meta description 100–160 ký tự`, false, `${text.length}`);
+  }
+  check("[seo] meta description mọi trang chính trong 100–160 ký tự", !lengths.some((l) => { const n = +l.split("=")[1]; return n < 100 || n > 160; }), lengths.join(" "));
+
+  const home = await (await fetch(`${baseUrl}/en`)).text();
+  check("[seo] /en: footer có link thư viện mẫu, nội dung đánh dấu lang=en, có manifest + apple-touch-icon", /href="\/en\/templates"/.test(home) && /<div lang="en"/.test(home) && /rel="manifest"/.test(home) && /rel="apple-touch-icon"/.test(home));
+
+  await page.goto(`${baseUrl}/`, { waitUntil: "networkidle" });
+  const metaColor = () => page.evaluate(() => [...document.querySelectorAll('meta[name="theme-color"]')].map((m) => m.content).join());
+  const before = await metaColor();
+  await page.locator(".theme-toggle").first().click();
+  await page.waitForTimeout(300);
+  const after = await metaColor();
+  check("[a11y] đổi theme cập nhật meta theme-color và color-scheme", before !== after && /#0d0e11/.test(after) && (await page.evaluate(() => document.documentElement.style.colorScheme)) === "dark", `${before} → ${after}`);
+  await page.locator(".theme-toggle").first().click();
+
+  await page.evaluate(() => window.scrollTo(0, 2500));
+  await page.waitForTimeout(600);
+  await page.evaluate(() => window.scrollTo(0, 2900));
+  await page.waitForTimeout(900);
+  const hidden = await page.evaluate(() => document.querySelector(".site-header")?.getAttribute("data-hidden"));
+  await page.evaluate(() => document.querySelector(".site-header a")?.focus());
+  await page.waitForTimeout(700);
+  check("[a11y] header ẩn khi cuộn xuống hiện lại khi tab vào", hidden === "true" && (await page.evaluate(() => getComputedStyle(document.querySelector(".site-header")).transform)) === "none");
+  await page.close();
+
+  // Intro lần đầu: focus sẵn ở nút Bỏ qua, nội dung phía sau inert, Space/Enter trên nút đóng intro
+  const fresh = await ctx.newPage();
+  await ctx.clearCookies();
+  await fresh.addInitScript(() => {
+    try {
+      sessionStorage.removeItem("aegis-intro");
+    } catch {}
+  });
+  await fresh.goto(`${baseUrl}/`, { waitUntil: "load" });
+  await fresh.waitForTimeout(2000);
+  const introFocus = await fresh.evaluate(() => document.activeElement?.classList.contains("site-intro-skip"));
+  const behindInert = await fresh.evaluate(() => !!document.querySelector("header")?.inert && [...document.getElementById("noi-dung")?.children ?? []].some((c) => c.inert));
+  await fresh.keyboard.press("Enter");
+  await fresh.waitForFunction(() => !document.documentElement.dataset.intro, null, { timeout: 8000 }).catch(() => {});
+  const gone = await fresh.evaluate(() => !document.documentElement.dataset.intro && !document.querySelector("header")?.inert);
+  check("[a11y] intro: focus ở Bỏ qua, phía sau inert, Enter đóng intro và gỡ inert", introFocus && behindInert && gone, `focus=${introFocus} inert=${behindInert} gone=${gone}`);
+  await fresh.close();
+  await ctx.close();
+
+  const mobile = await browser.newContext({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
+  await mobile.addInitScript(() => {
+    try {
+      sessionStorage.setItem("aegis-intro", "1");
+    } catch {}
+  });
+  const mp = await mobile.newPage();
+  await mp.goto(`${baseUrl}/`, { waitUntil: "networkidle" });
+  await mp.locator('button[aria-controls="menu-di-dong"]').click();
+  await mp.waitForTimeout(500);
+  const open = await mp.evaluate(() => ({ main: document.getElementById("noi-dung")?.inert, footer: document.querySelector("footer")?.inert, role: document.getElementById("menu-di-dong")?.getAttribute("role"), modal: document.getElementById("menu-di-dong")?.getAttribute("aria-modal") }));
+  await mp.keyboard.press("Escape");
+  await mp.waitForTimeout(400);
+  const closed = await mp.evaluate(() => document.getElementById("noi-dung")?.inert);
+  check("[a11y] menu di động: dialog, nội dung + footer inert khi mở, gỡ khi đóng", open.main === true && open.footer === true && open.role === "dialog" && open.modal === "true" && closed === false, JSON.stringify({ open, closed }));
+  await mp.goto(`${baseUrl}/lien-he`, { waitUntil: "networkidle" });
+  check("[ux] /lien-he bước 1: hiện 'BƯỚC 01' không kèm '/ ··', có cảnh báo chờ kết nối ngay từ đầu", /BƯỚC\s*01$/.test((await mp.locator(".wizard-progress").innerText()).trim()) && (await mp.locator(".wizard-main p:has-text('chờ kết nối')").count()) >= 1, (await mp.locator(".wizard-progress").innerText()).trim());
+  await mobile.close();
+}
+
 await browser.close();
 await writeFile(`${outDir}/results.json`, JSON.stringify(results, null, 2));
 const failed = results.filter((x) => !x.ok);

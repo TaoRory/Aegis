@@ -74,6 +74,9 @@ export function Header() {
     const { overflow } = document.body.style;
     document.body.style.overflow = "hidden";
     getLenis()?.stop();
+    // Khoá focus: phần nội dung và footer tạm inert để Tab chỉ đi trong header + menu
+    const frozen = [document.getElementById("noi-dung"), document.querySelector("footer")].filter((n): n is HTMLElement => !!n);
+    frozen.forEach((n) => (n.inert = true));
     panelRef.current?.querySelector<HTMLElement>("a")?.focus();
 
     const onKey = (event: KeyboardEvent) => {
@@ -88,6 +91,7 @@ export function Header() {
     desktop.addEventListener("change", onChange);
     return () => {
       document.body.style.overflow = overflow;
+      frozen.forEach((n) => (n.inert = false));
       getLenis()?.start();
       document.removeEventListener("keydown", onKey);
       desktop.removeEventListener("change", onChange);
@@ -194,6 +198,9 @@ export function Header() {
         inert={!open}
         data-open={open}
         data-surface="dark"
+        role="dialog"
+        aria-modal={open || undefined}
+        aria-label={chrome.navMobile}
         className="mobile-menu fixed inset-0 z-40 flex flex-col bg-bg pt-(--header-h) lg:hidden"
       >
         <nav aria-label={chrome.navMobile} className="container-page flex flex-1 flex-col justify-between py-8">
