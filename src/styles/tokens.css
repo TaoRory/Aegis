@@ -120,6 +120,11 @@
   color-scheme: dark;
 }
 
+/* Theme sáng đã chọn: scrollbar và control native của trang cũng sáng (Factory/demo không có data-theme nên vẫn tối) */
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
 /*
  * ---- Theme sáng của trang chính (html[data-theme="light"]) ----
  * Các vùng nền mực (data-surface="dark") đổi sang nền sáng tươi; vùng giấy (light) giữ nguyên nên các section vẫn xen kẽ sáng/sáng-ấm.

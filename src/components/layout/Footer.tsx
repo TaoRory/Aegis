@@ -2,7 +2,7 @@ import { FooterWordmark } from "@/components/layout/FooterWordmark";
 import { RoundButton } from "@/components/ui/Button";
 import { Rich } from "@/components/ui/Rich";
 import { SmartLink } from "@/components/ui/SmartLink";
-import { serviceHref } from "@/config/routes";
+import { serviceHref, templatesHref } from "@/config/routes";
 import type { Locale } from "@/config/space";
 import { siteConfig } from "@/config/site";
 import { getSiteDict } from "@/content/site";
@@ -10,7 +10,9 @@ import { getSiteDict } from "@/content/site";
 export function Footer({ lang }: { lang: Locale }) {
   const { email, phone, address } = siteConfig.contact;
   const dict = getSiteDict(lang);
-  const { footer, chrome, nav, cta, services } = dict;
+  const { footer, chrome, nav, cta, services, templatesPage } = dict;
+  // Thư viện mẫu không có trong menu chính (trang chủ gọn), nhưng cần một link cố định để bot và người dùng tới được từ mọi trang
+  const footerNav = [...nav, { label: templatesPage.label, href: templatesHref(lang) }];
 
   return (
     <footer data-surface="dark" data-chapter={footer.chapter} className="ink relative z-10 overflow-hidden">
@@ -29,7 +31,7 @@ export function Footer({ lang }: { lang: Locale }) {
           <nav aria-label={chrome.navFooter} className="lg:col-span-2 lg:col-start-8">
             <h2 className="label text-muted">{footer.navTitle}</h2>
             <ul className="mt-5 space-y-2.5">
-              {nav.map((item) => (
+              {footerNav.map((item) => (
                 <li key={item.href}>
                   <SmartLink href={item.href} className="link-underline">
                     {item.label}

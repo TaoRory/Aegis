@@ -19,7 +19,7 @@ export const vi: SiteDict = {
   meta: {
     title: "Aegis — Giải pháp công nghệ & marketing cho doanh nghiệp",
     description:
-      "Aegis là đội triển khai công nghệ cho doanh nghiệp: tư vấn giải pháp, xây dựng AI, phần mềm quản trị, website – web app và marketing, bàn giao sản phẩm dễ dùng nhất.",
+      "Aegis là đội triển khai công nghệ cho doanh nghiệp: tư vấn giải pháp, xây dựng AI, phần mềm quản trị, website – web app và marketing, bàn giao sản phẩm dễ dùng.",
     ogLocale: "vi_VN",
   },
   chrome: {
@@ -86,7 +86,7 @@ export const vi: SiteDict = {
     pageLead: "Mỗi màn một câu hỏi, khoảng một phút. Các câu sau đổi theo hạng mục bạn chọn, để Aegis hiểu đúng bài toán ngay từ đầu.",
     pageTitle: "Liên hệ",
     pageDescription:
-      "Gửi phiếu yêu cầu cho Aegis: chọn hạng mục (AI, phần mềm quản trị, website – web app, marketing), trả lời vài câu ngắn, Aegis tư vấn giải pháp và liên hệ lại để triển khai.",
+      "Gửi phiếu yêu cầu cho Aegis: chọn hạng mục (AI, phần mềm quản trị, website – web app, marketing), trả lời vài câu ngắn, Aegis sẽ liên hệ lại.",
   },
   footer: {
     label: "BV-05 — Hoàn công",
@@ -146,7 +146,7 @@ export const vi: SiteDict = {
   },
   templatesPage: {
     title: "Thư viện style giao diện",
-    description: `${templates.length} style giao diện Aegis có thể thiết kế và xây dựng: ${templates.map((t) => `${t.name} (${t.industry.toLowerCase()})`).join(", ")}. ${templateNotice}`,
+    description: `${templates.length} style giao diện mẫu cho từng ngành do Aegis thiết kế: ${templates.map((t) => t.name).join(", ")}. Thương hiệu demo giả định.`,
     label: templatesSection.pageLabel,
     lines: templatesSection.pageLines,
     lead: templatesSection.lead,
@@ -196,4 +196,11 @@ export const vi: SiteDict = {
   },
   templates: templateText,
   templateGroups: [...templateGroups],
+  notFound: {
+    label: "404 — Không có trên bản vẽ",
+    lines: ["Trang này", "*chưa được dựng.*"],
+    body: "Địa chỉ bạn mở không có trên bản vẽ của Aegis. Có thể đường dẫn đã đổi hoặc gõ nhầm.",
+    home: "Về trang chủ",
+    contact: "Liên hệ Aegis",
+  },
 };

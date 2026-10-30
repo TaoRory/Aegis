@@ -400,8 +400,8 @@ export function ContactWizard({
           {/* Tiến độ (chỉ khi có JS) */}
           <div className="wizard-progress label" aria-hidden={!restored}>
             <span>
-              {t.step} <span className="text-fg">{String(position + 1).padStart(2, "0")}</span> /{" "}
-              {total ? String(total).padStart(2, "0") : "··"}
+              {t.step} <span className="text-fg">{String(position + 1).padStart(2, "0")}</span>
+              {total ? ` / ${String(total).padStart(2, "0")}` : ""}
             </span>
             <span className="wizard-progress-bar">
               <span style={{ transform: `scaleX(${total ? (position + 1) / total : 0.08})` }} />
@@ -416,6 +416,14 @@ export function ContactWizard({
               {t.noJs}
             </p>
           </noscript>
+
+          {/* Kênh nhận chưa cấu hình: báo ngay từ đầu để khách không điền hết rồi mới biết (bước review nhắc lại) */}
+          {!isConfigured && (
+            <p className="mb-10 border-l-2 border-warning pl-4 text-sm leading-relaxed text-muted">
+              <span className="label text-warning">{t.pending}</span>
+              <span className="mt-1 block">{t.pendingBody}</span>
+            </p>
+          )}
 
           {allSteps.map((step) => {
             const key = stepKey(step);

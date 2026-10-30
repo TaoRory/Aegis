@@ -32,7 +32,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: themeMeta.themeColor,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: themeMeta.light },
+    { media: "(prefers-color-scheme: dark)", color: themeMeta.dark },
+  ],
 };
 
 /**
@@ -46,7 +49,7 @@ export const viewport: Viewport = {
  *   (không dùng regex trong chuỗi này: dấu gạch chéo ngược trong template literal bị mất)
  * - data-space-boot="playing" khi vào đúng trang tổng quan của Factory lần đầu trong phiên (và không giảm chuyển động): màn khởi động; link sâu thì không có
  */
-const bootScript = `(function(){var d=document.documentElement;d.dataset.js='on';var p=location.pathname,parts=p.split('/').filter(Boolean),en=parts[0]==='en',rest=en?parts.slice(1):parts,fi=rest[0]==='web'?1:0,f=rest[fi]==='factory';if(f)d.dataset.space='on';if(en)d.lang='en';try{var q=localStorage.getItem('aegis-quality');if(q==='low')d.dataset.quality='low';if(localStorage.getItem('aegis-cursor')==='off')d.dataset.cursorPref='off';}catch(e){}if(!f&&!(parts[0]==='mau-giao-dien'&&parts.length>1)){d.dataset.theme='light';try{if(localStorage.getItem('aegis-theme')==='dark')d.dataset.theme='dark';}catch(e){}}try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;d.dataset.motion='on';if(f&&rest.length===fi+1&&!sessionStorage.getItem('aegis-factory-boot'))d.dataset.spaceBoot='playing';if(parts.length===(en?1:0)&&!sessionStorage.getItem('aegis-intro'))d.dataset.intro='playing';}catch(e){}})();`;
+const bootScript = `(function(){var d=document.documentElement;d.dataset.js='on';var p=location.pathname,parts=p.split('/').filter(Boolean),en=parts[0]==='en',rest=en?parts.slice(1):parts,fi=rest[0]==='web'?1:0,f=rest[fi]==='factory';if(f)d.dataset.space='on';if(en)d.lang='en';try{var q=localStorage.getItem('aegis-quality');if(q==='low')d.dataset.quality='low';if(localStorage.getItem('aegis-cursor')==='off')d.dataset.cursorPref='off';}catch(e){}if(!f&&!(parts[0]==='mau-giao-dien'&&parts.length>1)){d.dataset.theme='light';try{if(localStorage.getItem('aegis-theme')==='dark')d.dataset.theme='dark';}catch(e){}var dk=d.dataset.theme==='dark';d.style.colorScheme=dk?'dark':'light';var ms=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<ms.length;i++)ms[i].setAttribute('content',dk?'${themeMeta.dark}':'${themeMeta.light}');}try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;d.dataset.motion='on';if(f&&rest.length===fi+1&&!sessionStorage.getItem('aegis-factory-boot'))d.dataset.spaceBoot='playing';if(parts.length===(en?1:0)&&!sessionStorage.getItem('aegis-intro'))d.dataset.intro='playing';}catch(e){}})();`;
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (

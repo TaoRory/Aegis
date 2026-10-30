@@ -28,6 +28,9 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Slug tiếng Anh gõ ở gốc → bản /en tương ứng (bản tiếng Việt dùng /lien-he, /mau-giao-dien)
+      { source: "/contact", destination: "/en/contact", permanent: true },
+      { source: "/templates", destination: "/en/templates", permanent: true },
       // Địa chỉ nội bộ không công khai: /vi/factory/... về /factory/...
       { source: "/vi/factory", destination: "/factory", permanent: true },
       { source: "/vi/factory/:path*", destination: "/factory/:path*", permanent: true },

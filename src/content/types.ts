@@ -7,6 +7,8 @@ export interface Service {
   /** Tên ngắn, dùng cho đồ họa hero và lựa chọn trong form */
   shortTitle: string;
   summary: string;
+  /** Mô tả cho thẻ meta description (140–160 ký tự) khi summary quá ngắn; không có thì dùng summary. Chỉ ghép lại ý đã có trong summary/scope. */
+  seoDescription?: string;
   /** Nhu cầu thường gặp của khách hàng */
   needs: string[];
   /** Phạm vi Aegis hỗ trợ */

@@ -38,7 +38,7 @@ export function ServicePage({ lang, id }: { lang: Locale; id: ServiceId }) {
         data-surface="dark"
         data-chapter={service.shortTitle}
         aria-labelledby="dich-vu-title"
-        className="ink relative pt-[calc(var(--header-h)+var(--section-y)*0.4)] pb-(--section-y)"
+        className="ink relative pt-[calc(var(--header-h)+var(--section-y)*0.4)] pb-[calc(var(--section-y)*0.5)]"
       >
         <div aria-hidden className="blueprint-grid pointer-events-none absolute inset-0" />
         <div className="container-page relative">
@@ -54,7 +54,7 @@ export function ServicePage({ lang, id }: { lang: Locale; id: ServiceId }) {
             </SplitReveal>
             <div className="lg:col-span-4 lg:justify-self-end">
               <p className="max-w-[28rem] text-lead text-muted">{service.summary}</p>
-              <div className="mt-8">
+              <div className="mt-6 lg:mt-8">
                 <RoundButton href="#lien-he-dich-vu">{copy.contactLabel}</RoundButton>
               </div>
             </div>

@@ -43,6 +43,8 @@ export const services: Service[] = [
     shortTitle: "Website & web app",
     summary:
       "Từ website giới thiệu doanh nghiệp, website sự kiện đến hệ thống web xây dựng theo yêu cầu.",
+    seoDescription:
+      "Aegis thiết kế và phát triển website giới thiệu doanh nghiệp, website sự kiện và web app theo yêu cầu: cơ sở dữ liệu, thu thập thông tin, phân quyền quản trị.",
     needs: [
       "Cần website chuyên nghiệp để giới thiệu doanh nghiệp",
       "Cần trang riêng cho sự kiện, chương trình hoặc chiến dịch",

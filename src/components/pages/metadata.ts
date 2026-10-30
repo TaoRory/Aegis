@@ -56,11 +56,12 @@ export function homeMetadata(lang: Locale): Metadata {
 export function serviceMetadata(lang: Locale, id: ServiceId): Metadata {
   const dict = getSiteDict(lang);
   const service = dict.services.find((s) => s.id === id)!;
+  const description = service.seoDescription ?? service.summary;
   return {
     title: service.title,
-    description: service.summary,
+    description,
     alternates: alternates((l) => serviceHref(l, id), lang),
-    ...social(lang, serviceHref(lang, id), `${service.title} | Aegis`, service.summary),
+    ...social(lang, serviceHref(lang, id), `${service.title} | Aegis`, description),
   };
 }
 

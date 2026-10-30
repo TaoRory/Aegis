@@ -13,7 +13,7 @@ const subscribe = (callback: () => void) => {
 /** Công tắc đổi theme tối/sáng của trang chính (kế bên nút VI | EN). Bấm để đổi, nhớ lựa chọn trong trình duyệt. */
 export function ThemeToggle({ className }: { className?: string }) {
   const { chrome } = useSite();
-  const theme = useSyncExternalStore<Theme>(subscribe, currentTheme, () => "dark");
+  const theme = useSyncExternalStore<Theme>(subscribe, currentTheme, () => "light");
   const next: Theme = theme === "light" ? "dark" : "light";
   return (
     <button

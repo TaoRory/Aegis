@@ -39,6 +39,8 @@ export const serviceTextEn: Record<ServiceId, Omit<Service, "id">> = {
     title: "Website and web app design & development",
     shortTitle: "Websites & web apps",
     summary: "From company and event websites to custom-built web systems.",
+    seoDescription:
+      "Aegis designs and builds company websites, event websites and custom web apps: databases, data collection and admin permissions, scoped to each project.",
     needs: [
       "You need a professional website to present your business",
       "You need a dedicated site for an event, programme or campaign",

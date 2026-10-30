@@ -15,7 +15,7 @@ export const en: SiteDict = {
   meta: {
     title: "Aegis — Technology & marketing solutions for businesses",
     description:
-      "Aegis is a technology delivery team for businesses: we advise on the right solution, build AI, management software, websites and web apps, run marketing, and hand over the easiest product to use.",
+      "Aegis is a technology delivery team for businesses: we advise on the right solution, build AI, management software, websites and web apps, and run marketing.",
     ogLocale: "en_US",
   },
   chrome: {
@@ -96,7 +96,7 @@ export const en: SiteDict = {
     pageLead: "One question per screen, about a minute. Later questions change with the category you pick, so Aegis understands the problem right from the start.",
     pageTitle: "Contact",
     pageDescription:
-      "Send Aegis a request sheet: pick a category (AI, business software, websites and web apps, marketing), answer a few short questions, and Aegis will advise on a solution and get back to you to get started.",
+      "Send Aegis a request sheet: pick a category (AI, business software, websites and web apps, marketing), answer a few short questions, and we get back to you.",
   },
   footer: {
     label: "BV-05 — As built",
@@ -166,7 +166,7 @@ export const en: SiteDict = {
   },
   templatesPage: {
     title: "Interface style library",
-    description: `${templates.length} interface styles Aegis can design and build: ${templates.map((t) => `${t.name} (${templateTextEn[t.slug].industry.toLowerCase()})`).join(", ")}. ${templateNoticeEn}`,
+    description: `${templates.length} sample website styles by Aegis, one per industry: ${templates.map((t) => t.name).join(", ")}. Fictional demo brands.`,
     label: "Style library",
     lines: ["Eight styles,", "*eight industries.*"],
     lead: "Each style is a design recipe for one industry: its own mood, typography, colour and interaction, built as a working sample website. Businesses can explore them directly to picture their own site.",
@@ -216,4 +216,11 @@ export const en: SiteDict = {
   },
   templates: templateTextEn,
   templateGroups: ["Retail", "Technology & media", "Services", "Education"],
+  notFound: {
+    label: "404 — Not on the blueprint",
+    lines: ["This page", "*hasn't been built.*"],
+    body: "The address you opened isn't on Aegis's blueprint. The link may have changed or been mistyped.",
+    home: "Back to home",
+    contact: "Contact Aegis",
+  },
 };

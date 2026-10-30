@@ -11,6 +11,8 @@ export function SiteShell({ lang, children }: { lang: Locale; children: ReactNod
   const dict = getSiteDict(lang);
   return (
     <SiteLangProvider shell={getShellDict(lang)}>
+      {/* lang ở đây để HTML tĩnh đã đánh dấu đúng ngôn ngữ; script đầu trang đổi thêm html[lang] cho /en */}
+      <div lang={lang} className="contents">
       <a
         href="#noi-dung"
         className="label fixed top-3 left-3 z-[100] -translate-y-24 bg-accent px-4 py-3 text-on-accent transition-transform focus:translate-y-0"
@@ -22,6 +24,7 @@ export function SiteShell({ lang, children }: { lang: Locale; children: ReactNod
         {children}
       </main>
       <Footer lang={lang} />
+      </div>
     </SiteLangProvider>
   );
 }

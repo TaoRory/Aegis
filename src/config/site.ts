@@ -17,7 +17,7 @@ export const siteConfig = {
   locale: "vi_VN",
   tagline: "Aegis xây dựng nền tảng công nghệ vững chắc, giúp doanh nghiệp tự tin tiến xa.",
   description:
-    "Aegis là đội triển khai công nghệ cho doanh nghiệp: tư vấn giải pháp, xây dựng AI, phần mềm quản trị, website – web app và marketing, bàn giao sản phẩm dễ dùng nhất.",
+    "Aegis là đội triển khai công nghệ cho doanh nghiệp: tư vấn giải pháp, xây dựng AI, phần mềm quản trị, website – web app và marketing, bàn giao sản phẩm dễ dùng.",
 
   /** Link dạng "/#id" để dùng được từ mọi trang (ở trang chủ vẫn cuộn mượt tại chỗ); "/lien-he" là trang form riêng */
   nav: [

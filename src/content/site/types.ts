@@ -192,6 +192,8 @@ export interface SiteDict {
   /** Nhóm lọc và mô tả của các style mẫu theo ngôn ngữ (tên, thương hiệu, bảng màu… không phụ thuộc ngôn ngữ) */
   templates: Record<string, TemplateText>;
   templateGroups: string[];
+  /** Trang 404 của trang chính */
+  notFound: { label: string; lines: string[]; body: string; home: string; contact: string };
 }
 
 export interface TemplateText {
