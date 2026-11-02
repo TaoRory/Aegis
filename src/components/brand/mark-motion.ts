@@ -14,6 +14,7 @@ export function assembleMark(svg: SVGSVGElement, { duration = 2 }: { duration?: 
   // MARK_SEGMENTS đã sắp theo góc từ phía trên, theo chiều kim đồng hồ
   const segs = MARK_SEGMENTS.map((s) => svg.querySelector<SVGGraphicsElement>(`[data-seg="${s.id}"]`)).filter((n): n is SVGGraphicsElement => !!n);
   const rim = svg.querySelector<SVGPathElement>("[data-rim]");
+  const whole = svg.querySelector<SVGGElement>("[data-whole]");
 
   gsap.set(segs, { opacity: 0, scale: 0.62, rotation: -46, svgOrigin: origin });
   if (body) gsap.set(body, { rotation: -60, svgOrigin: origin });
@@ -29,5 +30,7 @@ export function assembleMark(svg: SVGSVGElement, { duration = 2 }: { duration?: 
       .to(rim, { strokeDashoffset: -1, duration: 0.9 * k, ease: "power2.inOut" }, 1.15 * k)
       .to(rim, { opacity: 0, duration: 0.3 * k }, 1.8 * k);
   }
+  // Xong: đổi sang ảnh nguyên khối (giống hệt khi đã lắp) để không còn đường nối giữa các mảnh khi phóng to
+  if (whole && body) tl.set(whole, { opacity: 1 }, ">").set(body, { opacity: 0 }, ">");
   return tl;
 }

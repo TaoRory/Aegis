@@ -69,7 +69,8 @@
 
 :root {
   /* Màu cho chữ/cursor dùng mix-blend-mode: difference (luôn tương phản trên cả giấy lẫn mực) */
-  --blend-fg: var(--palette-white);
+  /* Mint-white (231,255,254) thay vì trắng thuần: |nền − chữ| trên Deep Ink Teal (7,31,30) ra xám trung tính (224,224,224); với trắng thuần ra màu hồng (248,224,225) */
+  --blend-fg: #e7fffe;
 
   /* ---- Typography ---- */
   --font-family-sans: var(--font-brand-sans), ui-sans-serif, system-ui, sans-serif;

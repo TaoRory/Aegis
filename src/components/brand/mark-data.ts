@@ -1,41 +1,41 @@
 /**
  * Hình học logo AEGIS, dựng lại từ emblem chính thức "Luminous Aqua Glass Ribbon Emblem.png" (bản cập nhật 02/11/2026 trong
  * AEGIS_Brand_Assets_SVG/01_Logos). Ảnh gốc là raster nên:
- *   - Viền ngoài: lục giác đỉnh nhọn bo góc đo từ ảnh (tâm 677.5,585; bán kính 516; bo 103; kéo ngang 1.05 như ảnh) → MARK_OUTER
- *   - Lõi: lục giác 6 đỉnh đo từ vùng tối ở giữa → MARK_CORE
+ *   - Viền ngoài: lục giác bo góc khớp ảnh (tâm 677.5,586.5; R 507; bo 100; kéo ngang 1.062), thụt vào 4px để bỏ quầng sáng ở mép → MARK_OUTER
+ *   - Lõi: đa giác 6 đỉnh đo từ vùng tối ở giữa, giữ góc nhọn → MARK_CORE
  *   - 7 mảnh dải: tách theo các đường gấp sáng trong ảnh rồi làm mượt → MARK_SEGMENTS (sắp theo góc quanh tâm, 0° = phía trên)
- *   - Bề mặt kính: chính ảnh gốc, cắt theo viền ngoài trừ lõi → public/brand/aegis-emblem.webp (MARK_IMAGE)
+ *   - Bề mặt kính: chính ảnh gốc, alpha = viền ngoài trừ lõi, màu mép đã khử nhiễm nền (không còn viền tối trên nền sáng) → public/brand/aegis-emblem.webp (MARK_IMAGE)
  * Toạ độ theo pixel của ảnh gốc 1254×1254. Chữ "Aegis" đi kèm logo là văn bản thật bằng font của website (xem AegisLogo.tsx).
  */
 
 /** Khung nhìn = vùng cắt của ảnh emblem (ảnh đặt khít khung) */
-export const MARK_VIEWBOX = "204 76 947 1018";
+export const MARK_VIEWBOX = "202 85 952 1004";
 export const MARK_IMAGE = {
   href: "/brand/aegis-emblem.webp",
   small: "/brand/aegis-emblem-480.webp",
-  x: 204,
-  y: 76,
-  width: 947,
-  height: 1018,
+  x: 202,
+  y: 85,
+  width: 952,
+  height: 1004,
 };
 /** Tâm của lục giác ngoài */
 export const MARK_CENTER = { x: 677.5, y: 585 };
 
 export const MARK_OUTER =
-  "M623.4 98.7C656.9 80.3 698.1 80.3 731.6 98.7L1092.6 297.3C1126.1 315.7 1146.7 349.7 1146.7 386.5L1146.7 783.5C1146.7 820.3 1126.1 854.3 1092.6 872.7L731.6 1071.3C698.1 1089.7 656.9 1089.7 623.4 1071.3L262.4 872.7C228.9 854.3 208.3 820.3 208.3 783.5L208.3 386.5C208.3 349.7 228.9 315.7 262.4 297.3Z";
+  "M624.4 108.4C657.3 90.5 697.7 90.5 730.6 108.4L1090.7 304.1C1123.6 322 1143.8 355 1143.8 390.7L1143.8 782.3C1143.8 818 1123.6 851 1090.7 868.9L730.6 1064.6C697.7 1082.5 657.3 1082.5 624.4 1064.6L264.3 868.9C231.4 851 211.2 818 211.2 782.3L211.2 390.7C211.2 355 231.4 322 264.3 304.1Z";
 
 /** Lõi mở (cửa sổ để intro phóng to xuyên qua) */
 export const MARK_CORE = {
-  d: "M733.0 376.4L847.6 444.1L841.0 655.9L641.0 778.0L488.0 687.4L490.7 520.1Z",
+  d: "M730 363L863 432L854 663L640 791L476 698L477 514Z",
   points: [
-    [733, 376],
-    [848, 444],
-    [841, 656],
-    [641, 778],
-    [488, 687],
-    [491, 520],
+    [730, 363],
+    [863, 432],
+    [854, 663],
+    [640, 791],
+    [476, 698],
+    [477, 514],
   ] as [number, number][],
-  centroid: { x: 674, y: 577 },
+  centroid: { x: 673, y: 577 },
 };
 
 export type MarkGradient = {

@@ -1179,6 +1179,11 @@
     font-size: 1.5rem;
   }
 
+  /* Biểu tượng header: cao bằng ~1.6 lần cỡ chữ để đọc được chi tiết kính */
+  .aegis-logo-header .aegis-mark {
+    height: 1.7em;
+  }
+
   /* Mask chữ trồi lên: chỉ cắt cạnh dưới, không xén mép glyph khi tracking âm */
   .rise-mask {
     clip-path: inset(-40% -30% 0 -30%);

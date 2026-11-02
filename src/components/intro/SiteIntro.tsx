@@ -246,7 +246,7 @@ export function SiteIntro() {
                 trong cùng SVG có phần tử đang animate). Phóng to quanh lõi thì lỗ lớn dần tới khi lộ trọn trang. */}
             <path d={coverPath(l)} fillRule="evenodd" className="site-intro-cover" />
             <g transform={markTransform}>
-              <AegisMarkPaths variant="glass" idPrefix="site-intro" />
+              <AegisMarkPaths variant="glass" idPrefix="site-intro" pieces />
             </g>
           </g>
         </svg>

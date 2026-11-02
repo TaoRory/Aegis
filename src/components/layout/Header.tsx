@@ -10,7 +10,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useSite } from "@/components/layout/SiteLang";
 import { ButtonLink, Roll } from "@/components/ui/Button";
 import { localizeHref, SmartLink } from "@/components/ui/SmartLink";
-import { Wordmark } from "@/components/ui/Wordmark";
+import { HeaderMark, Wordmark } from "@/components/ui/Wordmark";
 import { homeHref } from "@/config/routes";
 import { cn } from "@/lib/cn";
 import { getLenis, scrollToTarget } from "@/lib/motion";
@@ -171,6 +171,13 @@ export function Header() {
           </button>
         </div>
       </header>
+
+      {/* Biểu tượng logo đủ màu: lớp riêng (không blend) nằm đúng chỗ Wordmark chừa; cùng nhịp ẩn/hiện với header */}
+      <div data-hidden={hidden && !open} aria-hidden className="site-header pointer-events-none fixed inset-x-0 top-0 z-50">
+        <div className="container-page flex h-(--header-h) items-center">
+          <HeaderMark />
+        </div>
+      </div>
 
       <div
         data-surface="light"
