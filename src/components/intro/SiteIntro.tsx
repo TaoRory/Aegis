@@ -253,7 +253,7 @@ export function SiteIntro() {
       )}
       {l && (
         <div ref={brandRef} className="site-intro-brand" style={{ top: l.bottom + Math.min(56, l.vh * 0.05) }}>
-          <AegisWordmark />
+          <AegisWordmark text="AEGIS" />
           <p className="site-intro-tagline label">{intro.tagline}</p>
         </div>
       )}

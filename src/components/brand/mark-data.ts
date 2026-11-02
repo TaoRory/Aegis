@@ -5,7 +5,7 @@
  *   - Lõi: lục giác 6 đỉnh đo từ vùng tối ở giữa → MARK_CORE
  *   - 7 mảnh dải: tách theo các đường gấp sáng trong ảnh rồi làm mượt → MARK_SEGMENTS (sắp theo góc quanh tâm, 0° = phía trên)
  *   - Bề mặt kính: chính ảnh gốc, cắt theo viền ngoài trừ lõi → public/brand/aegis-emblem.webp (MARK_IMAGE)
- * Toạ độ theo pixel của ảnh gốc 1254×1254. Chữ AEGIS (WORDMARK_*) giữ từ bộ vector trước (chữ outline, không phụ thuộc font).
+ * Toạ độ theo pixel của ảnh gốc 1254×1254. Chữ "Aegis" đi kèm logo là văn bản thật bằng font của website (xem AegisLogo.tsx).
  */
 
 /** Khung nhìn = vùng cắt của ảnh emblem (ảnh đặt khít khung) */
@@ -165,14 +165,4 @@ export const MARK_SEGMENTS: {
       ],
     },
   },
-];
-
-/** Chữ AEGIS (A, E, G, I, S theo thứ tự trái → phải) */
-export const WORDMARK_VIEWBOX = "4 12 398 68";
-export const WORDMARK_LETTERS: string[] = [
-  "M 9 74 L 21 74 L 48 30 L 51 27 L 66 51 L 47 52 L 41 61 L 42 60 L 71 60 L 80 74 L 93 74 L 58 18 L 43 19 Z",
-  "M 109 18 L 109 74 L 173 74 L 173 66 L 122 66 L 120 64 L 121 50 L 170 50 L 170 42 L 165 41 L 156 42 L 121 41 L 120 28 L 122 26 L 173 26 L 173 18 Z",
-  "M 196 31 L 193 39 L 193 54 L 196 62 L 202 69 L 210 73 L 219 75 L 270 74 L 270 43 L 252 42 L 239 43 L 238 50 L 258 50 L 259 51 L 258 66 L 219 66 L 212 63 L 207 58 L 204 49 L 205 39 L 210 31 L 217 27 L 267 26 L 268 18 L 265 17 L 216 18 L 203 23 Z",
-  "M 293 18 L 293 74 L 305 74 L 305 18 Z",
-  "M 329 25 L 327 30 L 327 37 L 329 42 L 333 46 L 346 50 L 379 50 L 384 53 L 386 59 L 385 62 L 380 66 L 371 67 L 328 66 L 327 75 L 381 75 L 390 72 L 395 67 L 397 62 L 397 54 L 394 48 L 389 44 L 374 41 L 344 41 L 338 35 L 339 30 L 344 26 L 391 26 L 393 17 L 344 17 L 334 20 Z",
 ];

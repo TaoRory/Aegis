@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
-import { AegisMark, AegisWordmark } from "@/components/brand/AegisLogo";
+import { AegisMark } from "@/components/brand/AegisLogo";
+import { siteConfig } from "@/config/site";
 import { gsap, MQ, useGSAP } from "@/lib/motion";
 
 /**
@@ -43,7 +44,7 @@ export function FooterWordmark() {
     () => {
       const mm = gsap.matchMedia();
       mm.add(MQ.anyMotion, () => {
-        gsap.from("[data-char], [data-letter]", {
+        gsap.from("[data-char]", {
           yPercent: 100,
           ease: "expo.out",
           stagger: 0.06,
@@ -63,7 +64,13 @@ export function FooterWordmark() {
             <AegisMark className="footer-wordmark-mark" />
           </span>
         </span>
-        <AegisWordmark className="footer-wordmark-word" />
+        {siteConfig.name.split("").map((char, index) => (
+          <span key={index} className="footer-wordmark-char rise-mask inline-block">
+            <span data-char className="inline-block">
+              {char}
+            </span>
+          </span>
+        ))}
       </p>
     </div>
   );

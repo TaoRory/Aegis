@@ -49,10 +49,10 @@ export function About({ lang }: { lang: Locale }) {
             {values.map((value, index) => (
               <li key={value.title} className="value-row group grid gap-4 border-b border-line py-8 lg:grid-cols-12 lg:items-center lg:py-10">
                 <span className="label text-accent lg:col-span-1">0{index + 1}</span>
-                <SplitReveal as="h3" className="value-word text-mega font-semibold lg:col-span-6">
-                  {index === 1 ? <em>{value.title}</em> : value.title}
+                <SplitReveal as="h3" className="value-word text-mega font-semibold lg:col-span-7 lg:whitespace-nowrap">
+                  {value.title}
                 </SplitReveal>
-                <p className="max-w-[30rem] leading-relaxed text-muted lg:col-span-5 lg:justify-self-end">
+                <p className="max-w-[30rem] leading-relaxed text-muted lg:col-span-4 lg:justify-self-end">
                   {value.description}
                 </p>
               </li>

@@ -1,6 +1,6 @@
 import { useId } from "react";
 
-import { MARK_CORE, MARK_IMAGE, MARK_OUTER, MARK_SEGMENTS, MARK_VIEWBOX, WORDMARK_LETTERS, WORDMARK_VIEWBOX } from "@/components/brand/mark-data";
+import { MARK_CORE, MARK_IMAGE, MARK_OUTER, MARK_SEGMENTS, MARK_VIEWBOX } from "@/components/brand/mark-data";
 import { cn } from "@/lib/cn";
 
 /**
@@ -91,14 +91,19 @@ export function AegisMark({ variant = "glass", small, className }: { variant?: M
   );
 }
 
-/** Chữ AEGIS đã outline (không phụ thuộc font), tô bằng currentColor */
-export function AegisWordmark({ className }: { className?: string }) {
+/**
+ * Chữ thương hiệu: văn bản thật bằng font của website (Bricolage Grotesque, giữ như trước khi áp guideline; không dùng chữ outline
+ * của bộ kit). Mỗi ký tự là một span data-letter để animation điều khiển từng chữ.
+ */
+export function AegisWordmark({ text = "Aegis", className }: { text?: string; className?: string }) {
   return (
-    <svg viewBox={WORDMARK_VIEWBOX} aria-hidden className={cn("aegis-wordmark", className)} fill="currentColor">
-      {WORDMARK_LETTERS.map((d, index) => (
-        <path key={index} data-letter={index} d={d} />
+    <span aria-hidden className={cn("aegis-wordmark", className)}>
+      {text.split("").map((char, index) => (
+        <span key={index} data-letter={index} className="inline-block">
+          {char}
+        </span>
       ))}
-    </svg>
+    </span>
   );
 }
 

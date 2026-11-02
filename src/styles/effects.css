@@ -351,8 +351,10 @@
 
   .site-intro-brand .aegis-wordmark {
     display: block;
-    width: auto;
-    height: clamp(1.5rem, 1.1rem + 2vw, 2.6rem);
+    font-size: clamp(2.4rem, 1.6rem + 3.4vw, 4.4rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
     color: var(--palette-bright);
   }
 
@@ -1136,9 +1138,12 @@
 
   .footer-wordmark p {
     font-size: 30vw;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 0.82;
+    letter-spacing: -0.045em;
     white-space: nowrap;
+    /* Bù khoảng âm của ký tự cuối do letter-spacing để chữ chạm đúng mép phải */
+    margin-right: -0.045em;
   }
 
   .footer-wordmark-mark {
@@ -1148,34 +1153,30 @@
     margin-right: 0.14em;
   }
 
-  .footer-wordmark-word {
-    display: block;
-    width: auto;
-    height: 0.56em;
-  }
-
   /* ---------- Logo (components/brand/AegisLogo.tsx) ---------- */
   .aegis-logo {
     display: inline-flex;
     align-items: center;
-    gap: 0.55em;
+    gap: 0.4em;
     line-height: 1;
   }
 
   .aegis-logo .aegis-mark {
     flex: none;
     width: auto;
-    height: 2em;
+    height: 1.35em;
   }
 
-  .aegis-logo .aegis-wordmark {
-    flex: none;
-    width: auto;
-    height: 0.82em;
+  /* Chữ logo: font sans của website, đậm, tracking âm như wordmark cũ */
+  .aegis-wordmark {
+    font-family: var(--font-family-sans);
+    font-weight: 600;
+    letter-spacing: -0.045em;
+    white-space: nowrap;
   }
 
   .aegis-logo-header {
-    font-size: 1.05rem;
+    font-size: 1.5rem;
   }
 
   /* Mask chữ trồi lên: chỉ cắt cạnh dưới, không xén mép glyph khi tracking âm */
