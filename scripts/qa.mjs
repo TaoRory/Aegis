@@ -415,8 +415,10 @@ check("[api] hợp lệ → phản hồi trung thực theo cấu hình", [200, 5
   await page.waitForTimeout(900);
   const hidden = await page.evaluate(() => document.querySelector(".site-header")?.getAttribute("data-hidden"));
   await page.evaluate(() => document.querySelector(".site-header a")?.focus());
-  await page.waitForTimeout(700);
-  check("[a11y] header ẩn khi cuộn xuống hiện lại khi tab vào", hidden === "true" && (await page.evaluate(() => getComputedStyle(document.querySelector(".site-header")).transform)) === "none");
+  await page.waitForTimeout(900);
+  // transition 0.6s: chấp nhận vị trí đã về sát 0 (matrix còn lẻ phần nghìn px khi vừa xong), không so chuỗi "none"
+  const headerY = await page.evaluate(() => new DOMMatrix(getComputedStyle(document.querySelector(".site-header")).transform).m42);
+  check("[a11y] header ẩn khi cuộn xuống hiện lại khi tab vào", hidden === "true" && headerY > -2, `translateY=${headerY}`);
   await page.close();
 
   // Intro lần đầu: focus sẵn ở nút Bỏ qua, nội dung phía sau inert, Space/Enter trên nút đóng intro

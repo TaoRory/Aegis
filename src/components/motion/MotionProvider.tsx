@@ -89,7 +89,35 @@ export function MotionProvider() {
     }
 
     // Header trong suốt (mix-blend) nên section cuộn sát đỉnh màn hình, không cần offset
-    const lenis = new Lenis({ lerp: 0.12, wheelMultiplier: 1.9, anchors: true, autoRaf: false });
+    // Touchpad gửi rất nhiều sự kiện wheel nhỏ (cỡ px chuyển động của ngón tay, thường < 40), còn mỗi nấc bánh xe chuột là ~100px.
+    // Nhận diện luồng touchpad (có delta nhỏ trong 250ms gần nhất): nhân thêm PAD_BOOST và giảm độ trễ làm mượt (lerp lớn hơn = bám tay
+    // hơn) chỉ cho luồng đó; chuột giữ nguyên. Hệ số chuột 1.4 (trước 1.9) vì từ khi sửa lỗi mất delta ở remeasure (xem bên dưới),
+    // mọi delta đều được cuộn đủ: 1.9 cho cảm giác nhanh hơn hẳn so với bản cũ (thực tế cũ chỉ cuộn được khoảng 1.0–1.2 lần delta).
+    const MOUSE_LERP = 0.12;
+    const MOUSE_MULTIPLIER = 1.4;
+    const PAD_LERP = 0.2;
+    const PAD_BOOST = 1.2;
+    let padUntil = 0;
+    const lenis = new Lenis({
+      lerp: MOUSE_LERP,
+      wheelMultiplier: MOUSE_MULTIPLIER,
+      anchors: true,
+      autoRaf: false,
+      virtualScroll: (data) => {
+        const event = data.event;
+        if (event.type !== "wheel" || (event as WheelEvent).ctrlKey) return true; // ctrl + wheel là zoom của touchpad (chụm), không đụng tới
+        const wheel = event as WheelEvent;
+        const now = performance.now();
+        if (wheel.deltaMode === 0 && Math.max(Math.abs(wheel.deltaY), Math.abs(wheel.deltaX)) < 40) padUntil = now + 250;
+        const pad = now < padUntil;
+        lenis.options.lerp = pad ? PAD_LERP : MOUSE_LERP;
+        if (pad) {
+          data.deltaX *= PAD_BOOST;
+          data.deltaY *= PAD_BOOST;
+        }
+        return true;
+      },
+    });
     setLenis(lenis);
     lenis.on("scroll", ScrollTrigger.update);
 
@@ -100,10 +128,13 @@ export function MotionProvider() {
     // Chiều cao trang đổi SAU lúc Lenis đo (chữ wordmark chân trang co giãn khi font tải xong, ảnh lười, section ghim…):
     // nếu không đo lại, giới hạn cuộn của Lenis bị cũ và người dùng không kéo được tới hết trang.
     // ResizeObserver riêng trên <body> (không debounce, gom theo khung hình) + đo lại mỗi lần ScrollTrigger refresh.
+    // Chỉ đo lại kích thước (cập nhật giới hạn cuộn), KHÔNG gọi lenis.resize(): hàm đó còn đặt lại đích cuộn về vị trí hiện tại.
+    // ResizeObserver trên <body> nổ gần như mỗi khung hình khi đang cuộn (chiều cao lẻ pixel dao động), nên gọi resize() liên tục
+    // làm mất phần lớn delta bánh xe/touchpad chưa kịp chạy: cuộn chậm hẳn, touchpad (nhiều sự kiện nhỏ) bị nặng nhất.
     let sizeRaf = 0;
     const remeasure = () => {
       cancelAnimationFrame(sizeRaf);
-      sizeRaf = requestAnimationFrame(() => lenis.resize());
+      sizeRaf = requestAnimationFrame(() => lenis.dimensions.resize());
     };
     const sizeObserver = new ResizeObserver(remeasure);
     sizeObserver.observe(document.body);
