@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { clamp01, measure, REF, smooth, WORD, type Layout } from "@/components/intro/aegis-mask";
-import { buildCircuit, circlePath } from "@/components/intro/circuit";
+import { AegisMarkPaths, AegisWordmark } from "@/components/brand/AegisLogo";
+import { MARK_CORE, MARK_VIEWBOX } from "@/components/brand/mark-data";
+import { assembleMark } from "@/components/brand/mark-motion";
+import { clamp01, smooth } from "@/components/intro/aegis-mask";
 import { useSite } from "@/components/layout/SiteLang";
-import { getLenis, INTRO_DONE_EVENT } from "@/lib/motion";
+import { getLenis, gsap, INTRO_DONE_EVENT } from "@/lib/motion";
 
 const SESSION_KEY = "aegis-intro";
+const VB = MARK_VIEWBOX.split(" ").map(Number);
 
 /** Các phần tử phía sau lớp phủ intro cần tạm inert: header, footer, và các anh em của intro trong <main> */
 function frozenBehindIntro(intro: HTMLElement | null): HTMLElement[] {
@@ -18,105 +21,123 @@ function frozenBehindIntro(intro: HTMLElement | null): HTMLElement[] {
   return out;
 }
 
-/**
- * Lớp mạch điện nằm dưới mặt nạ: chỉ lộ ra trong các ô cửa chữ AEGIS, như bên trong một bản mạch. Đường mạch ngang / dọc / chéo 45°
- * có chân hàn và via, bus song song, chip có chân, xung sáng chạy dọc vài đường mạch; chip lớn ở đỉnh chữ A (điểm phóng to).
- * Chỉ có đường nét, không chữ số. Thuần trang trí.
- */
-function CircuitBoard({ vw, vh, ax, ay }: { vw: number; vh: number; ax: number; ay: number }) {
-  const board = useMemo(() => buildCircuit(vw, vh), [vw, vh]);
-  return (
-    <g aria-hidden className="site-intro-pcb">
-      <rect x={0} y={0} width={vw} height={vh} className="site-intro-grid-fill" />
-      <path d={board.buses} className="site-intro-pcb-bus" />
-      <path d={board.traces} className="site-intro-pcb-trace" />
-      {board.chips.map((chip) => (
-        <g key={`${chip.x}-${chip.y}`}>
-          <path d={chip.pins} className="site-intro-pcb-trace" />
-          <rect x={chip.x} y={chip.y} width={chip.w} height={chip.h} className="site-intro-pcb-chip" />
-          <circle cx={chip.x + 8} cy={chip.y + 8} r={2} className="site-intro-pcb-via" />
-        </g>
-      ))}
-      <path d={circlePath(board.pads, vw < 640 ? 2.2 : 3.5)} className="site-intro-pcb-pad" />
-      <path d={circlePath(board.vias, vw < 640 ? 1.3 : 2)} className="site-intro-pcb-via" />
-      {board.pulses.map((pulse, k) => (
-        <circle
-          key={k}
-          cx={pulse.x}
-          cy={pulse.y}
-          r={vw < 640 ? 1.8 : 2.8}
-          className="site-intro-pcb-pulse"
-          style={{ "--dx": `${pulse.dx}px`, "--dy": `${pulse.dy}px`, animationDuration: `${pulse.dur}s`, animationDelay: `${pulse.delay}s` } as CSSProperties}
-        />
-      ))}
-      <circle cx={ax} cy={ay} r={18} className="site-intro-pcb-pad" />
-      <circle cx={ax} cy={ay} r={7} className="site-intro-pcb-via" />
-    </g>
-  );
+type Layout = {
+  vw: number;
+  vh: number;
+  /** đơn vị toạ độ logo → px màn hình */
+  k: number;
+  /** vị trí (px) của gốc toạ độ logo */
+  ox: number;
+  oy: number;
+  /** tâm lõi (px) = điểm phóng to */
+  cx: number;
+  cy: number;
+  /** hệ số phóng tối đa để lõi phủ kín màn hình */
+  zoom: number;
+  /** mép dưới logo (px), để đặt chữ AEGIS */
+  bottom: number;
+};
+
+/** Hình chữ nhật phủ màn hình trừ lục giác lõi (toạ độ màn hình) */
+function coverPath(l: Layout) {
+  const core = MARK_CORE.points.map(([x, y]) => `${(l.ox + x * l.k).toFixed(1)} ${(l.oy + y * l.k).toFixed(1)}`).join("L");
+  return `M0 0H${l.vw}V${l.vh}H0Z M${core}Z`;
+}
+
+function measure(vw: number, vh: number): Layout {
+  const height = Math.min(vh * 0.44, vw * 0.62, 470);
+  const k = height / VB[3];
+  const width = VB[2] * k;
+  const ox = (vw - width) / 2 - VB[0] * k;
+  const oy = vh * 0.43 - height / 2 - VB[1] * k;
+  const cx = ox + MARK_CORE.centroid.x * k;
+  const cy = oy + MARK_CORE.centroid.y * k;
+  // bán kính nội tiếp của lõi (khoảng cách nhỏ nhất từ tâm tới các cạnh) và khoảng cách xa nhất tới góc màn hình
+  const pts = MARK_CORE.points.map(([x, y]) => [ox + x * k, oy + y * k]);
+  let inner = Infinity;
+  for (let i = 0; i < pts.length; i++) {
+    const [ax, ay] = pts[i];
+    const [bx, by] = pts[(i + 1) % pts.length];
+    inner = Math.min(inner, Math.abs((bx - ax) * (ay - cy) - (ax - cx) * (by - ay)) / Math.hypot(bx - ax, by - ay));
+  }
+  const far = Math.max(...[[0, 0], [vw, 0], [0, vh], [vw, vh]].map(([x, y]) => Math.hypot(x - cx, y - cy)));
+  return { vw, vh, k, ox, oy, cx, cy, zoom: (far / inner) * 1.06, bottom: oy + (VB[1] + VB[3]) * k };
 }
 
 /**
- * Màn mở đầu của trang chính (thay màn đếm số cũ): chữ AEGIS rất lớn là các ô cửa nhìn vào trang chủ phía sau. Người dùng cuộn
- * (bánh xe, vuốt, phím ↓ / Space) thì lớp phủ phóng to quanh khối đặc ở đỉnh chữ A cho tới khi lộ trọn trang; có nút "Bỏ qua".
- * Cùng mặt nạ và cách điều khiển với màn mở đầu của Factory (SpaceIntro), nhưng ở đây không có cảnh 3D phía sau.
+ * Màn mở đầu của trang chính: logo AEGIS tự lắp ráp (motion identity: một dải sáng → xoắn → khép thành lục giác), dưới là chữ AEGIS
+ * và Build / Deploy / Scale. Người dùng cuộn (bánh xe, vuốt, phím ↓ / Space) thì cả lớp phủ phóng to quanh LÕI MỞ của logo cho tới
+ * khi lõi phủ kín màn hình và lộ ra trang chủ phía sau; có nút "Bỏ qua".
  * Chỉ hiển thị khi <html data-intro="playing"> (script đầu trang đặt: trang chủ, lần đầu trong phiên, không giảm chuyển động).
- * Hạt hero và chữ hero bắt đầu dựng ngay khi lớp phủ đã phóng được một đoạn (sự kiện INTRO_DONE_EVENT), để ô cửa không trống.
+ * Hạt hero và chữ hero bắt đầu dựng khi lớp phủ đã phóng được một đoạn (sự kiện INTRO_DONE_EVENT), để ô cửa không trống.
  */
 export function SiteIntro() {
   const { intro } = useSite();
   const rootRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<SVGTextElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<SVGGElement>(null);
-  const outlineRef = useRef<SVGTextElement>(null);
+  const brandRef = useRef<HTMLDivElement>(null);
   const hintRef = useRef<HTMLParagraphElement>(null);
   const [layout, setLayout] = useState<Layout | null>(null);
   const [gone, setGone] = useState(false);
   const layoutRef = useRef<Layout | null>(null);
+  const assembly = useRef<gsap.core.Timeline | null>(null);
   const state = useRef({ target: 0, shown: 0, done: false, announced: false });
 
   const ready = layout !== null;
 
-  // Đo chữ sau khi font tải xong; đo lại khi đổi kích thước cửa sổ
+  // Đo bố cục; đo lại khi đổi kích thước cửa sổ
   useEffect(() => {
     const root = document.documentElement;
     if (root.dataset.intro !== "playing") return;
     root.dataset.introLive = "on";
     getLenis()?.stop();
     window.scrollTo(0, 0);
-    // Khoá focus vào lớp phủ: mọi thứ phía sau (header, footer, các section cùng cấp với intro trong <main>) tạm inert,
-    // focus đặt sẵn ở nút Bỏ qua. Không inert chính <main> vì intro nằm trong đó.
+    // Khoá focus vào lớp phủ: mọi thứ phía sau tạm inert, focus đặt sẵn ở nút Bỏ qua. Không inert chính <main> vì intro nằm trong đó.
     const frozen = frozenBehindIntro(rootRef.current);
     frozen.forEach((n) => (n.inert = true));
     rootRef.current?.querySelector<HTMLButtonElement>(".site-intro-skip")?.focus({ preventScroll: true });
-    let cancelled = false;
     const run = () => {
-      const el = textRef.current;
-      if (!el || cancelled) return;
-      const next = measure(el, window.innerWidth, window.innerHeight);
+      const next = measure(window.innerWidth, window.innerHeight);
       layoutRef.current = next;
       setLayout(next);
     };
-    void document.fonts.ready.then(run);
+    run();
     window.addEventListener("resize", run);
     return () => {
-      cancelled = true;
       delete root.dataset.introLive;
       frozen.forEach((n) => (n.inert = false));
       window.removeEventListener("resize", run);
     };
   }, []);
 
+  // Motion identity: chạy một lần khi đã có bố cục
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!ready || !svg || assembly.current) return;
+    const tl = assembleMark(svg);
+    const brand = brandRef.current;
+    if (brand) {
+      const letters = brand.querySelectorAll("[data-letter]");
+      gsap.set(letters, { y: 26 });
+      tl.to(letters, { opacity: 1, y: 0, duration: 0.7, ease: "expo.out", stagger: 0.06 }, 1.05);
+      tl.to(brand.querySelector(".site-intro-tagline"), { opacity: 1, duration: 0.6 }, 1.45);
+    }
+    if (hintRef.current) tl.from(hintRef.current, { opacity: 0, duration: 0.5 }, 1.7);
+    assembly.current = tl;
+  }, [ready]);
+
   const apply = (p: number) => {
     const l = layoutRef.current;
     const g = zoomRef.current;
     if (l && g) {
       const t = clamp01(p / 0.85);
-      const s = Math.pow(l.zoom, Math.pow(t, 1.5));
-      g.setAttribute("transform", `translate(${l.ax} ${l.ay}) scale(${s}) translate(${-l.ax} ${-l.ay})`);
-      if (outlineRef.current) outlineRef.current.style.opacity = String(1 - clamp01(t * 2.2));
+      const s = Math.pow(l.zoom, Math.pow(t, 1.6));
+      g.setAttribute("transform", `translate(${l.cx} ${l.cy}) scale(${s}) translate(${-l.cx} ${-l.cy})`);
     }
-    if (rootRef.current) rootRef.current.style.opacity = String(1 - smooth(0.6, 0.9, p));
+    if (brandRef.current) brandRef.current.style.opacity = String(1 - clamp01(p * 4));
     if (hintRef.current) hintRef.current.style.opacity = String(1 - clamp01(p * 10));
+    if (rootRef.current) rootRef.current.style.opacity = String(1 - smooth(0.72, 0.96, p));
     const st = state.current;
     if (!st.announced && p > 0.3) {
       st.announced = true;
@@ -161,6 +182,8 @@ export function SiteIntro() {
       raf = st.shown === st.target ? 0 : requestAnimationFrame(step);
     };
     const go = (target: number, speed = 7) => {
+      // Cuộn khi logo chưa lắp xong: hoàn tất ngay để không phóng một logo dở dang
+      assembly.current?.progress(1);
       st.target = clamp01(target);
       rate = speed;
       if (!raf) {
@@ -213,30 +236,27 @@ export function SiteIntro() {
 
   if (gone) return null;
   const l = layout;
+  const markTransform = l ? `translate(${l.ox} ${l.oy}) scale(${l.k})` : undefined;
   return (
-    <div ref={rootRef} data-surface="dark" className="site-intro" data-ready={ready} role="status" aria-label={intro.label}>
-      {/* Mặt nạ: nền phủ kín, chữ AEGIS khoét thành ô cửa nhìn vào trang chủ phía sau */}
-      <svg className="site-intro-svg" width="100%" height="100%" viewBox={`0 0 ${l?.vw ?? 1} ${l?.vh ?? 1}`} aria-hidden>
-        <defs>
-          <mask id="site-intro-mask" maskUnits="userSpaceOnUse" x={0} y={0} width={l?.vw ?? 1} height={l?.vh ?? 1}>
-            <rect x={0} y={0} width={l?.vw ?? 1} height={l?.vh ?? 1} fill="white" />
-            <text ref={textRef} className="site-intro-text" x={l?.x ?? 0} y={l?.y ?? 0} fontSize={l?.fs ?? REF} fill="black">
-              {WORD}
-            </text>
-          </mask>
-        </defs>
-        <g ref={zoomRef}>
-          {l && <CircuitBoard vw={l.vw} vh={l.vh} ax={l.ax} ay={l.ay} />}
-          <rect x={0} y={0} width={l?.vw ?? 1} height={l?.vh ?? 1} className="site-intro-cover" mask="url(#site-intro-mask)" />
-          <text ref={outlineRef} className="site-intro-text site-intro-outline" x={l?.x ?? 0} y={l?.y ?? 0} fontSize={l?.fs ?? REF} fill="none">
-            {WORD}
-          </text>
-        </g>
-        {/* Trước khi đo xong: chữ tô màu accent để không có khoảng trống; đo xong thì mờ đi để lộ ô cửa */}
-        <text className="site-intro-text site-intro-fill" x={l?.x ?? 0} y={l?.y ?? 0} fontSize={l?.fs ?? REF}>
-          {WORD}
-        </text>
-      </svg>
+    <div ref={rootRef} className="site-intro" data-ready={ready} role="status" aria-label={intro.label}>
+      {l && (
+        <svg ref={svgRef} className="site-intro-svg" width="100%" height="100%" viewBox={`0 0 ${l.vw} ${l.vh}`} aria-hidden>
+          <g ref={zoomRef}>
+            {/* Lớp phủ khoét đúng lõi mở của logo (evenodd: chữ nhật trừ lục giác lõi, không dùng <mask> vì Chrome vẽ lặp lỗ khi
+                trong cùng SVG có phần tử đang animate). Phóng to quanh lõi thì lỗ lớn dần tới khi lộ trọn trang. */}
+            <path d={coverPath(l)} fillRule="evenodd" className="site-intro-cover" />
+            <g transform={markTransform}>
+              <AegisMarkPaths variant="glass" idPrefix="site-intro" />
+            </g>
+          </g>
+        </svg>
+      )}
+      {l && (
+        <div ref={brandRef} className="site-intro-brand" style={{ top: l.bottom + Math.min(56, l.vh * 0.05) }}>
+          <AegisWordmark />
+          <p className="site-intro-tagline label">{intro.tagline}</p>
+        </div>
+      )}
       <div className="site-intro-ui">
         <p ref={hintRef} className="site-intro-hint label">
           <span className="site-intro-hint-mouse">{intro.hint}</span>

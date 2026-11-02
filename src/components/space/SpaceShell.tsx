@@ -52,7 +52,7 @@ export function SpaceShell({ ui, variant, children }: { ui: FactoryUi; variant: 
       </Suspense>
       <a
         href="#noi-dung"
-        className="label fixed top-3 left-3 z-[100] -translate-y-24 bg-accent px-4 py-3 text-on-accent transition-transform focus:translate-y-0"
+        className="label fixed top-3 left-3 z-[100] -translate-y-24 bg-accent-fill px-4 py-3 text-on-accent-fill transition-transform focus:translate-y-0"
       >
         {ui.skip}
       </a>

@@ -210,8 +210,8 @@
     padding: 1.25rem;
     border-radius: 999px;
     overflow: hidden;
-    background: var(--accent);
-    color: var(--on-accent);
+    background: var(--accent-fill);
+    color: var(--on-accent-fill);
     font-family: var(--font-family-mono);
     font-size: var(--type-label);
     letter-spacing: var(--type-tracking-label);
@@ -301,7 +301,8 @@
     visibility: visible;
   }
 
-  /* ---------- Màn mở đầu chữ AEGIS (SiteIntro.tsx) ---------- */
+  /* ---------- Màn mở đầu: logo tự lắp ráp, cuộn để phóng xuyên lõi (SiteIntro.tsx) ----------
+     Luôn nền Deep Ink Teal, chữ Cloud Dancer bất kể theme (logo kính cần nền tối). */
   .site-intro {
     position: fixed;
     inset: 0;
@@ -310,6 +311,13 @@
     overflow: hidden;
     touch-action: none;
     overscroll-behavior: none;
+    background: var(--palette-ink);
+    color: var(--palette-bright);
+  }
+
+  /* Đo xong bố cục thì lớp phủ SVG (có lỗ ở lõi logo) thay cho nền đặc */
+  .site-intro[data-ready="true"] {
+    background: transparent;
   }
 
   [data-intro="playing"] .site-intro {
@@ -327,95 +335,39 @@
     display: block;
   }
 
-  .site-intro-text {
-    font-family: var(--font-family-sans);
-    font-weight: 700;
-    letter-spacing: -0.04em;
-  }
-
   .site-intro-cover {
-    fill: var(--bg);
+    fill: var(--palette-ink);
   }
 
-  .site-intro-outline {
-    stroke: var(--accent);
-    stroke-width: 1.5;
-    stroke-opacity: 0.8;
-    vector-effect: non-scaling-stroke;
+  .site-intro-brand {
+    position: absolute;
+    left: 50%;
+    display: grid;
+    justify-items: center;
+    gap: 1.1rem;
+    transform: translateX(-50%);
+    pointer-events: none;
   }
 
-  .site-intro-fill {
-    fill: var(--accent);
-    transition: opacity 0.7s ease;
+  .site-intro-brand .aegis-wordmark {
+    display: block;
+    width: auto;
+    height: clamp(1.5rem, 1.1rem + 2vw, 2.6rem);
+    color: var(--palette-bright);
   }
 
-  .site-intro[data-ready="true"] .site-intro-fill {
+  /* Ẩn sẵn (trước khi JS chạy motion identity) để không nháy logo đã lắp xong */
+  .site-intro [data-seg],
+  .site-intro-brand [data-letter],
+  .site-intro-tagline {
     opacity: 0;
   }
 
-  /* Mạch điện lộ ra trong các ô cửa chữ AEGIS: đường mạch, chân hàn, via, bus, chip, xung sáng chạy dọc mạch; chỉ đường nét */
-  .site-intro-grid-fill {
-    fill: color-mix(in oklab, var(--accent) 9%, var(--bg));
-  }
-
-  .site-intro-pcb-trace,
-  .site-intro-pcb-bus,
-  .site-intro-pcb-pad,
-  .site-intro-pcb-chip {
-    vector-effect: non-scaling-stroke;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .site-intro-pcb-trace {
-    fill: none;
-    stroke: color-mix(in oklab, var(--accent) 55%, transparent);
-    stroke-width: 1.3;
-  }
-
-  .site-intro-pcb-bus {
-    fill: none;
-    stroke: color-mix(in oklab, var(--accent) 34%, transparent);
-    stroke-width: 1;
-  }
-
-  .site-intro-pcb-pad {
-    fill: var(--bg);
-    stroke: color-mix(in oklab, var(--accent) 85%, transparent);
-    stroke-width: 1.3;
-  }
-
-  .site-intro-pcb-via {
-    fill: var(--accent);
-  }
-
-  .site-intro-pcb-chip {
-    fill: color-mix(in oklab, var(--accent) 14%, var(--bg));
-    stroke: var(--accent);
-    stroke-width: 1.4;
-  }
-
-  /* Xung sáng: chấm chạy dọc một đoạn thẳng của mạch bằng transform (không vẽ lại nét nên mặt nạ không bị lỗi raster) */
-  .site-intro-pcb-pulse {
-    fill: var(--accent);
-    opacity: 0;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .site-intro-pcb-pulse {
-      opacity: 1;
-      animation: site-intro-pulse 4s linear infinite;
-    }
-  }
-
-  /* Theme sáng: nền và ô cửa cùng sáng nên viền chữ AEGIS dày và đậm hơn để không chìm */
-  html[data-theme="light"] .site-intro-outline {
-    stroke-width: 2.5;
-    stroke-opacity: 1;
-  }
-
-  html[data-theme="light"] .site-intro-pcb-trace {
-    stroke: color-mix(in oklab, var(--accent) 70%, transparent);
+  .site-intro-tagline {
+    color: color-mix(in oklab, var(--palette-aqua) 80%, var(--palette-bright));
+    letter-spacing: 0.42em;
+    margin-right: -0.42em;
+    white-space: nowrap;
   }
 
   /* ---------- Màn chuyển trang "vẽ bản vẽ" (RouteCover.tsx): luôn nền mực, chữ giấy, vạch dẫn xanh ---------- */
@@ -497,25 +449,33 @@
     position: relative;
   }
 
-  .route-cover-mark {
+  /* Hình học & lưới của logo (khung 730 của file vector gốc) */
+  .route-cover-geo {
     display: block;
-    width: min(72vw, 34rem);
+    width: min(58vmin, 26rem);
     height: auto;
     overflow: visible;
-    color: var(--palette-paper);
   }
 
-  .route-cover-mark path {
+  .route-cover-construction :is(circle, path) {
     fill: none;
-    stroke: currentColor;
-    stroke-width: 4;
-    stroke-linecap: square;
-    stroke-linejoin: miter;
-    stroke-dasharray: 1 2;
+    stroke: color-mix(in oklab, var(--palette-aqua) 42%, transparent);
+    stroke-width: 1.6;
+    vector-effect: non-scaling-stroke;
   }
 
-  .route-cover-mark circle {
-    fill: var(--rc-accent);
+  .route-cover-construction .route-cover-node {
+    fill: var(--palette-ink);
+    stroke: var(--palette-aqua);
+    stroke-width: 1.2;
+  }
+
+  .route-cover-outline path {
+    fill: none;
+    stroke: var(--palette-aqua);
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
   }
 
   .route-cover-guide {
@@ -586,7 +546,7 @@
     justify-items: center;
     gap: 0.4rem;
     transform: translateX(-50%);
-    color: var(--fg);
+    color: var(--palette-bright);
     text-align: center;
     white-space: nowrap;
   }
@@ -607,7 +567,7 @@
 
   .site-intro-arrow {
     font-size: 1.1rem;
-    color: var(--accent);
+    color: var(--palette-teal);
   }
 
   .site-intro-skip {
@@ -615,16 +575,16 @@
     right: clamp(1rem, 3vw, 2rem);
     top: clamp(1rem, 3vh, 1.75rem);
     padding: 0.5rem 0.9rem;
-    border: 1px solid var(--border-strong);
-    color: var(--fg-muted);
+    border: 1px solid color-mix(in oklab, var(--palette-bright) 34%, transparent);
+    color: var(--palette-grey);
     pointer-events: auto;
     cursor: pointer;
   }
 
   .site-intro-skip:hover,
   .site-intro-skip:focus-visible {
-    color: var(--fg);
-    border-color: var(--fg);
+    color: var(--palette-bright);
+    border-color: var(--palette-bright);
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -1178,40 +1138,40 @@
     font-size: 30vw;
     font-weight: 700;
     line-height: 0.82;
-    /* Chữ AEGIS giãn rộng như wordmark trong guideline */
-    letter-spacing: 0.04em;
     white-space: nowrap;
-    /* Bù khoảng giãn của ký tự cuối để chữ chạm đúng mép phải */
-    margin-right: -0.04em;
   }
 
   .footer-wordmark-mark {
     display: block;
-    width: 0.78em;
-    height: 0.78em;
-    margin-right: 0.12em;
+    width: auto;
+    height: 0.8em;
+    margin-right: 0.14em;
+  }
+
+  .footer-wordmark-word {
+    display: block;
+    width: auto;
+    height: 0.56em;
   }
 
   /* ---------- Logo (components/brand/AegisLogo.tsx) ---------- */
   .aegis-logo {
     display: inline-flex;
     align-items: center;
-    gap: 0.6em;
+    gap: 0.55em;
     line-height: 1;
   }
 
   .aegis-logo .aegis-mark {
     flex: none;
-    width: 1.75em;
-    height: 1.75em;
+    width: auto;
+    height: 2em;
   }
 
-  .aegis-logo-word {
-    font-family: var(--font-family-sans);
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    /* bù khoảng giãn sau chữ cuối để khối logo cân giữa */
-    margin-right: -0.2em;
+  .aegis-logo .aegis-wordmark {
+    flex: none;
+    width: auto;
+    height: 0.82em;
   }
 
   .aegis-logo-header {
@@ -2544,21 +2504,6 @@
 @keyframes reveal-failsafe {
   to {
     visibility: visible;
-  }
-}
-
-@keyframes site-intro-pulse {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0);
-  }
-  15%,
-  85% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(var(--dx), var(--dy));
   }
 }
 

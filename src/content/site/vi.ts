@@ -98,7 +98,7 @@ export const vi: SiteDict = {
     chapter: "Kết",
   },
   settings: settingsCopy.vi,
-  intro: { label: "Đang mở trang Aegis", hint: "Cuộn để vào", hintTouch: "Vuốt lên để vào", skip: "Bỏ qua" },
+  intro: { label: "Đang mở trang Aegis", hint: "Cuộn để vào", hintTouch: "Vuốt lên để vào", skip: "Bỏ qua", tagline: "Build / Deploy / Scale" },
   services,
   servicePage: {
     back: "← Aegis",

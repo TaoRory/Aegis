@@ -12,7 +12,7 @@ export default function DemoLayout({ children }: Readonly<{ children: ReactNode 
       <ThemeGuard />
       <a
         href="#noi-dung"
-        className="label fixed top-3 left-3 z-[100] -translate-y-24 bg-accent px-4 py-3 text-on-accent transition-transform focus:translate-y-0"
+        className="label fixed top-3 left-3 z-[100] -translate-y-24 bg-accent-fill px-4 py-3 text-on-accent-fill transition-transform focus:translate-y-0"
       >
         Bỏ qua đến nội dung chính
       </a>

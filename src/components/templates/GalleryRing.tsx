@@ -580,7 +580,7 @@ export function GalleryRing({
             <SmartLink
               href={hrefOf(current)}
               navType="aegis-open"
-              className="btn btn-box h-12 bg-accent px-5 text-on-accent hover:bg-accent-strong"
+              className="btn btn-box h-12 bg-accent-fill px-5 text-on-accent-fill hover:bg-accent-fill-strong"
               onClick={(event) => {
                 if (mode === "gl" && isPlainClick(event)) {
                   event.preventDefault();

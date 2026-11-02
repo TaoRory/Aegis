@@ -87,7 +87,7 @@ export interface SiteDict {
   };
   settings: SettingsCopy;
   /** Màn mở đầu chữ AEGIS (SiteIntro) */
-  intro: { label: string; hint: string; hintTouch: string; skip: string };
+  intro: { label: string; hint: string; hintTouch: string; skip: string; tagline: string };
   services: Service[];
   /** Trang dịch vụ (/web, /ai, /software, /marketing) */
   servicePage: {

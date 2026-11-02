@@ -30,7 +30,7 @@ export function FactoryInvite({ lang }: { lang: Locale }) {
           <div className="lg:col-span-5">
             <p className="text-lead text-muted">{copy.body}</p>
             <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
-              <a href={factoryHref(lang, "", "web")} className="btn btn-box h-12 bg-accent px-5 text-on-accent hover:bg-accent-strong">
+              <a href={factoryHref(lang, "", "web")} className="btn btn-box h-12 bg-accent-fill px-5 text-on-accent-fill hover:bg-accent-fill-strong">
                 <Roll>{copy.cta}</Roll>
                 <span aria-hidden className="btn-arrow">
                   →

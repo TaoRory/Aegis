@@ -3,12 +3,15 @@
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
+import { AegisMarkPaths } from "@/components/brand/AegisLogo";
+import { MARK_CENTER, MARK_CORE, MARK_OUTER, MARK_SEGMENTS, MARK_VIEWBOX } from "@/components/brand/mark-data";
 import { coverCopy } from "@/content/site/cover";
 import { gsap, MQ } from "@/lib/motion";
 
 /**
- * Màn chuyển trang "vẽ bản vẽ": bấm link nội bộ thì một tấm nền mực phủ từ dưới lên, lưới cột và đường dẫn ngang dọc kẻ ra,
- * chữ AEGIS được vẽ nét theo nét trong khung chọn có nhãn kích thước, đồng hồ % chạy; trang mới tải xong thì tấm phủ cuộn lên trên.
+ * Màn chuyển trang "vẽ bản vẽ": bấm link nội bộ thì một tấm nền Deep Ink Teal phủ từ dưới lên, lưới cột và đường dẫn ngang dọc kẻ ra,
+ * rồi dựng HÌNH HỌC & LƯỚI của logo (mục Geometry & Grid trong guideline): vòng tròn, lục giác, trục và đường chéo dựng hình, viền 8 mảnh
+ * dải Möbius được vẽ nét theo nét, cuối cùng biểu tượng đủ màu hiện lên; đồng hồ % chạy; trang mới tải xong thì tấm phủ cuộn lên trên.
  * Đặt trong layout gốc (tồn tại xuyên suốt mọi route) nên chạy được cả khi đổi ngôn ngữ hay vào Factory.
  *
  * Cách hoạt động: bắt click ở pha capture của document, chặn điều hướng mặc định của next/link (Link bỏ qua khi event đã bị preventDefault,
@@ -16,14 +19,26 @@ import { gsap, MQ } from "@/lib/motion";
  * Không áp dụng cho: giảm chuyển động, link ngoài / cùng trang / mở tab mới, điều hướng trong Factory (camera tự bay), mở mẫu từ thư viện
  * (có hiệu ứng ảnh phóng riêng), nút Back/Forward của trình duyệt (không chặn được trước khi đổi trang).
  */
-const MARK = [
-  "M4 37L19 3L34 37M10 25H28", // A
-  "M64 3H44V37H64M44 20H61", // E
-  "M99.3 8.7A16 16 0 1 0 104 20H90", // G
-  "M114 3V37", // I
-  "M141 12A9.5 9 0 0 0 131.5 3A9.5 9 0 0 0 122 12A9.5 9 0 0 0 131.5 21A9.5 8 0 0 1 141 29A9.5 8 0 0 1 131.5 37A9.5 8 0 0 1 122 29", // S
-];
-const LABEL = "AEGIS · 150×40";
+const LABEL = "AEGIS · GEOMETRY & GRID";
+
+/**
+ * Hình dựng (construction) quanh biểu tượng, theo toạ độ ảnh emblem (xem mark-data.ts): lục giác ngoài chưa bo (kéo ngang 1.05 như
+ * logo), vòng tròn ngoại tiếp, vòng tròn qua lõi, trục đứng/ngang và hai đường chéo 30° qua tâm, chấm ở 6 đỉnh.
+ */
+const C = MARK_CENTER;
+const HEX = Array.from({ length: 6 }, (_, i) => {
+  const a = (i * Math.PI) / 3;
+  return [C.x + 516 * 1.05 * Math.sin(a), C.y - 516 * Math.cos(a)] as const;
+});
+const GEO = {
+  circles: [560, 400, 215],
+  hex: `M${HEX.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join("L")}Z`,
+  lines: [0, 30, 90, 150].map((deg) => {
+    const a = (deg * Math.PI) / 180;
+    const r = 700;
+    return `M${(C.x - r * Math.cos(a)).toFixed(1)} ${(C.y - r * Math.sin(a)).toFixed(1)}L${(C.x + r * Math.cos(a)).toFixed(1)} ${(C.y + r * Math.sin(a)).toFixed(1)}`;
+  }),
+};
 const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/·×-";
 const COLS = 12;
 const FAILSAFE_MS = 6000;
@@ -72,8 +87,11 @@ export function RouteCover() {
       guidesV: qa(".route-cover-guide-v"),
       box: q(".route-cover-box"),
       label: q<HTMLElement>(".route-cover-label"),
-      paths: qa<SVGPathElement>(".route-cover-mark path"),
-      dot: q(".route-cover-mark circle"),
+      geo: qa<SVGGeometryElement>(".route-cover-geo [data-geo]"),
+      nodes: qa<SVGCircleElement>(".route-cover-geo [data-node]"),
+      outlines: qa<SVGPathElement>(".route-cover-geo [data-outline]"),
+      fill: q<SVGGElement>(".route-cover-geo [data-fill]"),
+
       to: q<HTMLElement>(".route-cover-to"),
       count: q<HTMLElement>(".route-cover-count"),
     };
@@ -103,8 +121,9 @@ export function RouteCover() {
       gsap.set(el.guidesH, { scaleX: 0, transformOrigin: "0% 50%" });
       gsap.set(el.guidesV, { scaleY: 0, transformOrigin: "50% 0%" });
       gsap.set(el.box, { opacity: 0 });
-      gsap.set(el.paths, { strokeDashoffset: 1 });
-      gsap.set(el.dot, { scale: 0, transformOrigin: "50% 50%" });
+      gsap.set([...el.geo, ...el.outlines], { strokeDasharray: 1, strokeDashoffset: 1 });
+      gsap.set(el.nodes, { scale: 0, transformOrigin: "50% 50%" });
+      gsap.set(el.fill, { opacity: 0 });
       el.label.textContent = "";
       el.to.textContent = "";
       el.count.textContent = "0%";
@@ -120,8 +139,11 @@ export function RouteCover() {
           .to(el.guidesV, { scaleY: 1, duration: 0.55, ease: "expo.inOut", stagger: 0.05 }, 0.34)
           .to(el.box, { opacity: 1, duration: 0.25 }, 0.5)
           .add(scramble(el.label, LABEL, 0.35), 0.5)
-          .to(el.paths, { strokeDashoffset: 0, duration: 0.55, ease: "power2.inOut", stagger: 0.07 }, 0.42)
-          .to(el.dot, { scale: 1, duration: 0.3, ease: "back.out(3)" }, 0.9);
+          // Hình dựng kẻ ra trước, rồi viền 8 mảnh dải, cuối cùng biểu tượng đủ màu và viền sáng
+          .to(el.geo, { strokeDashoffset: 0, duration: 0.6, ease: "power2.inOut", stagger: 0.035 }, 0.3)
+          .to(el.nodes, { scale: 1, duration: 0.3, ease: "back.out(3)", stagger: 0.03 }, 0.62)
+          .to(el.outlines, { strokeDashoffset: 0, duration: 0.55, ease: "power2.inOut", stagger: 0.04 }, 0.48)
+          .to(el.fill, { opacity: 1, duration: 0.4, ease: "power1.out" }, 0.92);
       });
     };
 
@@ -223,11 +245,37 @@ export function RouteCover() {
         <div className="route-cover-box">
           <span className="route-cover-label label" />
         </div>
-        <svg className="route-cover-mark" viewBox="0 0 150 40">
-          {MARK.map((d) => (
-            <path key={d} d={d} pathLength={1} />
-          ))}
-          <circle cx={146} cy={36} r={2.6} />
+        <svg className="route-cover-geo" viewBox={MARK_VIEWBOX}>
+          <g className="route-cover-construction">
+            {GEO.circles.map((r) => (
+              <circle key={r} data-geo cx={C.x} cy={C.y} r={r} pathLength={1} />
+            ))}
+            <path data-geo d={GEO.hex} pathLength={1} />
+            {GEO.lines.map((d) => (
+              <path key={d} data-geo d={d} pathLength={1} />
+            ))}
+            {HEX.map(([x, y]) => (
+              <circle key={`${x}-${y}`} data-node cx={x} cy={y} r={7} className="route-cover-node" />
+            ))}
+          </g>
+          <defs>
+            <clipPath id="route-cover-outer">
+              <path d={MARK_OUTER} />
+            </clipPath>
+          </defs>
+          <g className="route-cover-outline">
+            <path data-outline d={MARK_OUTER} pathLength={1} />
+            <path data-outline d={MARK_CORE.d} pathLength={1} />
+            {/* đường gấp giữa các mảnh: cắt theo viền ngoài vì path mảnh nở ra ngoài vài đơn vị */}
+            <g clipPath="url(#route-cover-outer)">
+              {MARK_SEGMENTS.map((seg) => (
+                <path key={seg.id} data-outline d={seg.d} pathLength={1} />
+              ))}
+            </g>
+          </g>
+          <g data-fill>
+            <AegisMarkPaths variant="glass" idPrefix="route-cover" small />
+          </g>
         </svg>
       </div>
       <div className="route-cover-meta label">

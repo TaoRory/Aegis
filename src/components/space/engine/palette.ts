@@ -29,7 +29,7 @@ export function readPalette(): Palette {
     accent: read("--palette-teal-deep", "#0a7369"),
     accentLight: read("--palette-teal", "#13b5a5"),
     accentPale: read("--palette-aqua", "#84e4d6"),
-    paper: read("--palette-paper", "#e8eeec"),
+    paper: read("--palette-bright", "#f5f7f6"),
     graphite: read("--palette-graphite-light", "#a4bab7"),
     danger: read("--palette-danger-light", "#ff8a80"),
   };

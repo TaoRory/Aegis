@@ -1,46 +1,113 @@
 import { useId } from "react";
 
+import { MARK_CORE, MARK_IMAGE, MARK_OUTER, MARK_SEGMENTS, MARK_VIEWBOX, WORDMARK_LETTERS, WORDMARK_VIEWBOX } from "@/components/brand/mark-data";
 import { cn } from "@/lib/cn";
 
 /**
- * Logo Aegis theo Brand Guideline: biểu tượng lục giác "dải Möbius" sáu cánh, lõi mở (bảo vệ mà vẫn mở) + chữ AEGIS giãn rộng.
- * Bản vector VẼ LẠI gần đúng từ ảnh guideline (Brand-guideline/), chưa phải file gốc của designer: khi có SVG chính thức, thay BLADE.
- *
- * Biến thể (theo mục Logo Variations):
- *   color — teal chuyển sắc (Aqua Glow → Transformative Teal → teal sâu), dùng trên nền Deep Ink Teal hoặc nền sáng
- *   mono  — một màu theo currentColor (header dùng mix-blend nên chỉ dùng bản một màu)
+ * Logo Aegis dựng từ emblem chính thức (xem mark-data.ts). Biến thể:
+ *   glass    — bề mặt kính thật của emblem (ảnh gốc cắt theo từng mảnh vector): logo lớn, intro, màn chuyển trang, footer
+ *   gradient — 7 mảnh vector tô gradient gần đúng (khi không muốn tải ảnh)
+ *   teal     — một màu Transformative Teal, giữ khe gấp giữa các mảnh (favicon, kích thước nhỏ)
+ *   mono     — một màu theo currentColor, giữ khe gấp (header dùng mix-blend nên chỉ dùng bản này)
+ * Mỗi mảnh là một nhóm có data-seg để animation (mark-motion.ts) điều khiển từng phần; viền ngoài có data-rim.
  */
+export type MarkVariant = "glass" | "gradient" | "teal" | "mono";
 
-/** Một cánh: cạnh ngoài thẳng (viền lục giác), hai cạnh chéo cong nhẹ như dải lụa xoắn; xoay 6 lần quanh tâm */
-const BLADE = "M0.93 -42.5L36.75 -21.82Q23.11 -13.12 14.9 0.83L9.61 -12.25Q8.9 -28.41 0.93 -42.5Z";
+const VB = MARK_VIEWBOX.split(" ").map(Number);
 
-export function AegisMark({ variant = "color", className }: { variant?: "color" | "mono"; className?: string }) {
-  const id = useId();
-  const fill = variant === "color" ? `url(#${id})` : "currentColor";
-  return (
-    <svg viewBox="-50 -50 100 100" aria-hidden className={cn("aegis-mark", className)}>
-      {variant === "color" && (
+export function AegisMarkPaths({ variant = "glass", idPrefix, small = false }: { variant?: MarkVariant; idPrefix: string; small?: boolean }) {
+  const gid = (name: string) => `${idPrefix}-${name}`;
+  if (variant === "mono" || variant === "teal") {
+    // Một màu: hình lục giác trừ lõi, cắt khe mảnh 5 đơn vị dọc các đường gấp (trong suốt thật, nên đứng được trên mọi nền / blend)
+    const fill = variant === "teal" ? "var(--palette-teal)" : "currentColor";
+    return (
+      <>
         <defs>
-          <linearGradient id={id} x1="19.8" y1="-34.29" x2="14.72" y2="-2.86" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="var(--palette-aqua)" />
-            <stop offset="0.5" stopColor="var(--palette-teal)" />
-            <stop offset="1" stopColor="var(--palette-teal-darker)" />
-          </linearGradient>
+          <mask id={gid("flat")} maskUnits="userSpaceOnUse" x={VB[0]} y={VB[1]} width={VB[2]} height={VB[3]}>
+            <path d={MARK_OUTER} fill="#fff" />
+            <path d={MARK_CORE.d} fill="#000" />
+            {MARK_SEGMENTS.map((seg) => (
+              <path key={seg.id} d={seg.d} fill="none" stroke="#000" strokeWidth={10} strokeLinejoin="round" />
+            ))}
+          </mask>
         </defs>
-      )}
-      {[0, 60, 120, 180, 240, 300].map((deg) => (
-        <path key={deg} d={BLADE} fill={fill} stroke={fill} strokeWidth={2.4} strokeLinejoin="round" transform={`rotate(${deg})`} />
+        <g data-mark-body mask={`url(#${gid("flat")})`}>
+          {MARK_SEGMENTS.map((seg) => (
+            <path key={seg.id} data-seg={seg.id} d={seg.d} fill={fill} />
+          ))}
+        </g>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <defs>
+        {/* Mỗi mảnh là một mask (nở 1.5 đơn vị để các mảnh khít nhau, không lộ khe tối) */}
+        {MARK_SEGMENTS.map((seg) => (
+          <mask key={seg.id} id={gid(seg.id)} maskUnits="userSpaceOnUse" x={VB[0]} y={VB[1]} width={VB[2]} height={VB[3]}>
+            <path d={seg.d} fill="#fff" stroke="#fff" strokeWidth={3} strokeLinejoin="round" />
+          </mask>
+        ))}
+        {variant === "gradient" && (
+          <>
+            {MARK_SEGMENTS.map((seg) => (
+              <linearGradient key={seg.id} id={gid(`g-${seg.id}`)} gradientUnits="userSpaceOnUse" x1={seg.gradient.x1} y1={seg.gradient.y1} x2={seg.gradient.x2} y2={seg.gradient.y2}>
+                {seg.gradient.stops.map(([offset, color]) => (
+                  <stop key={offset} offset={offset} stopColor={color} />
+                ))}
+              </linearGradient>
+            ))}
+            <mask id={gid("shape")} maskUnits="userSpaceOnUse" x={VB[0]} y={VB[1]} width={VB[2]} height={VB[3]}>
+              <path d={MARK_OUTER} fill="#fff" />
+              <path d={MARK_CORE.d} fill="#000" />
+            </mask>
+          </>
+        )}
+      </defs>
+      <g data-mark-body mask={variant === "gradient" ? `url(#${gid("shape")})` : undefined}>
+        {MARK_SEGMENTS.map((seg) => (
+          <g key={seg.id} data-seg={seg.id} mask={`url(#${gid(seg.id)})`}>
+            {variant === "glass" ? (
+              <image href={small ? MARK_IMAGE.small : MARK_IMAGE.href} x={MARK_IMAGE.x} y={MARK_IMAGE.y} width={MARK_IMAGE.width} height={MARK_IMAGE.height} preserveAspectRatio="none" />
+            ) : (
+              <path d={seg.d} fill={`url(#${gid(`g-${seg.id}`)})`} stroke={`url(#${gid(`g-${seg.id}`)})`} strokeWidth={3} />
+            )}
+          </g>
+        ))}
+      </g>
+      {/* Viền sáng ngoài (ẩn sẵn, animation vẽ nét rồi mờ đi) */}
+      <path data-rim d={MARK_OUTER} fill="none" stroke="var(--palette-soft)" strokeWidth={3} pathLength={1} opacity={0} />
+    </>
+  );
+}
+
+export function AegisMark({ variant = "glass", small, className }: { variant?: MarkVariant; small?: boolean; className?: string }) {
+  const id = useId().replace(/:/g, "");
+  return (
+    <svg viewBox={MARK_VIEWBOX} aria-hidden className={cn("aegis-mark", className)}>
+      <AegisMarkPaths variant={variant} idPrefix={id} small={small} />
+    </svg>
+  );
+}
+
+/** Chữ AEGIS đã outline (không phụ thuộc font), tô bằng currentColor */
+export function AegisWordmark({ className }: { className?: string }) {
+  return (
+    <svg viewBox={WORDMARK_VIEWBOX} aria-hidden className={cn("aegis-wordmark", className)} fill="currentColor">
+      {WORDMARK_LETTERS.map((d, index) => (
+        <path key={index} data-letter={index} d={d} />
       ))}
     </svg>
   );
 }
 
-/** Biểu tượng + chữ AEGIS. Chữ là văn bản thật (font thương hiệu), tên đọc cho trình đọc màn hình do thẻ bao ngoài (link) cung cấp. */
-export function AegisLogo({ variant = "color", className }: { variant?: "color" | "mono"; className?: string }) {
+/** Logo ngang: biểu tượng + chữ. Tên đọc cho trình đọc màn hình do thẻ bao ngoài (link) cung cấp. */
+export function AegisLogo({ variant = "glass", className }: { variant?: MarkVariant; className?: string }) {
   return (
     <span className={cn("aegis-logo", className)}>
-      <AegisMark variant={variant} />
-      <span className="aegis-logo-word">AEGIS</span>
+      <AegisMark variant={variant} small />
+      <AegisWordmark />
     </span>
   );
 }

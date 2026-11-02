@@ -108,7 +108,7 @@ export const en: SiteDict = {
     chapter: "End",
   },
   settings: settingsCopy.en,
-  intro: { label: "Opening the Aegis site", hint: "Scroll to enter", hintTouch: "Swipe up to enter", skip: "Skip" },
+  intro: { label: "Opening the Aegis site", hint: "Scroll to enter", hintTouch: "Swipe up to enter", skip: "Skip", tagline: "Build / Deploy / Scale" },
   services: factoryEn.services,
   servicePage: {
     back: "← Aegis",

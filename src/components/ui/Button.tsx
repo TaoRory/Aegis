@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 type Variant = "primary" | "outline" | "link";
 
 const variants: Record<Variant, string> = {
-  primary: "btn btn-box h-12 bg-accent px-5 text-on-accent hover:bg-accent-strong",
+  primary: "btn btn-box h-12 bg-accent-fill px-5 text-on-accent-fill hover:bg-accent-fill-strong",
   outline: "btn btn-box h-12 border border-line-strong px-5 text-fg hover:border-fg",
   link: "btn-link text-fg",
 };
