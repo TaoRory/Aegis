@@ -79,6 +79,13 @@ export function MotionProvider() {
     };
   }, [pathname]);
 
+  // iOS Safari chỉ áp :active (phản hồi lúc chạm) khi trang có listener touchstart; listener rỗng, thụ động, không tốn gì
+  useEffect(() => {
+    const noop = () => {};
+    document.addEventListener("touchstart", noop, { passive: true });
+    return () => document.removeEventListener("touchstart", noop);
+  }, []);
+
   useEffect(() => {
     const refresh = () => ScrollTrigger.refresh();
     document.fonts?.ready.then(refresh);

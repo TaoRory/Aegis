@@ -36,6 +36,10 @@ export function ServiceChapters({ services, lang, copy }: { services: Service[];
         let snapping = false;
         let direction = 1;
         let previous = 0;
+        // Chương đích của lần chuyển đang chạy, và mã số lần chuyển để bỏ qua onComplete/hẹn giờ của lần đã bị thay thế
+        let pending = -1;
+        let travel = 0;
+        let moveId = 0;
 
         const st = ScrollTrigger.create({
           trigger: root,
@@ -58,18 +62,30 @@ export function ServiceChapters({ services, lang, copy }: { services: Service[];
           },
         });
 
+        // Chuyển chương. Gọi lại giữa chừng (đổi hướng hoặc đi tiếp) thì chạy tiếp từ vị trí đang hiển thị, không chờ lần trước xong:
+        // lần ngắt dùng đường ease-out (vào là chạy ngay) vì ease-in-out phải dừng hẳn rồi mới đi, gây khựng như "đập vào tường"
+        const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+        const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
         const goTo = (index: number) => {
           const y = st.start + (index / last) * (st.end - st.start);
+          const interrupting = snapping;
+          const id = ++moveId;
+          pending = index;
+          travel = Math.sign(index - st.progress * last) || travel;
           snapping = true;
-          window.setTimeout(() => (snapping = false), 1300); // chốt an toàn nếu onComplete không tới
+          window.setTimeout(() => {
+            if (id === moveId) snapping = false; // chốt an toàn nếu onComplete không tới
+          }, 1300);
           const lenis = getLenis();
           if (lenis) {
             lenis.scrollTo(y, {
-              duration: 0.85,
-              easing: (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
+              duration: interrupting ? 0.7 : 0.85,
+              easing: interrupting ? easeOut : easeInOut,
               force: true,
               onComplete: () => {
+                if (id !== moveId) return;
                 snapping = false;
+                pending = -1;
                 previous = st.progress;
               },
             });
@@ -88,6 +104,7 @@ export function ServiceChapters({ services, lang, copy }: { services: Service[];
         // Cử chỉ mới = khoảng lặng > 150 ms giữa hai sự kiện lăn, để quán tính của chuột/trackpad không nhảy thêm chương.
         // Ở chương đầu mà lăn lên, hoặc chương cuối mà lăn xuống, thì để trang cuộn bình thường ra khỏi đoạn ghim.
         let lastWheelAt = 0;
+        let lastMoveAt = 0;
         const onWheel = (event: WheelEvent) => {
           const dir = Math.sign(event.deltaY);
           if (!st.isActive || !dir) return;
@@ -95,13 +112,21 @@ export function ServiceChapters({ services, lang, copy }: { services: Service[];
           if ((dir > 0 && segment >= last - 0.02) || (dir < 0 && segment <= 0.02)) return;
           event.preventDefault();
           event.stopImmediatePropagation();
-          const now = performance.now();
+          // timeStamp = lúc trình duyệt NHẬN sự kiện (không phải lúc code chạy): khung hình giật làm trễ xử lý cũng không biến đuôi quán tính
+          // thành "cử chỉ mới"
+          const now = event.timeStamp || performance.now();
           const freshGesture = now - lastWheelAt > 150;
           lastWheelAt = now;
-          if (snapping || !freshGesture) return;
+          // Đuôi quán tính của cùng một cử chỉ thì bỏ qua; cử chỉ MỚI thì nhận kể cả khi đang chuyển chương, nhưng cách lần trước tối thiểu 250ms
+          if (!freshGesture || now - lastMoveAt < 250) return;
+          lastMoveAt = now;
           direction = dir;
           window.clearTimeout(settleTimer);
-          goTo(Math.max(0, Math.min(last, dir > 0 ? Math.floor(segment + 0.02) + 1 : Math.ceil(segment - 0.02) - 1)));
+          // Đang chuyển mà lăn tiếp cùng chiều → đi tiếp từ chương đích; lăn ngược chiều → quay về chương gần nhất theo vị trí đang hiển thị
+          const from = snapping && pending >= 0 && dir === travel ? pending : dir > 0 ? Math.floor(segment + 0.02) : Math.ceil(segment - 0.02);
+          const target = Math.max(0, Math.min(last, from + dir));
+          if (snapping && target === pending) return; // đã đang đi tới đúng chương này
+          goTo(target);
         };
         window.addEventListener("wheel", onWheel, { passive: false, capture: true });
 

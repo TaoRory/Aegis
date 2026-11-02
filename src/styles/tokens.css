@@ -167,3 +167,36 @@ html[data-theme="light"]:not([data-space]) [data-surface="dark"] {
   --focus-ring: var(--palette-white);
   color-scheme: dark;
 }
+
+/* ---- Tăng tương phản (prefers-contrast: more): viền và chữ phụ đậm hơn, đặt cuối để thắng các khối vai trò màu phía trên ---- */
+@media (prefers-contrast: more) {
+  :root,
+  [data-surface="light"] {
+    --border: color-mix(in oklab, var(--palette-ink) 55%, transparent);
+    --border-strong: var(--palette-ink);
+    --fg-muted: var(--palette-ink);
+    --fg-subtle: var(--palette-graphite);
+  }
+
+  [data-surface="dark"],
+  .gallery-stage {
+    --border: color-mix(in oklab, var(--palette-paper) 55%, transparent);
+    --border-strong: var(--palette-paper);
+    --fg-muted: var(--palette-paper);
+    --fg-subtle: var(--palette-graphite-light);
+  }
+
+  html[data-theme="light"]:not([data-space]) [data-surface="dark"] {
+    --border: color-mix(in oklab, var(--palette-ink) 55%, transparent);
+    --border-strong: var(--palette-ink);
+    --fg-muted: var(--palette-ink);
+    --fg-subtle: var(--palette-graphite);
+  }
+
+  [data-surface="accent"] {
+    --border: color-mix(in oklab, var(--palette-white) 60%, transparent);
+    --border-strong: var(--palette-white);
+    --fg-muted: var(--palette-white);
+    --fg-subtle: var(--palette-white);
+  }
+}

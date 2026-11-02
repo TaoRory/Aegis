@@ -157,7 +157,7 @@ export function Header() {
           <button
             ref={toggleRef}
             type="button"
-            className="label inline-flex h-11 items-center gap-2 lg:hidden"
+            className="menu-toggle label inline-flex h-11 items-center gap-2 lg:hidden"
             aria-expanded={open}
             aria-controls="menu-di-dong"
             aria-label={open ? chrome.menuCloseAria : chrome.menuOpenAria}

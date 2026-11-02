@@ -2742,3 +2742,90 @@
     transform: translateY(-0.5rem);
   }
 }
+
+/* ================= Phản hồi tức thì khi nhấn (pointer-down) cho liên kết và nút nhỏ =================
+   Nhấn: đổi ngay (60ms). Thả: trả về chậm hơn (0.3s) để không giật. Nút lớn (.btn-box, .round-btn…) đã có hiệu ứng riêng ở trên. */
+a,
+button,
+label,
+summary,
+[role="button"] {
+  touch-action: manipulation; /* bỏ độ trễ chạm đúp để phóng to: chạm là phản hồi ngay */
+}
+
+:is(.nav-link, .lang-switch-link, .theme-toggle, .link-underline, .menu-toggle, .mobile-menu-item > a):active {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :is(.nav-link, .lang-switch-link, .theme-toggle, .link-underline, .menu-toggle, .mobile-menu-item > a) {
+    transition:
+      opacity 0.3s var(--motion-ease-out),
+      transform 0.3s var(--motion-ease-out),
+      color 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      background-size var(--motion-base) var(--motion-ease-out);
+  }
+
+  :is(.nav-link, .lang-switch-link, .theme-toggle, .menu-toggle, .mobile-menu-item > a):active {
+    transform: scale(0.97);
+    transition-duration: 0.06s;
+  }
+}
+
+/* ================= Trợ năng: giảm độ trong suốt =================
+   Người dùng bật "giảm độ trong suốt" (macOS/iOS/Windows): các lớp kính mờ chuyển sang nền đặc, bỏ blur. */
+@media (prefers-reduced-transparency: reduce) {
+  .header-tools {
+    background: var(--palette-ink);
+    backdrop-filter: none;
+  }
+
+  html[data-theme="light"] .header-tools {
+    background: var(--palette-white);
+  }
+
+  .gallery-chip {
+    background: var(--palette-ink);
+    backdrop-filter: none;
+  }
+
+  .space-home,
+  .space-nav ul,
+  .space-hotspot-label,
+  .space-menu-btn {
+    background: var(--bg);
+    backdrop-filter: none;
+  }
+
+  .space-hub,
+  .space-menu {
+    background: var(--bg-elevated);
+    backdrop-filter: none;
+  }
+}
+
+/* ================= Trợ năng: tăng tương phản =================
+   Viền và chữ phụ đậm hơn trên các lớp nổi (màu nền/chữ/viền chung đã tăng trong tokens.css). */
+@media (prefers-contrast: more) {
+  .header-tools,
+  .space-home,
+  .space-nav ul,
+  .space-hub,
+  .space-menu,
+  .space-menu-btn,
+  .space-hotspot-label {
+    border-color: var(--fg);
+  }
+
+  .gallery-chip {
+    border-color: var(--palette-paper);
+    color: var(--palette-paper);
+  }
+
+  .lang-switch-link,
+  .theme-toggle {
+    color: var(--fg);
+  }
+}

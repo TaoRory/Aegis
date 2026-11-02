@@ -460,6 +460,92 @@ check("[api] hợp lệ → phản hồi trung thực theo cấu hình", [200, 5
   await mobile.close();
 }
 
+// ---- Đợt phản hồi kiểu Apple: chuyển chương ngắt được, phản hồi lúc nhấn, giảm trong suốt / tăng tương phản ----
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await ctx.addInitScript(() => {
+    try {
+      sessionStorage.setItem("aegis-intro", "1");
+    } catch {}
+  });
+
+  // Phần Dịch vụ ghim: một cử chỉ = một chương; cử chỉ mới đến khi đang chuyển thì chạy tiếp / đổi hướng từ vị trí đang hiển thị.
+  // Sự kiện cuộn được tạo trong trang với timeStamp giả (khoảng cách giữa các sự kiện chính xác, không phụ thuộc tốc độ máy chạy QA).
+  const chapterAfter = async (plan) => {
+    const page = await ctx.newPage();
+    await page.goto(`${baseUrl}/`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(2000);
+    const top = await page.evaluate(() => Math.round(document.querySelector(".service-stage").getBoundingClientRect().top + scrollY));
+    await page.evaluate((y) => window.scrollTo(0, y + 2), top);
+    await page.waitForTimeout(1500);
+    const result = await page.evaluate(
+      async ({ plan, top }) => {
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const t0 = performance.now();
+        const fire = (d, at) => {
+          const e = new WheelEvent("wheel", { deltaY: d, bubbles: true, cancelable: true });
+          Object.defineProperty(e, "timeStamp", { value: t0 + at });
+          document.dispatchEvent(e);
+        };
+        for (const step of plan) {
+          if (step.wait) await wait(step.wait);
+          else if (step.tail) for (let i = 0; i < step.n; i++) fire(Math.max(2, step.d * Math.pow(0.9, i)), step.at + i * 16);
+          else fire(step.d, step.at);
+        }
+        await wait(2000);
+        const chapter = [...document.querySelectorAll("[data-chapter-index]")].findIndex((e) => e.dataset.active === "true");
+        return { chapter, y: Math.round(scrollY - top) };
+      },
+      { plan, top },
+    );
+    await page.close();
+    return result;
+  };
+  const notch = (d, at) => ({ d, at });
+  const cases = [
+    ["một cử chỉ touchpad (đuôi quán tính 60 sự kiện) = một chương", [{ tail: true, n: 60, d: 60, at: 1000 }], 1],
+    ["cử chỉ thứ hai khi đang chuyển → đi tiếp chương kế", [{ tail: true, n: 20, d: 60, at: 1000 }, { wait: 500 }, { tail: true, n: 20, d: 60, at: 1900 }], 2],
+    ["đổi chiều giữa chừng → quay về chương trước", [notch(100, 1000), { wait: 400 }, notch(-100, 1400)], 0],
+    ["ba nấc chuột cách 350ms → ba chương", [notch(100, 1000), { wait: 350 }, notch(100, 1350), { wait: 350 }, notch(100, 1700)], 3],
+  ];
+  for (const [name, plan, expected] of cases) {
+    const r = await chapterAfter(plan);
+    check(`[ux] dịch vụ: ${name}`, r.chapter === expected, `chương ${r.chapter}, y=${r.y}`);
+  }
+
+  // Phản hồi lúc nhấn chuột (pointer-down): công tắc theme mờ đi ngay, thả ra thì trả về
+  const page = await ctx.newPage();
+  await page.goto(`${baseUrl}/lien-he`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(1200);
+  const toggle = page.locator(".theme-toggle").first();
+  const box = await toggle.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(150);
+  const pressed = await toggle.evaluate((e) => +getComputedStyle(e).opacity);
+  await page.evaluate(() => window.addEventListener("click", (e) => e.stopImmediatePropagation(), true));
+  await page.mouse.up();
+  await page.mouse.move(5, 5);
+  await page.waitForTimeout(600);
+  const released = await toggle.evaluate((e) => +getComputedStyle(e).opacity);
+  check("[ux] công tắc theme: mờ ngay khi nhấn, trả về khi thả", pressed < 0.7 && released === 1, `nhấn=${pressed} thả=${released}`);
+
+  // Giảm độ trong suốt và tăng tương phản (emulate qua CDP)
+  const cdp = await ctx.newCDPSession(page);
+  const tools = () => page.evaluate(() => ({ blur: getComputedStyle(document.querySelector(".header-tools")).backdropFilter, border: getComputedStyle(document.querySelector(".header-tools")).borderTopColor }));
+  const base = await tools();
+  await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-transparency", value: "reduce" }] });
+  await page.waitForTimeout(300);
+  const reduced = await tools();
+  await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-transparency", value: "no-preference" }, { name: "prefers-contrast", value: "more" }] });
+  await page.waitForTimeout(300);
+  const contrast = await tools();
+  check("[a11y] giảm độ trong suốt: kính mờ chuyển sang nền đặc, bỏ blur", base.blur !== "none" && reduced.blur === "none", `${base.blur} → ${reduced.blur}`);
+  check("[a11y] tăng tương phản: viền lớp nổi đậm hơn", contrast.border !== base.border && /^rgb\(/.test(contrast.border), `${base.border} → ${contrast.border}`);
+  await page.close();
+  await ctx.close();
+}
+
 await browser.close();
 await writeFile(`${outDir}/results.json`, JSON.stringify(results, null, 2));
 const failed = results.filter((x) => !x.ok);
