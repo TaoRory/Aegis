@@ -64,8 +64,6 @@ export function AegisMarkPaths({ variant = "glass", idPrefix, small = false, pie
       <g data-whole opacity={pieces ? 0 : 1}>
         {image}
       </g>
-      {/* Viền sáng ngoài (ẩn sẵn, animation vẽ nét rồi mờ đi) */}
-      {pieces && <path data-rim d={MARK_OUTER} fill="none" stroke="var(--palette-soft)" strokeWidth={3} pathLength={1} opacity={0} />}
     </>
   );
 }
