@@ -2,12 +2,13 @@
 
 import { useEffect, useRef } from "react";
 
+import { AegisMark } from "@/components/brand/AegisLogo";
 import { siteConfig } from "@/config/site";
 import { gsap, MQ, useGSAP } from "@/lib/motion";
 
 /**
- * Wordmark khổng lồ tràn đúng chiều ngang khung chứa (fit-text đo bằng ResizeObserver);
- * từng chữ trồi lên khi cuộn tới cuối trang.
+ * Logo khổng lồ (biểu tượng chuyển sắc + chữ AEGIS viết hoa như guideline) tràn đúng chiều ngang khung chứa (fit-text đo bằng
+ * ResizeObserver); biểu tượng và từng chữ trồi lên khi cuộn tới cuối trang.
  */
 export function FooterWordmark() {
   const ref = useRef<HTMLDivElement>(null);
@@ -57,8 +58,13 @@ export function FooterWordmark() {
 
   return (
     <div ref={ref} aria-hidden className="footer-wordmark container-page select-none">
-      <p ref={textRef} className="inline-flex">
-        {siteConfig.name.split("").map((char, index) => (
+      <p ref={textRef} className="inline-flex items-center">
+        <span className="footer-wordmark-char rise-mask inline-block">
+          <span data-char className="inline-block">
+            <AegisMark className="footer-wordmark-mark" />
+          </span>
+        </span>
+        {siteConfig.name.toUpperCase().split("").map((char, index) => (
           <span key={index} className="footer-wordmark-char rise-mask inline-block">
             <span data-char className="inline-block">
               {char}

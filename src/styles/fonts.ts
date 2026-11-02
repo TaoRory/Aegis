@@ -1,14 +1,13 @@
-import { Bricolage_Grotesque, JetBrains_Mono, Newsreader } from "next/font/google";
+import { JetBrains_Mono, Newsreader, Plus_Jakarta_Sans } from "next/font/google";
 
 /**
- * Font TẠM THỜI (chưa phải nhận diện chính thức). Cả ba có subset tiếng Việt.
+ * Font chính theo Brand Guideline: Plus Jakarta Sans (có subset tiếng Việt). Serif nghiêng và mono giữ cho nhấn nhá / nhãn kỹ thuật.
  * Đổi font: thay import ở đây, giữ nguyên tên `variable` để tokens.css tiếp tục hoạt động.
  */
 
-/** Display + body: grotesk có cá tính, trục opsz/wdth */
-export const brandSans = Bricolage_Grotesque({
+/** Display + body: Plus Jakarta Sans (biến thiên trục wght 200–800) */
+export const brandSans = Plus_Jakarta_Sans({
   subsets: ["latin", "vietnamese"],
-  axes: ["opsz", "wdth"],
   variable: "--font-brand-sans",
   display: "swap",
 });

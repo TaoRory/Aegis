@@ -11,7 +11,7 @@ import { useSpace } from "@/components/space/useSpace";
 import { isServiceZone } from "@/config/space";
 
 /**
- * Điểm chạm trong cảnh 3D: kim cương ultramarine kèm dấu "+" bám vào vật thể. Là <Link> thật trong <nav>
+ * Điểm chạm trong cảnh 3D: kim cương teal kèm dấu "+" bám vào vật thể. Là <Link> thật trong <nav>
  * (bàn phím, trình đọc màn hình dùng được); engine chiếu vị trí 3D xuống DOM mỗi khung hình bằng transform.
  * Chỉ hiện khi cảnh đã vào vị trí (staged). Rê chuột lên vật thể 3D làm nhãn hiện lên.
  */

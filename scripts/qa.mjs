@@ -406,7 +406,7 @@ check("[api] hợp lệ → phản hồi trung thực theo cấu hình", [200, 5
   await page.locator(".theme-toggle").first().click();
   await page.waitForTimeout(300);
   const after = await metaColor();
-  check("[a11y] đổi theme cập nhật meta theme-color và color-scheme", before !== after && /#0d0e11/.test(after) && (await page.evaluate(() => document.documentElement.style.colorScheme)) === "dark", `${before} → ${after}`);
+  check("[a11y] đổi theme cập nhật meta theme-color và color-scheme", before !== after && /#071f1e/i.test(after) && (await page.evaluate(() => document.documentElement.style.colorScheme)) === "dark", `${before} → ${after}`);
   await page.locator(".theme-toggle").first().click();
 
   await page.evaluate(() => window.scrollTo(0, 2500));

@@ -1,31 +1,35 @@
 /*
  * DESIGN TOKENS — nguồn duy nhất cho màu, font, cỡ chữ, spacing, bo góc, chuyển động.
- * Theme TẠM THỜI theo art direction "Bản vẽ nền móng" (.claude/skills/aegis-context/references/art-direction.md).
- * Khi có bộ nhận diện chính thức: cập nhật file này và src/styles/fonts.ts.
+ * Màu theo Brand Guideline "Transformative Teal" (Brand-guideline/, 11/2026): Deep Ink Teal #071F1E, Transformative Teal #13B5A5,
+ * Aqua Glow #84E4D6, Cloud Dancer #F5F7F6, Ink #0B0F14. Các sắc dẫn xuất (teal-deep, graphite…) được chỉnh để đạt WCAG AA.
  *
- * Màu đặt theo VAI TRÒ (bg, fg, accent…). Nền mặc định là giấy vẽ (sáng);
- * vùng nền mực dùng data-surface="dark" để gán lại các biến vai trò.
+ * Màu đặt theo VAI TRÒ (bg, fg, accent…). Nền mặc định là nền sáng (Cloud Dancer);
+ * vùng nền đậm dùng data-surface="dark" để gán lại các biến vai trò.
  */
 
 :root {
   /* ---- Palette gốc ---- */
-  --palette-paper: #eceae4;
-  --palette-paper-deep: #e2dfd7;
-  --palette-paper-light: #f5f3ee;
-  --palette-bright: #fbfaf6;
-  --palette-ink: #0d0e11;
-  --palette-ink-raised: #15171c;
-  --palette-ink-surface: #1d2027;
-  --palette-graphite: #55595f;
-  --palette-graphite-light: #a3a6ae;
-  --palette-graphite-mid: #7d818b;
-  /* Chữ phụ trên nền sáng: ≥ 4.5:1 trên cả giấy lẫn nền bright (graphite-mid chỉ đạt trên nền mực) */
-  --palette-graphite-subtle: #62666f;
-  --palette-ultramarine: #3b3fff;
-  --palette-ultramarine-deep: #2a2ed6;
-  --palette-ultramarine-light: #8c8fff;
-  --palette-ultramarine-pale: #b5b7ff;
-  --palette-white: #f7f6f2;
+  /* Nền sáng: Cloud Dancer và các sắc giấy ngả teal rất nhẹ */
+  --palette-paper: #e8eeec;
+  --palette-paper-deep: #dce5e2;
+  --palette-paper-light: #eff3f2;
+  --palette-bright: #f5f7f6; /* Cloud Dancer */
+  /* Nền đậm: Deep Ink Teal (60% theo tỉ lệ guideline) */
+  --palette-ink: #071f1e; /* Deep Ink Teal */
+  --palette-ink-raised: #0d2a28;
+  --palette-ink-surface: #13302e;
+  --palette-ink-neutral: #0b0f14; /* Ink trung tính: nền sân khấu 3D/ảnh */
+  /* Chữ phụ (xám ngả teal): ≥ 4.5:1 trên nền tương ứng */
+  --palette-graphite: #4a5b59;
+  --palette-graphite-light: #a4bab7;
+  --palette-graphite-mid: #86a19e;
+  --palette-graphite-subtle: #5c6d6b;
+  /* Teal: teal-deep cho chữ/nút trên nền sáng (5.3:1 trên Cloud Dancer), teal cho nền đậm (6.7:1 trên Deep Ink Teal) */
+  --palette-teal-deep: #0a7369;
+  --palette-teal-darker: #075e56;
+  --palette-teal: #13b5a5; /* Transformative Teal */
+  --palette-aqua: #84e4d6; /* Aqua Glow */
+  --palette-white: #f5f7f6;
   --palette-danger: #c2362f;
   --palette-danger-light: #ff8a80;
   --palette-success: #1d7a4f;
@@ -45,12 +49,12 @@
   --fg-subtle: var(--palette-graphite-subtle);
   --border: color-mix(in oklab, var(--palette-ink) 13%, transparent);
   --border-strong: color-mix(in oklab, var(--palette-ink) 30%, transparent);
-  --accent: var(--palette-ultramarine);
-  --accent-strong: var(--palette-ultramarine-deep);
-  --accent-soft: color-mix(in oklab, var(--palette-ultramarine) 10%, transparent);
-  --accent-glow: var(--palette-ultramarine);
+  --accent: var(--palette-teal-deep);
+  --accent-strong: var(--palette-teal-darker);
+  --accent-soft: color-mix(in oklab, var(--palette-teal-deep) 10%, transparent);
+  --accent-glow: var(--palette-teal-deep);
   --on-accent: var(--palette-white);
-  --focus-ring: var(--palette-ultramarine);
+  --focus-ring: var(--palette-teal-deep);
   --danger: var(--palette-danger);
   --success: var(--palette-success);
   --warning: var(--palette-warning);
@@ -109,11 +113,11 @@
   --fg-subtle: var(--palette-graphite-mid);
   --border: color-mix(in oklab, var(--palette-paper) 11%, transparent);
   --border-strong: color-mix(in oklab, var(--palette-paper) 24%, transparent);
-  --accent: var(--palette-ultramarine-light);
-  --accent-strong: var(--palette-ultramarine-pale);
-  --accent-soft: color-mix(in oklab, var(--palette-ultramarine-light) 14%, transparent);
+  --accent: var(--palette-teal);
+  --accent-strong: var(--palette-aqua);
+  --accent-soft: color-mix(in oklab, var(--palette-teal) 14%, transparent);
   --on-accent: var(--palette-ink);
-  --focus-ring: var(--palette-ultramarine-light);
+  --focus-ring: var(--palette-teal);
   --danger: var(--palette-danger-light);
   --success: var(--palette-success-light);
   --warning: var(--palette-warning-light);
@@ -139,11 +143,11 @@ html[data-theme="light"]:not([data-space]) [data-surface="dark"] {
   --fg-subtle: var(--palette-graphite-subtle);
   --border: color-mix(in oklab, var(--palette-ink) 13%, transparent);
   --border-strong: color-mix(in oklab, var(--palette-ink) 30%, transparent);
-  --accent: var(--palette-ultramarine);
-  --accent-strong: var(--palette-ultramarine-deep);
-  --accent-soft: color-mix(in oklab, var(--palette-ultramarine) 10%, transparent);
+  --accent: var(--palette-teal-deep);
+  --accent-strong: var(--palette-teal-darker);
+  --accent-soft: color-mix(in oklab, var(--palette-teal-deep) 10%, transparent);
   --on-accent: var(--palette-white);
-  --focus-ring: var(--palette-ultramarine);
+  --focus-ring: var(--palette-teal-deep);
   --danger: var(--palette-danger);
   --success: var(--palette-success);
   --warning: var(--palette-warning);
@@ -152,18 +156,18 @@ html[data-theme="light"]:not([data-space]) [data-surface="dark"] {
 
 /* ---- Vai trò màu: vùng nền accent (màn kết kiểu "tấm bản vẽ xanh") ---- */
 [data-surface="accent"] {
-  --bg: var(--palette-ultramarine);
-  --bg-elevated: var(--palette-ultramarine-deep);
-  --surface: var(--palette-ultramarine-deep);
+  --bg: var(--palette-teal-deep);
+  --bg-elevated: var(--palette-teal-darker);
+  --surface: var(--palette-teal-darker);
   --fg: var(--palette-white);
-  --fg-muted: color-mix(in oklab, var(--palette-white) 92%, var(--palette-ultramarine));
-  --fg-subtle: color-mix(in oklab, var(--palette-white) 85%, var(--palette-ultramarine));
+  --fg-muted: color-mix(in oklab, var(--palette-white) 92%, var(--palette-teal-deep));
+  --fg-subtle: color-mix(in oklab, var(--palette-white) 85%, var(--palette-teal-deep));
   --border: color-mix(in oklab, var(--palette-white) 22%, transparent);
   --border-strong: color-mix(in oklab, var(--palette-white) 45%, transparent);
   --accent: var(--palette-white);
   --accent-strong: var(--palette-white);
   --accent-soft: color-mix(in oklab, var(--palette-white) 14%, transparent);
-  --on-accent: var(--palette-ultramarine-deep);
+  --on-accent: var(--palette-teal-darker);
   --focus-ring: var(--palette-white);
   color-scheme: dark;
 }

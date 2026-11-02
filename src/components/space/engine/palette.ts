@@ -23,14 +23,14 @@ function read(name: string, fallback: string) {
 
 export function readPalette(): Palette {
   return {
-    ink: read("--palette-ink", "#0d0e11"),
-    inkRaised: read("--palette-ink-raised", "#15171c"),
-    inkSurface: read("--palette-ink-surface", "#1d2027"),
-    accent: read("--palette-ultramarine", "#3b3fff"),
-    accentLight: read("--palette-ultramarine-light", "#8c8fff"),
-    accentPale: read("--palette-ultramarine-pale", "#b5b7ff"),
-    paper: read("--palette-paper", "#eceae4"),
-    graphite: read("--palette-graphite-light", "#a3a6ae"),
+    ink: read("--palette-ink", "#071f1e"),
+    inkRaised: read("--palette-ink-raised", "#0d2a28"),
+    inkSurface: read("--palette-ink-surface", "#13302e"),
+    accent: read("--palette-teal-deep", "#0a7369"),
+    accentLight: read("--palette-teal", "#13b5a5"),
+    accentPale: read("--palette-aqua", "#84e4d6"),
+    paper: read("--palette-paper", "#e8eeec"),
+    graphite: read("--palette-graphite-light", "#a4bab7"),
     danger: read("--palette-danger-light", "#ff8a80"),
   };
 }

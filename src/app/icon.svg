@@ -1,5 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Favicon TẠM THỜI (chữ A), thay khi có logo chính thức -->
-  <rect width="32" height="32" rx="8" fill="#060a14"/>
-  <path fill="#9db1ff" fill-rule="evenodd" d="M14.1 7h3.8l7.6 18h-3.9l-1.6-4h-8l-1.6 4H6.5zm1.9 4.4L13.2 18h5.6z"/>
+  <!-- Favicon theo Brand Guideline (biểu tượng lục giác teal trên Deep Ink Teal). Bản vẽ lại gần đúng, thay khi có SVG gốc. -->
+  <defs>
+    <linearGradient id="g" x1="19.8" y1="-34.29" x2="14.72" y2="-2.86" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#84E4D6"/>
+      <stop offset="0.5" stop-color="#13B5A5"/>
+      <stop offset="1" stop-color="#075E56"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="#071F1E"/>
+  <g transform="translate(16 16) scale(0.29)">
+    <g id="b"><path d="M0.93 -42.5L36.75 -21.82Q23.11 -13.12 14.9 0.83L9.61 -12.25Q8.9 -28.41 0.93 -42.5Z" fill="url(#g)" stroke="url(#g)" stroke-width="2.4" stroke-linejoin="round"/></g>
+    <use href="#b" transform="rotate(60)"/>
+    <use href="#b" transform="rotate(120)"/>
+    <use href="#b" transform="rotate(180)"/>
+    <use href="#b" transform="rotate(240)"/>
+    <use href="#b" transform="rotate(300)"/>
+  </g>
 </svg>

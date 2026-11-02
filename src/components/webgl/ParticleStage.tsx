@@ -68,7 +68,7 @@ export function ParticleStage() {
         engine.setLight(light);
         engine.setColors(
           light ? tokenColor("--palette-ink", [0.05, 0.05, 0.07]) : tokenColor("--palette-paper", [0.92, 0.91, 0.89]),
-          light ? tokenColor("--palette-ultramarine", [0.23, 0.25, 1]) : tokenColor("--palette-ultramarine-light", [0.55, 0.56, 1]),
+          light ? tokenColor("--palette-teal-deep", [0.23, 0.25, 1]) : tokenColor("--palette-teal", [0.55, 0.56, 1]),
         );
       };
       paintTheme();

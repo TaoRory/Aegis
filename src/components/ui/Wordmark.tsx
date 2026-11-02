@@ -1,14 +1,10 @@
-import { siteConfig } from "@/config/site";
+import { AegisLogo } from "@/components/brand/AegisLogo";
 import { cn } from "@/lib/cn";
 
 /**
- * Wordmark chữ TẠM THỜI. Khi có logo chính thức, thay phần nội dung component này
- * (ví dụ bằng <Image src="/brand/logo.svg" … />). Mọi nơi dùng Wordmark tự cập nhật.
+ * Logo trên header: bản MỘT MÀU (header dùng mix-blend-difference để luôn tương phản trên mọi nền, nên bản chuyển sắc teal
+ * sẽ bị đảo màu). Mọi nơi dùng Wordmark tự cập nhật khi đổi logo trong components/brand/AegisLogo.tsx.
  */
 export function Wordmark({ className }: { className?: string }) {
-  return (
-    <span className={cn("font-sans text-[1.5rem] font-semibold tracking-[-0.045em]", className)}>
-      {siteConfig.name}
-    </span>
-  );
+  return <AegisLogo variant="mono" className={cn("aegis-logo-header", className)} />;
 }

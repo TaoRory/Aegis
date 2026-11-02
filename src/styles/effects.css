@@ -421,7 +421,7 @@
   /* ---------- Màn chuyển trang "vẽ bản vẽ" (RouteCover.tsx): luôn nền mực, chữ giấy, vạch dẫn xanh ---------- */
   .route-cover {
     --rc-line: color-mix(in oklab, var(--palette-paper) 9%, transparent);
-    --rc-accent: var(--palette-ultramarine-light);
+    --rc-accent: var(--palette-teal);
     position: fixed;
     inset: 0 0 auto;
     z-index: 95;
@@ -1176,12 +1176,46 @@
 
   .footer-wordmark p {
     font-size: 30vw;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 0.82;
-    letter-spacing: -0.045em;
+    /* Chữ AEGIS giãn rộng như wordmark trong guideline */
+    letter-spacing: 0.04em;
     white-space: nowrap;
-    /* Bù khoảng âm của ký tự cuối do letter-spacing để chữ chạm đúng mép phải */
-    margin-right: -0.045em;
+    /* Bù khoảng giãn của ký tự cuối để chữ chạm đúng mép phải */
+    margin-right: -0.04em;
+  }
+
+  .footer-wordmark-mark {
+    display: block;
+    width: 0.78em;
+    height: 0.78em;
+    margin-right: 0.12em;
+  }
+
+  /* ---------- Logo (components/brand/AegisLogo.tsx) ---------- */
+  .aegis-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    line-height: 1;
+  }
+
+  .aegis-logo .aegis-mark {
+    flex: none;
+    width: 1.75em;
+    height: 1.75em;
+  }
+
+  .aegis-logo-word {
+    font-family: var(--font-family-sans);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    /* bù khoảng giãn sau chữ cuối để khối logo cân giữa */
+    margin-right: -0.2em;
+  }
+
+  .aegis-logo-header {
+    font-size: 1.05rem;
   }
 
   /* Mask chữ trồi lên: chỉ cắt cạnh dưới, không xén mép glyph khi tracking âm */
@@ -1238,7 +1272,7 @@
     width: 104px;
     height: 104px;
     border-radius: 999px;
-    background: var(--palette-ultramarine);
+    background: var(--palette-teal-deep);
   }
 
   .cursor-label {
@@ -1825,7 +1859,7 @@
     height: var(--g-h);
     min-height: 36rem;
     overflow: hidden;
-    background: radial-gradient(ellipse 70% 45% at 50% 92%, color-mix(in oklab, var(--palette-ultramarine) 26%, transparent), transparent 70%), #07080c;
+    background: radial-gradient(ellipse 70% 45% at 50% 92%, color-mix(in oklab, var(--palette-teal-deep) 26%, transparent), transparent 70%), var(--palette-ink-neutral);
     color: var(--palette-paper);
     outline: none;
     touch-action: pan-y;
@@ -1881,7 +1915,7 @@
     display: block;
     aspect-ratio: 0.74;
     overflow: hidden;
-    border: 1px solid color-mix(in oklab, var(--palette-ultramarine-light) 55%, transparent);
+    border: 1px solid color-mix(in oklab, var(--palette-teal) 55%, transparent);
     border-radius: 0.9rem;
     background: var(--stage);
   }
@@ -1947,7 +1981,7 @@
   }
 
   .gallery[data-mode="css"] .gallery-card-frame {
-    box-shadow: 0 0 2.5rem -0.5rem color-mix(in oklab, var(--palette-ultramarine-light) 55%, transparent);
+    box-shadow: 0 0 2.5rem -0.5rem color-mix(in oklab, var(--palette-teal) 55%, transparent);
   }
 
   .gallery[data-mode="css"] .gallery-card-img {
@@ -2018,7 +2052,7 @@
     padding-inline: 1rem;
     border: 1px solid color-mix(in oklab, var(--palette-paper) 28%, transparent);
     border-radius: 999px;
-    background: color-mix(in oklab, #07080c 70%, transparent);
+    background: color-mix(in oklab, var(--palette-ink-neutral) 70%, transparent);
     color: color-mix(in oklab, var(--palette-paper) 75%, transparent);
     backdrop-filter: blur(8px);
     transition:
@@ -2033,8 +2067,8 @@
   }
 
   .gallery-chip[aria-pressed="true"] {
-    border-color: var(--palette-ultramarine-light);
-    background: color-mix(in oklab, var(--palette-ultramarine) 40%, #07080c);
+    border-color: var(--palette-teal);
+    background: color-mix(in oklab, var(--palette-teal-deep) 40%, var(--palette-ink-neutral));
     color: var(--palette-paper);
   }
 
@@ -2160,7 +2194,7 @@
     width: 3px;
     height: 1.5rem;
     margin-left: -1px;
-    background: var(--palette-ultramarine-light);
+    background: var(--palette-teal);
   }
 
   .gallery-tick[data-off]::before {
@@ -2175,7 +2209,7 @@
     border-radius: 0.9rem;
     background-size: cover;
     background-position: top center;
-    box-shadow: 0 0 3rem -0.5rem color-mix(in oklab, var(--palette-ultramarine-light) 60%, transparent);
+    box-shadow: 0 0 3rem -0.5rem color-mix(in oklab, var(--palette-teal) 60%, transparent);
   }
 
   @media (max-width: 63.99rem) {
