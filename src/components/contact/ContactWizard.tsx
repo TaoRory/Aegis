@@ -106,6 +106,7 @@ function branchOf(flow: Flow, question: ChoiceQuestion) {
  * rỗng vì không dùng mã tờ bản vẽ.
  * `lang`: ngôn ngữ chữ giao diện và câu hỏi (dữ liệu gửi đi luôn theo id/giá trị, không phụ thuộc ngôn ngữ).
  * `presetService`: chọn sẵn một dịch vụ (trang dịch vụ nhúng form), bỏ qua câu 1; thiếu thì đọc ?dv= trên địa chỉ.
+ * `presetMessage`: điền sẵn ô mô tả (Studio /demo ghi gói khách vừa bấm "Nhận báo giá"); khách vẫn sửa được.
  */
 export function ContactWizard({
   isConfigured,
@@ -113,12 +114,14 @@ export function ContactWizard({
   sheetCode = "BV-04",
   lang = "vi",
   presetService,
+  presetMessage,
 }: {
   isConfigured: boolean;
   scrollMode?: "window" | "element";
   sheetCode?: string;
   lang?: Locale;
   presetService?: string;
+  presetMessage?: string;
 }) {
   const flow = useMemo(() => getFlow(lang), [lang]);
   const t = wizardCopy[lang];
@@ -160,6 +163,10 @@ export function ContactWizard({
         next = { draft: { ...next.draft, service: preset }, index: 1 };
       }
       if (next.draft.service && validateService(next.draft.service)) next = { draft: emptyDraft, index: 0 };
+      if (presetMessage && !next.draft.message.includes(presetMessage)) {
+        const message = next.draft.message ? [presetMessage, next.draft.message].join("\n") : presetMessage;
+        next = { ...next, draft: { ...next.draft, message } };
+      }
       setDraft(next.draft);
       setIndex(Math.min(next.index, stepsForFlow(flow, next.draft.service).length - 1));
       setRestored(true);

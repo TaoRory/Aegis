@@ -1,0 +1,845 @@
+/*
+ * Studio Aegis (/demo). Chỉ nạp ở layout (showroom)/demo. Mọi rule nằm dưới .showroom để không rò sang trang khác.
+ * Theme sáng cố định theo brand (Cloud Dancer, Soft Aqua, Transformative Teal, Deep Ink Teal), không theo công tắc sáng/tối.
+ */
+
+.showroom {
+  --sr-bg: var(--palette-bright);
+  --sr-glass: color-mix(in oklab, var(--palette-bright) 86%, transparent);
+  --sr-line: color-mix(in oklab, var(--palette-ink) 12%, transparent);
+  --sr-shadow: 0 24px 60px -24px color-mix(in oklab, var(--palette-ink) 35%, transparent);
+  position: relative;
+  min-height: 100svh;
+  background: var(--sr-bg);
+  color: var(--fg);
+}
+
+.showroom[data-mode="3d"] {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.showroom-stage {
+  position: absolute;
+  inset: 0;
+}
+
+.showroom-stage .showroom-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.showroom-stage .showroom-canvas:active {
+  cursor: grabbing;
+}
+
+/* ---------- Kim cương ---------- */
+.showroom-hotspots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.showroom-hotspot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -1.375rem 0 0 -1.375rem;
+  pointer-events: auto;
+  will-change: transform;
+}
+
+.showroom-hotspot[data-hidden="true"] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.showroom-diamond {
+  width: 1rem;
+  height: 1rem;
+  rotate: 45deg;
+  border-radius: 2px;
+  background: var(--palette-teal);
+  box-shadow:
+    0 0 0 4px color-mix(in oklab, var(--palette-teal) 22%, transparent),
+    0 0 18px color-mix(in oklab, var(--palette-aqua) 70%, transparent);
+}
+
+.showroom-hotspot-label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.25rem);
+  translate: -50% 0;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--sr-line);
+  border-radius: 999px;
+  background: var(--sr-glass);
+  backdrop-filter: blur(10px);
+  color: var(--palette-ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  translate: -50% 0.3rem;
+  pointer-events: none;
+}
+
+.showroom-hotspot:is(:hover, :focus-visible, [data-hover]) .showroom-hotspot-label {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .showroom-diamond {
+    animation: sr-pulse 2.4s ease-in-out infinite;
+  }
+
+  .showroom-hotspot-label {
+    transition:
+      opacity 0.25s var(--motion-ease-out),
+      translate 0.35s var(--motion-ease-out);
+  }
+}
+
+@keyframes sr-pulse {
+  50% {
+    scale: 1.18;
+  }
+}
+
+/* ---------- Khung bao: thương hiệu, thanh điều hướng, menu, gợi ý ---------- */
+.showroom-brand {
+  position: absolute;
+  left: clamp(1rem, 2.5vw, 2rem);
+  bottom: clamp(1rem, 2.5vw, 1.75rem);
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--palette-ink);
+}
+
+.showroom-brand-mark {
+  width: auto;
+  height: 2.6rem;
+}
+
+.showroom-brand strong {
+  display: block;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+.showroom-brand .label {
+  color: var(--palette-teal-deep);
+}
+
+.showroom-nav {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1rem, 2.5vw, 1.5rem);
+  translate: -50% 0;
+  display: flex;
+  gap: 0.15rem;
+  padding: 0.35rem;
+  border: 1px solid var(--sr-line);
+  border-radius: 999px;
+  background: var(--sr-glass);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--sr-shadow);
+}
+
+.showroom-nav button {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  color: var(--palette-ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.showroom-nav button .label {
+  color: var(--palette-teal-deep);
+}
+
+.showroom-nav button:hover {
+  background: color-mix(in oklab, var(--palette-soft) 70%, transparent);
+}
+
+.showroom-nav button[aria-current] {
+  background: var(--palette-ink);
+  color: var(--palette-bright);
+}
+
+.showroom-nav button[aria-current] .label {
+  color: var(--palette-aqua);
+}
+
+.showroom-top {
+  position: absolute;
+  top: clamp(1rem, 2.5vw, 1.5rem);
+  right: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.showroom-menu-btn {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--sr-line);
+  border-radius: 0.9rem;
+  background: var(--sr-glass);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--sr-shadow);
+}
+
+.showroom-menu-mark {
+  width: auto;
+  height: 1.8rem;
+}
+
+.showroom-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  display: grid;
+  gap: 0.25rem;
+  min-width: 13rem;
+  padding: 0.5rem;
+  border: 1px solid var(--sr-line);
+  border-radius: 1rem;
+  background: var(--palette-bright);
+  box-shadow: var(--sr-shadow);
+}
+
+.showroom-menu :is(a, button) {
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.6rem;
+  text-align: left;
+  font-weight: 600;
+}
+
+.showroom-menu :is(a, button):hover {
+  background: color-mix(in oklab, var(--palette-soft) 70%, transparent);
+}
+
+.showroom-menu .label {
+  padding: 0.4rem 0.8rem 0.2rem;
+  color: var(--fg-muted);
+}
+
+.showroom-hint {
+  position: absolute;
+  left: 50%;
+  top: clamp(1rem, 2.5vw, 1.6rem);
+  translate: -50% 0;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  background: var(--sr-glass);
+  color: var(--palette-ink);
+  pointer-events: none;
+}
+
+/* ---------- Khung nội dung ---------- */
+.showroom-panel {
+  position: absolute;
+  top: clamp(1rem, 2.5vw, 1.5rem);
+  right: clamp(1rem, 2.5vw, 1.5rem);
+  bottom: clamp(5.25rem, 8vw, 6rem);
+  display: flex;
+  flex-direction: column;
+  width: min(44vw, 40rem);
+  overflow: hidden;
+  border: 1px solid var(--sr-line);
+  border-radius: 1.25rem;
+  background: var(--palette-bright);
+  box-shadow: var(--sr-shadow);
+}
+
+.showroom-panel-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem 0.7rem 1rem;
+  border-bottom: 1px solid var(--sr-line);
+  background: color-mix(in oklab, var(--palette-soft) 45%, var(--palette-bright));
+}
+
+.showroom-panel-bar .label {
+  flex: 1;
+  color: var(--palette-ink);
+  outline: none;
+}
+
+.showroom-dots {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.showroom-dots i {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  background: var(--palette-teal);
+}
+
+.showroom-dots i:nth-child(2) {
+  background: var(--palette-aqua);
+}
+
+.showroom-dots i:nth-child(3) {
+  background: var(--palette-grey);
+}
+
+.showroom-close {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.6rem;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--palette-ink);
+}
+
+.showroom-close:hover {
+  background: color-mix(in oklab, var(--palette-ink) 8%, transparent);
+}
+
+.showroom-panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .showroom-panel {
+    animation: sr-panel-in 0.6s var(--motion-ease-out) both;
+  }
+}
+
+@keyframes sr-panel-in {
+  from {
+    opacity: 0;
+    translate: 2rem 0;
+  }
+}
+
+/* ---------- Màn khởi động ---------- */
+.showroom-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  place-content: center;
+  justify-items: center;
+  gap: 1.1rem;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 42%, color-mix(in oklab, var(--palette-soft) 70%, transparent), transparent 70%),
+    var(--palette-bright);
+  color: var(--palette-ink);
+  text-align: center;
+}
+
+html[data-js] .showroom-boot {
+  display: grid;
+}
+
+.showroom-boot-mark {
+  width: auto;
+  height: clamp(6rem, 18vmin, 9rem);
+}
+
+.showroom-boot-bar {
+  display: block;
+  width: min(16rem, 60vw);
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--palette-ink) 10%, transparent);
+}
+
+.showroom-boot-bar span {
+  display: block;
+  height: 100%;
+  background: var(--palette-teal);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.showroom-enter[disabled] {
+  opacity: 0.35;
+  cursor: progress;
+}
+
+.showroom-boot-skip {
+  color: var(--fg-muted);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+/* Trước khi chọn chế độ: giấu bản phẳng sau màn khởi động (chỉ khi có JS) */
+html[data-js] .showroom[data-mode="pending"] .showroom-flat {
+  visibility: hidden;
+}
+
+/* ---------- Nội dung (dùng chung khung 3D và bản phẳng) ---------- */
+.sr-body {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.sr-head {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.sr-title {
+  font-size: clamp(1.7rem, 1.3rem + 1.4vw, 2.5rem);
+  font-weight: 650;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.sr-lead {
+  color: var(--fg-muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.sr-subtitle {
+  margin-top: 1.4rem;
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.sr-muted {
+  color: var(--fg-muted);
+  line-height: 1.6;
+}
+
+.sr-estate {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.sr-estate-item {
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  background: color-mix(in oklab, var(--palette-soft) 45%, var(--palette-bright));
+}
+
+.sr-estate-item dt {
+  font-weight: 650;
+  color: var(--palette-teal-deep);
+}
+
+.sr-estate-item dd {
+  margin-top: 0.2rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--fg-muted);
+}
+
+.sr-packages {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.sr-package {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.15rem;
+  border: 1px solid var(--sr-line);
+  border-radius: 1rem;
+  background: var(--palette-bright);
+}
+
+.sr-package[data-pkg="grow"] {
+  border-color: color-mix(in oklab, var(--palette-teal) 55%, transparent);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--palette-soft) 55%, var(--palette-bright)), var(--palette-bright) 60%);
+}
+
+.sr-package-name {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.sr-package-tag {
+  font-weight: 600;
+  color: var(--palette-ink);
+}
+
+.sr-fit {
+  margin-top: auto;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--sr-line);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--fg-muted);
+}
+
+.sr-fit .label {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: var(--palette-teal-deep);
+}
+
+.sr-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.sr-list li {
+  position: relative;
+  padding-left: 1.1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.sr-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.45rem;
+  height: 0.45rem;
+  rotate: 45deg;
+  border-radius: 1px;
+  background: var(--palette-teal);
+}
+
+.sr-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.9rem;
+  padding: 0 1.2rem;
+  border-radius: 999px;
+  background: var(--palette-teal);
+  color: var(--palette-ink);
+  font-weight: 650;
+  justify-self: start;
+}
+
+.sr-cta:hover {
+  background: var(--palette-aqua);
+}
+
+.sr-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--sr-line);
+  border-radius: 1rem;
+}
+
+.sr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.sr-table :is(th, td) {
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--sr-line);
+  text-align: left;
+}
+
+.sr-table thead th {
+  background: color-mix(in oklab, var(--palette-soft) 45%, var(--palette-bright));
+  font-weight: 650;
+}
+
+.sr-table td {
+  width: 7.5rem;
+  text-align: center;
+  color: var(--fg-muted);
+}
+
+.sr-table td[data-yes="true"] {
+  color: var(--palette-teal-deep);
+  font-weight: 700;
+}
+
+.sr-table tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.sr-steps,
+.sr-values {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.sr-steps li,
+.sr-values li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border-left: 2px solid var(--palette-teal);
+  background: color-mix(in oklab, var(--palette-soft) 30%, var(--palette-bright));
+  border-radius: 0 0.75rem 0.75rem 0;
+}
+
+.sr-steps li span:last-child,
+.sr-values li span:last-child {
+  color: var(--fg-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.sr-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.sr-note {
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  background: var(--palette-ink);
+  color: var(--palette-bright);
+  line-height: 1.6;
+}
+
+.sr-note .label {
+  color: var(--palette-aqua);
+  margin-bottom: 0.35rem;
+}
+
+.sr-projects {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.sr-project a {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--sr-line);
+  border-radius: 1rem;
+  background: var(--palette-bright);
+  transition: border-color 0.2s ease;
+}
+
+.sr-project a:hover {
+  border-color: var(--palette-teal);
+}
+
+.sr-project-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.sr-project-meta {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem 0.9rem 0.9rem;
+}
+
+.sr-project-meta .label {
+  color: var(--palette-teal-deep);
+}
+
+.sr-project-tags {
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+}
+
+.sr-project-open {
+  margin-top: 0.2rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+/* ---------- Bản phẳng ---------- */
+.showroom-flat {
+  width: min(100% - 2rem, 60rem);
+  margin-inline: auto;
+  padding-block: clamp(2rem, 6vw, 4rem) 5rem;
+}
+
+.sr-flat-title {
+  position: absolute;
+  top: clamp(2rem, 6vw, 4rem);
+  left: 50%;
+  translate: -50% 0;
+  width: min(100% - 2rem, 60rem);
+  margin-top: 7.5rem;
+  font-size: clamp(2.2rem, 1.6rem + 3vw, 3.6rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.sr-flat-hero {
+  display: grid;
+  gap: 1rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--sr-line);
+}
+
+.sr-flat-hero .sr-lead {
+  margin-top: 4.5rem;
+  max-width: 40rem;
+}
+
+.sr-flat-mark {
+  width: auto;
+  height: 6rem;
+}
+
+.sr-flat-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.sr-flat-nav a {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--sr-line);
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.sr-flat-nav a .label {
+  color: var(--palette-teal-deep);
+}
+
+.sr-flat-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  font-weight: 600;
+  color: var(--palette-teal-deep);
+}
+
+.sr-flat-notice {
+  margin-bottom: 1.5rem;
+}
+
+.sr-flat-section {
+  padding-block: 3rem;
+  border-bottom: 1px solid var(--sr-line);
+  scroll-margin-top: 1rem;
+}
+
+/* ---------- Điện thoại ---------- */
+@media (max-width: 63.99rem) {
+  .showroom-nav {
+    left: 0.75rem;
+    right: 0.75rem;
+    translate: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+    justify-content: flex-start;
+  }
+
+  .showroom-nav button {
+    padding: 0.55rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .showroom-brand {
+    bottom: auto;
+    top: 1rem;
+    left: 1rem;
+  }
+
+  .showroom-brand-mark {
+    height: 2.1rem;
+  }
+
+  .showroom-hint {
+    top: auto;
+    bottom: 5.5rem;
+    white-space: nowrap;
+    font-size: 0.68rem;
+  }
+
+  .showroom-panel {
+    top: auto;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: 4.9rem;
+    width: auto;
+    height: min(62svh, 34rem);
+    border-radius: 1.25rem;
+  }
+
+  .sr-estate,
+  .sr-packages,
+  .sr-two,
+  .sr-projects {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .showroom-panel {
+      animation-name: sr-sheet-in;
+    }
+  }
+}
+
+@keyframes sr-sheet-in {
+  from {
+    opacity: 0;
+    translate: 0 2rem;
+  }
+}
+
+/* Bản phẳng trên trang khung 3D: màn hình hẹp và rộng như trang thường */
+.showroom[data-mode="flat"] .sr-title {
+  font-size: clamp(1.8rem, 1.3rem + 2vw, 2.8rem);
+}
+
+/* ---------- Form liên hệ bên trong khung nội dung: một cột, chữ vừa khung ---------- */
+.showroom-panel [data-js] .wizard-grid,
+html[data-js] .showroom-panel .wizard-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+html[data-js] .showroom-panel .wizard-sheet {
+  display: none;
+}
+
+.showroom-panel .wizard-title,
+.showroom-flat .wizard-title {
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2.1rem);
+  max-width: none;
+}
+
+.showroom-panel .wizard-service-face {
+  padding-block: 1rem;
+}
+
+/* Dòng mô tả thương hiệu chỉ hiện khi đủ chỗ (không đè thanh điều hướng) */
+@media (max-width: 95.99rem) {
+  .showroom-brand .label {
+    display: none;
+  }
+}
+
+.showroom-panel .wizard-service-title,
+.showroom-flat .wizard-service-title {
+  font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
+}
