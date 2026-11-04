@@ -94,6 +94,37 @@
   color: var(--palette-teal-deep);
 }
 
+/* Khu nằm ngoài tầm mắt: nhãn có mũi tên dán ở mép màn hình, chỉ hướng cần xoay; bấm để bay tới */
+.showroom-hotspot[data-edge] .showroom-diamond {
+  display: none;
+}
+
+.showroom-hotspot[data-edge] .showroom-hotspot-label {
+  bottom: auto;
+  top: 50%;
+  translate: 0 -50%;
+  box-shadow: var(--sr-shadow);
+}
+
+.showroom-hotspot[data-edge="left"] .showroom-hotspot-label {
+  left: 0;
+}
+
+.showroom-hotspot[data-edge="right"] .showroom-hotspot-label {
+  left: auto;
+  right: 0;
+}
+
+.showroom-hotspot[data-edge="left"] .showroom-hotspot-label::before {
+  content: "← ";
+  color: var(--palette-teal-deep);
+}
+
+.showroom-hotspot[data-edge="right"] .showroom-hotspot-label::after {
+  content: " →";
+  color: var(--palette-teal-deep);
+}
+
 .showroom-hotspot:is(:hover, :focus-visible, [data-hover]) .showroom-hotspot-label {
   background: var(--palette-ink);
   border-color: var(--palette-ink);

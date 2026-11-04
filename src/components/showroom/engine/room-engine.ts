@@ -30,7 +30,9 @@ import { gsap } from "@/lib/motion";
 
 /**
  * Engine của Studio Aegis (/demo): cảnh Three.js nhỏ, không hậu kỳ.
- *  - Toàn cảnh: kéo để nhìn quanh mô hình (OrbitControls giới hạn góc).
+ *  - Toàn cảnh: người xem ĐỨNG GIỮA PHÒNG, kéo để xoay quanh nhìn 360° (OrbitControls quay quanh chính vị trí camera: đích nhìn
+ *    đặt sát camera, tốc độ xoay âm cho cảm giác "quay đầu"); lăn chuột chỉnh góc nhìn (fov). Khu nằm ngoài tầm mắt hiện
+ *    mũi tên ở mép màn hình chỉ hướng cần xoay.
  *  - Bấm màn hình / đồ vật / kim cương: camera bay thẳng trước MÀN HÌNH của khu đó, khoảng cách tính để màn hình phủ vùng
  *    nhìn (chừa thanh điều hướng). Tới nơi engine chiếu 4 góc màn hình ra toạ độ trang và ghi vào biến CSS của lớp HTML
  *    (--sx --sy --sw --sh), lớp HTML nằm khít "trong" màn hình. Đang xem một khu thì khoá xoay để lớp HTML luôn khớp.
@@ -44,8 +46,18 @@ interface Rig {
   fov: number;
 }
 
-const OVERVIEW: Rig = { pos: [6.0, 5.0, 5.6], target: [0.05, 0.6, -0.45], fov: 41 };
-const OVERVIEW_PHONE: Rig = { pos: [10.6, 10.4, 10.6], target: [0.15, 0.5, -0.35], fov: 50 };
+/** Khoảng cách đích nhìn sát camera: OrbitControls xoay camera quanh điểm này nên gần như xoay tại chỗ */
+const LOOK_EPS = 0.01;
+/** Rig đứng tại chỗ nhìn theo hướng (yaw 0 = nhìn về vách sau −z, dương = sang phải; pitch dương = ngước lên) */
+function lookRig(pos: Vec3, yawDeg: number, pitchDeg: number, fov: number): Rig {
+  const yaw = MathUtils.degToRad(yawDeg);
+  const pitch = MathUtils.degToRad(pitchDeg);
+  const d: Vec3 = [Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)];
+  return { pos, target: [pos[0] + d[0] * LOOK_EPS, pos[1] + d[1] * LOOK_EPS, pos[2] + d[2] * LOOK_EPS], fov };
+}
+const OVERVIEW: Rig = lookRig([0, 1.55, 0.8], 0, -4, 64);
+const OVERVIEW_PHONE: Rig = lookRig([0, 1.55, 1.3], 0, -4, 74);
+const FOV_RANGE: [number, number] = [46, 80];
 const SCREEN_FOV = 30;
 
 export interface RoomEngineOptions {
@@ -85,6 +97,8 @@ export class RoomEngine {
   private paused = false;
   private focusId: SectionId | null = null;
   private arrived = false;
+  /** góc nhìn toàn cảnh trước khi mở một màn hình (đóng lại thì quay về đúng chỗ đang nhìn) */
+  private savedLook: Rig | null = null;
   private flight: gsap.core.Timeline | null = null;
   private textures: Texture[] = [];
   private coverImages: HTMLCanvasElement[] = [];
@@ -118,17 +132,21 @@ export class RoomEngine {
     const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     pmrem.dispose();
     this.scene.environment = env;
-    this.scene.environmentIntensity = 0.5;
-    this.scene.add(new HemisphereLight(this.palette.bright, this.palette.grey, 0.85));
+    this.scene.environmentIntensity = 0.55;
+    // trong phòng kín: đất của bán cầu sáng gần bằng trời để vách và trần không xám; thêm đèn bù phía đối diện nắng
+    this.scene.add(new HemisphereLight(this.palette.bright, this.palette.bright.clone().lerp(this.palette.grey, 0.3), 1.2));
+    const fill = new DirectionalLight(this.palette.bright, 1.1);
+    fill.position.set(-3.5, 4, 2.5);
+    this.scene.add(fill);
     const sun = new DirectionalLight(this.palette.bright, 2.9);
-    sun.position.set(4.2, 8, 5.2);
-    sun.target.position.set(-0.6, 0, -1.2);
+    sun.position.set(2.5, 8, 4.5);
+    sun.target.position.set(0, 0, -0.3);
     sun.castShadow = !opts.phone;
     sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.camera.left = -6.5;
-    sun.shadow.camera.right = 6.5;
-    sun.shadow.camera.top = 6.5;
-    sun.shadow.camera.bottom = -6.5;
+    sun.shadow.camera.left = -5;
+    sun.shadow.camera.right = 5;
+    sun.shadow.camera.top = 5;
+    sun.shadow.camera.bottom = -5;
     sun.shadow.bias = -0.0004;
     sun.shadow.normalBias = 0.015;
     sun.shadow.radius = 4;
@@ -148,8 +166,8 @@ export class RoomEngine {
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
     this.controls.enablePan = false;
-    this.controls.rotateSpeed = 0.55;
-    this.controls.zoomSpeed = 0.6;
+    this.controls.rotateSpeed = -0.4; // âm: kéo sang phải thì cảnh trượt sang phải như khi quay đầu sang trái
+    this.controls.enableZoom = false;
     this.applyOverviewLimits();
     this.controls.update();
 
@@ -161,6 +179,7 @@ export class RoomEngine {
     el.addEventListener("pointerdown", this.onPointerDown);
     el.addEventListener("pointerup", this.onPointerUp);
     el.addEventListener("pointerleave", this.onPointerLeave);
+    el.addEventListener("wheel", this.onWheel, { passive: false });
 
     void this.loadAssets();
     this.raf = requestAnimationFrame(this.tick);
@@ -271,16 +290,35 @@ export class RoomEngine {
   }
 
   private projectOverlays() {
+    const w = this.host.clientWidth;
+    const h = this.host.clientHeight;
+    const edgeCount = { left: 0, right: 0 };
     for (const [id, el] of this.hotspots) {
-      const pt = this.project(...ANCHORS[id]);
-      el.style.transform = `translate3d(${pt.x.toFixed(1)}px, ${pt.y.toFixed(1)}px, 0)`;
-      el.dataset.hidden = pt.behind || this.focusId !== null ? "true" : "false";
+      const anchor = ANCHORS[id];
+      const cam = this.tmp.set(...anchor).applyMatrix4(this.camera.matrixWorldInverse);
+      const behind = cam.z > -0.05;
+      const camSide = cam.x < 0 ? "left" : "right";
+      const pt = this.project(...anchor);
+      let x = pt.x;
+      let y = pt.y;
+      let edge: "left" | "right" | null = null;
+      if (behind) edge = camSide;
+      else if (x < 48) edge = "left";
+      else if (x > w - 48) edge = "right";
+      if (edge) {
+        x = edge === "left" ? 44 : w - 44;
+        y = h * 0.36 + edgeCount[edge]++ * 56;
+      }
+      el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+      el.dataset.hidden = this.focusId !== null ? "true" : "false";
+      if (edge) el.dataset.edge = edge;
+      else delete el.dataset.edge;
     }
     if (this.bubbleEl) {
       if (this.hoverMaker === null || this.focusId) this.bubbleEl.dataset.hidden = "true";
       else {
-        const h = this.makers.headPosition(this.hoverMaker, this.tmp);
-        const pt = this.project(h.x, h.y, h.z);
+        const head = this.makers.headPosition(this.hoverMaker, this.tmp);
+        const pt = this.project(head.x, head.y, head.z);
         this.bubbleEl.style.transform = `translate3d(${pt.x.toFixed(1)}px, ${pt.y.toFixed(1)}px, 0)`;
         this.bubbleEl.dataset.hidden = "false";
       }
@@ -364,13 +402,14 @@ export class RoomEngine {
     const c = this.controls;
     c.enabled = true;
     c.enableRotate = true;
-    c.enableZoom = true;
-    c.minDistance = this.opts.phone ? 6 : 3.2;
-    c.maxDistance = this.opts.phone ? 24 : 12.5;
-    c.minAzimuthAngle = MathUtils.degToRad(4);
-    c.maxAzimuthAngle = MathUtils.degToRad(84);
-    c.minPolarAngle = MathUtils.degToRad(35);
-    c.maxPolarAngle = MathUtils.degToRad(82);
+    c.enableZoom = false;
+    // xoay quanh chính vị trí camera: nhìn xuống tối đa ~35°, ngước lên ~30°, xoay ngang tự do 360°
+    c.minDistance = 0;
+    c.maxDistance = Infinity;
+    c.minAzimuthAngle = -Infinity;
+    c.maxAzimuthAngle = Infinity;
+    c.minPolarAngle = MathUtils.degToRad(55);
+    c.maxPolarAngle = MathUtils.degToRad(120);
   }
 
   private unlock() {
@@ -385,12 +424,15 @@ export class RoomEngine {
 
   focus(id: SectionId | null, instant = false) {
     const prev = this.focusId;
+    if (!prev && id) {
+      this.savedLook = { pos: this.camera.position.toArray() as Vec3, target: this.controls.target.toArray() as Vec3, fov: this.camera.fov };
+    }
     this.focusId = id;
     this.arrived = false;
     this.rectKey = "";
     if (prev && prev !== id) this.drawIdle(prev);
     if (id) this.drawSplashFor(id);
-    const rig = id ? this.screenRig(id) : this.opts.phone ? OVERVIEW_PHONE : OVERVIEW;
+    const rig = id ? this.screenRig(id) : (this.savedLook ?? (this.opts.phone ? OVERVIEW_PHONE : OVERVIEW));
     this.flight?.kill();
     this.unlock();
     // đang xem màn hình: khoá xoay/zoom để lớp HTML luôn khít màn hình
@@ -475,6 +517,15 @@ export class RoomEngine {
     const id = maker !== null ? this.makers.info(maker).section : this.pickSection();
     if (id) this.opts.onPick(id);
   };
+  /** Lăn chuột: thu hẹp / mở rộng góc nhìn (như zoom thị kính), chỉ khi đang ở toàn cảnh */
+  private onWheel = (event: WheelEvent) => {
+    if (this.focusId || this.flight?.isActive()) return;
+    event.preventDefault();
+    const unit = event.deltaMode === 1 ? 16 : 1;
+    this.camera.fov = MathUtils.clamp(this.camera.fov + event.deltaY * unit * 0.03, FOV_RANGE[0], FOV_RANGE[1]);
+    this.camera.updateProjectionMatrix();
+  };
+
   private onPointerLeave = () => {
     if (this.hoverId || this.hoverMaker !== null) {
       this.hoverId = null;
@@ -550,6 +601,7 @@ export class RoomEngine {
     el.removeEventListener("pointerdown", this.onPointerDown);
     el.removeEventListener("pointerup", this.onPointerUp);
     el.removeEventListener("pointerleave", this.onPointerLeave);
+    el.removeEventListener("wheel", this.onWheel);
     this.controls.dispose();
     this.room.dispose();
     this.makers.dispose();
