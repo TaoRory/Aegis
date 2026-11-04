@@ -30,9 +30,9 @@ import { gsap } from "@/lib/motion";
 
 /**
  * Engine của Studio Aegis (/demo): cảnh Three.js nhỏ, không hậu kỳ.
- *  - Toàn cảnh: người xem ĐỨNG GIỮA PHÒNG, kéo để xoay quanh nhìn 360° (OrbitControls quay quanh chính vị trí camera: đích nhìn
- *    đặt sát camera, tốc độ xoay âm cho cảm giác "quay đầu"); lăn chuột chỉnh góc nhìn (fov). Khu nằm ngoài tầm mắt hiện
- *    mũi tên ở mép màn hình chỉ hướng cần xoay.
+ *  - Toàn cảnh: một góc nhìn cố định đứng ở GÓC phòng nhìn chéo vào (hai vách + sàn), thấy đủ 5 khu cùng lúc. Kéo chỉ nhích nhẹ
+ *    góc nhìn (OrbitControls giới hạn hẹp, để camera luôn ở trong phòng); lăn chuột / chụm hai ngón để phóng to thu nhỏ. Khu
+ *    nằm ngoài khung hình (điện thoại màn dọc) hiện mũi tên ở mép chỉ hướng.
  *  - Bấm màn hình / đồ vật / kim cương: camera bay thẳng trước MÀN HÌNH của khu đó, khoảng cách tính để màn hình phủ vùng
  *    nhìn (chừa thanh điều hướng). Tới nơi engine chiếu 4 góc màn hình ra toạ độ trang và ghi vào biến CSS của lớp HTML
  *    (--sx --sy --sw --sh), lớp HTML nằm khít "trong" màn hình. Đang xem một khu thì khoá xoay để lớp HTML luôn khớp.
@@ -46,18 +46,18 @@ interface Rig {
   fov: number;
 }
 
-/** Khoảng cách đích nhìn sát camera: OrbitControls xoay camera quanh điểm này nên gần như xoay tại chỗ */
-const LOOK_EPS = 0.01;
-/** Rig đứng tại chỗ nhìn theo hướng (yaw 0 = nhìn về vách sau −z, dương = sang phải; pitch dương = ngước lên) */
-function lookRig(pos: Vec3, yawDeg: number, pitchDeg: number, fov: number): Rig {
-  const yaw = MathUtils.degToRad(yawDeg);
-  const pitch = MathUtils.degToRad(pitchDeg);
-  const d: Vec3 = [Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)];
-  return { pos, target: [pos[0] + d[0] * LOOK_EPS, pos[1] + d[1] * LOOK_EPS, pos[2] + d[2] * LOOK_EPS], fov };
+/** Điểm nhìn: đích là góc đối diện (giữa hai vách), camera cách đích theo hướng chéo, ở góc trước-phải trên cao */
+const CORNER_TARGET: Vec3 = [-1.0, 0.95, -1.4];
+const CORNER_DIR: Vec3 = [3.8, 1.35, 3.7];
+function cornerRig(distance: number, fov: number): Rig {
+  const len = Math.hypot(...CORNER_DIR);
+  const k = distance / len;
+  return { pos: [CORNER_TARGET[0] + CORNER_DIR[0] * k, CORNER_TARGET[1] + CORNER_DIR[1] * k, CORNER_TARGET[2] + CORNER_DIR[2] * k], target: CORNER_TARGET, fov };
 }
-const OVERVIEW: Rig = lookRig([0, 1.55, 0.8], 0, -4, 64);
-const OVERVIEW_PHONE: Rig = lookRig([0, 1.55, 1.3], 0, -4, 74);
-const FOV_RANGE: [number, number] = [46, 80];
+const OVERVIEW_DISTANCE = 5.2;
+const OVERVIEW_DISTANCE_PHONE = 6.4;
+const OVERVIEW: Rig = cornerRig(OVERVIEW_DISTANCE, 56);
+const OVERVIEW_PHONE: Rig = cornerRig(OVERVIEW_DISTANCE_PHONE, 72);
 const SCREEN_FOV = 30;
 
 export interface RoomEngineOptions {
@@ -133,20 +133,16 @@ export class RoomEngine {
     pmrem.dispose();
     this.scene.environment = env;
     this.scene.environmentIntensity = 0.55;
-    // trong phòng kín: đất của bán cầu sáng gần bằng trời để vách và trần không xám; thêm đèn bù phía đối diện nắng
-    this.scene.add(new HemisphereLight(this.palette.bright, this.palette.bright.clone().lerp(this.palette.grey, 0.3), 1.2));
-    const fill = new DirectionalLight(this.palette.bright, 1.1);
-    fill.position.set(-3.5, 4, 2.5);
-    this.scene.add(fill);
+    this.scene.add(new HemisphereLight(this.palette.bright, this.palette.grey, 0.95));
     const sun = new DirectionalLight(this.palette.bright, 2.9);
-    sun.position.set(2.5, 8, 4.5);
-    sun.target.position.set(0, 0, -0.3);
+    sun.position.set(4.5, 8, 5.5);
+    sun.target.position.set(-0.5, 0, -1.2);
     sun.castShadow = !opts.phone;
     sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.camera.left = -5;
-    sun.shadow.camera.right = 5;
-    sun.shadow.camera.top = 5;
-    sun.shadow.camera.bottom = -5;
+    sun.shadow.camera.left = -6;
+    sun.shadow.camera.right = 6;
+    sun.shadow.camera.top = 6;
+    sun.shadow.camera.bottom = -6;
     sun.shadow.bias = -0.0004;
     sun.shadow.normalBias = 0.015;
     sun.shadow.radius = 4;
@@ -166,8 +162,8 @@ export class RoomEngine {
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
     this.controls.enablePan = false;
-    this.controls.rotateSpeed = -0.4; // âm: kéo sang phải thì cảnh trượt sang phải như khi quay đầu sang trái
-    this.controls.enableZoom = false;
+    this.controls.rotateSpeed = 0.45;
+    this.controls.zoomSpeed = 0.8;
     this.applyOverviewLimits();
     this.controls.update();
 
@@ -179,7 +175,6 @@ export class RoomEngine {
     el.addEventListener("pointerdown", this.onPointerDown);
     el.addEventListener("pointerup", this.onPointerUp);
     el.addEventListener("pointerleave", this.onPointerLeave);
-    el.addEventListener("wheel", this.onWheel, { passive: false });
 
     void this.loadAssets();
     this.raf = requestAnimationFrame(this.tick);
@@ -402,14 +397,17 @@ export class RoomEngine {
     const c = this.controls;
     c.enabled = true;
     c.enableRotate = true;
-    c.enableZoom = false;
-    // xoay quanh chính vị trí camera: nhìn xuống tối đa ~35°, ngước lên ~30°, xoay ngang tự do 360°
-    c.minDistance = 0;
-    c.maxDistance = Infinity;
-    c.minAzimuthAngle = -Infinity;
-    c.maxAzimuthAngle = Infinity;
-    c.minPolarAngle = MathUtils.degToRad(55);
-    c.maxPolarAngle = MathUtils.degToRad(120);
+    c.enableZoom = true;
+    // Quanh điểm nhìn chéo vào góc phòng: nhích ngang ~±14°, lên xuống nhẹ; zoom từ sát màn hình tới đúng toàn cảnh.
+    // Phía trước-phải của phòng được dựng rộng hơn tầm nhìn nên camera luôn nằm trong phòng.
+    const far = this.opts.phone ? OVERVIEW_DISTANCE_PHONE : OVERVIEW_DISTANCE;
+    c.minDistance = 2.2;
+    c.maxDistance = far + 0.5;
+    const az = Math.atan2(CORNER_DIR[0], CORNER_DIR[2]);
+    c.minAzimuthAngle = az - MathUtils.degToRad(this.opts.phone ? 10 : 14);
+    c.maxAzimuthAngle = az + MathUtils.degToRad(this.opts.phone ? 10 : 14);
+    c.minPolarAngle = MathUtils.degToRad(70);
+    c.maxPolarAngle = MathUtils.degToRad(86);
   }
 
   private unlock() {
@@ -517,15 +515,6 @@ export class RoomEngine {
     const id = maker !== null ? this.makers.info(maker).section : this.pickSection();
     if (id) this.opts.onPick(id);
   };
-  /** Lăn chuột: thu hẹp / mở rộng góc nhìn (như zoom thị kính), chỉ khi đang ở toàn cảnh */
-  private onWheel = (event: WheelEvent) => {
-    if (this.focusId || this.flight?.isActive()) return;
-    event.preventDefault();
-    const unit = event.deltaMode === 1 ? 16 : 1;
-    this.camera.fov = MathUtils.clamp(this.camera.fov + event.deltaY * unit * 0.03, FOV_RANGE[0], FOV_RANGE[1]);
-    this.camera.updateProjectionMatrix();
-  };
-
   private onPointerLeave = () => {
     if (this.hoverId || this.hoverMaker !== null) {
       this.hoverId = null;
@@ -601,7 +590,6 @@ export class RoomEngine {
     el.removeEventListener("pointerdown", this.onPointerDown);
     el.removeEventListener("pointerup", this.onPointerUp);
     el.removeEventListener("pointerleave", this.onPointerLeave);
-    el.removeEventListener("wheel", this.onWheel);
     this.controls.dispose();
     this.room.dispose();
     this.makers.dispose();

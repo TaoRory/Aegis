@@ -52,6 +52,26 @@ const screenOn = (page, id) => page.waitForSelector(`.showroom-screen[data-secti
   check("[desktop] vào chế độ 3D", (await page.locator(".showroom").getAttribute("data-mode")) === "3d");
   const shown = await page.evaluate(() => [...document.querySelectorAll(".showroom-hotspot")].filter((e) => e.dataset.hidden === "false").length);
   check("[desktop] 5 kim cương hiện ở toàn cảnh", shown === 5, String(shown));
+  const edges = await page.evaluate(() => [...document.querySelectorAll(".showroom-hotspot")].filter((e) => e.dataset.edge).length);
+  check("[desktop] một góc nhìn thấy đủ 5 khu (không khu nào phải xoay mới thấy)", edges === 0, `${edges} khu ngoài khung hình`);
+  const room = await page.evaluate(() => {
+    const e = window.__aegisRoom;
+    const dist = () => e.camera.position.distanceTo(e.controls.target);
+    const d0 = dist();
+    return { d0 };
+  });
+  await page.mouse.move(720, 450);
+  for (let i = 0; i < 6; i++) await page.mouse.wheel(0, -240);
+  await page.waitForTimeout(1200);
+  const zoomIn = await page.evaluate(() => window.__aegisRoom.camera.position.distanceTo(window.__aegisRoom.controls.target));
+  for (let i = 0; i < 60; i++) await page.mouse.wheel(0, 300);
+  await page.waitForTimeout(1200);
+  const zoomOut = await page.evaluate(() => {
+    const e = window.__aegisRoom;
+    const p = e.camera.position;
+    return { d: p.distanceTo(e.controls.target), inside: p.x > -3.4 && p.x < 4.8 && p.z > -3.2 && p.z < 4.0 && p.y > 0.2 && p.y < 3.0 };
+  });
+  check("[desktop] lăn chuột phóng to / thu nhỏ; thu nhỏ hết cỡ camera vẫn nằm trong phòng", zoomIn < room.d0 - 1 && zoomOut.d > zoomIn + 1 && zoomOut.inside, `${room.d0.toFixed(1)} → ${zoomIn.toFixed(1)} → ${zoomOut.d.toFixed(1)}m, trong phòng: ${zoomOut.inside}`);
   const calls = await page.evaluate(() => window.__aegisRoom?.drawCalls ?? -1);
   check("[desktop] lệnh vẽ ≤ 130 (kể cả bóng đổ)", calls > 0 && calls <= 130, String(calls));
 
