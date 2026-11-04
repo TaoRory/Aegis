@@ -1,9 +1,11 @@
 import {
+  AdditiveBlending,
   CanvasTexture,
   CircleGeometry,
   Color,
   ConeGeometry,
   CylinderGeometry,
+  DoubleSide,
   Group,
   IcosahedronGeometry,
   Mesh,
@@ -19,6 +21,7 @@ import {
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 
 import { boxAt, mergeAll } from "@/components/space/engine/builders/merge";
+import { radialTexture } from "@/components/space/engine/textures";
 import type { SectionId } from "@/content/showroom";
 
 /**
@@ -268,7 +271,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
       boxAt(0.014, 0.014, D, R.x0 + 0.012, bandH + 0.007, zc),
       boxAt(0.014, 0.014, D, R.x1 - 0.012, bandH + 0.007, zc),
     ]),
-    tealMat,
+    basic({ color: p.aqua, toneMapped: false }),
   );
   add(
     mergeAll([
@@ -279,6 +282,8 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
     ]),
     std(mix(p.teal, p.ink, 0.5), 0.8),
   );
+  // dải LED teal chạy dọc chân tường (đèn hắt dưới len chân tường)
+  add(mergeAll([boxAt(W, 0.012, 0.012, xc, 0.08, R.z0 + 0.024), boxAt(0.012, 0.012, D, R.x0 + 0.024, 0.08, zc)]), basic({ color: p.teal, toneMapped: false }));
 
   // cửa sổ vách trái: bầu trời sáng + chân trời thành phố, khung ink
   const sky = skyTexture(p);
@@ -307,13 +312,13 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
     mergeAll([
       rbox(desk.w, 0.06, desk.d, desk.x, desk.top - 0.03, desk.z, 0.025),
       rbox(0.06, desk.top - 0.06, desk.d - 0.12, desk.x - desk.w / 2 + 0.09, (desk.top - 0.06) / 2, desk.z, 0.02),
-      rbox(0.55, desk.top - 0.06, desk.d - 0.12, desk.x + desk.w / 2 - 0.33, (desk.top - 0.06) / 2, desk.z, 0.02),
       boxAt(desk.w - 0.24, 0.28, 0.03, desk.x, desk.top - 0.22, desk.z - desk.d / 2 + 0.08),
     ]),
     bodyMat,
     "web",
     { cast: true, receive: true },
   );
+  add(rbox(0.55, desk.top - 0.06, desk.d - 0.12, desk.x + desk.w / 2 - 0.33, (desk.top - 0.06) / 2, desk.z, 0.02), std(mix(p.teal, p.ink, 0.12), 0.45, 0.1), "web", { cast: true, receive: true });
   const led = basic({ color: p.teal, toneMapped: false });
   glows.push(led);
   add(boxAt(desk.w - 0.05, 0.012, 0.012, desk.x, desk.top - 0.052, desk.z + desk.d / 2 + 0.002), led);
@@ -322,7 +327,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
       boxAt(0.2, 0.02, 0.02, desk.x + desk.w / 2 - 0.33, 0.58, desk.z + desk.d / 2 - 0.05),
       boxAt(0.2, 0.02, 0.02, desk.x + desk.w / 2 - 0.33, 0.34, desk.z + desk.d / 2 - 0.05),
     ]),
-    tealMat,
+    std(p.bright, 0.4, 0.2),
   );
 
   const m = L.monitor;
@@ -372,9 +377,9 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   );
 
   // ---------- Thảm theo khu: nhìn toàn cảnh thấy rõ từng khu ----------
-  const rugAqua = std(mix(p.aqua, p.bright, 0.35), 0.95);
-  const rugSoft = std(mix(p.soft, p.bright, 0.1), 0.95);
-  const rugTeal = std(mix(p.teal, p.bright, 0.5), 0.95);
+  const rugAqua = std(mix(p.teal, p.ink, 0.28), 0.95);
+  const rugSoft = std(mix(p.tealDeep, p.teal, 0.35), 0.95);
+  const rugTeal = std(mix(p.teal, p.aqua, 0.18), 0.95);
   add(rbox(2.5, 0.012, 1.5, desk.x, 0.006, desk.z + 0.85, 0.3), rugSoft, "web", { receive: true });
   add(rbox(1.25, 0.012, 2.0, R.x0 + 0.85, 0.006, L.sideboard.z, 0.3), rugAqua, "marketing", { receive: true });
   add(rbox(1.6, 0.012, 1.1, L.frame.x, 0.006, L.frame.z, 0.3), rugTeal, "about", { receive: true });
@@ -479,10 +484,11 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
 
   // ---------- 03 Digital Marketing: tủ thấp sát vách trái + bảng hiển thị chiến dịch + điện thoại + loa sàn ----------
   const sb = L.sideboard;
-  add(rbox(sb.w, sb.h, sb.d, sb.x, sb.h / 2, sb.z, 0.025), bodyMat, "marketing", { cast: true, receive: true });
+  add(rbox(sb.w, sb.h - 0.05, sb.d, sb.x, (sb.h - 0.05) / 2, sb.z, 0.025), std(mix(p.aqua, p.teal, 0.3), 0.5, 0.05), "marketing", { cast: true, receive: true });
+  add(rbox(sb.w + 0.02, 0.05, sb.d + 0.02, sb.x, sb.h - 0.025, sb.z, 0.015), bodyMat, "marketing", { cast: true });
   add(
     mergeAll([boxAt(0.012, 0.22, 0.02, sb.x + sb.w / 2 + 0.002, 0.42, sb.z - 0.2), boxAt(0.012, 0.22, 0.02, sb.x + sb.w / 2 + 0.002, 0.42, sb.z + 0.2)]),
-    tealMat,
+    inkMat,
   );
   const sg = L.signage;
   add(
@@ -615,6 +621,38 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   }
   add(mergeAll(pots), bodyMat, undefined, { cast: true });
   add(mergeAll(bushes), std(mix(p.teal, p.aqua, 0.2), 0.8), undefined, { cast: true });
+
+  // bảng nan gỗ xanh sau màn hình lớn (chiều sâu + điểm màu cho vách sau)
+  const slats: BufferGeometry[] = [];
+  for (let i = 0; i < 14; i++) slats.push(boxAt(0.075, 1.05, 0.05, desk.x - 1.3 + i * 0.2, 1.5, R.z0 + 0.03));
+  add(mergeAll(slats), std(mix(p.teal, p.ink, 0.62), 0.7), "web", { cast: true });
+
+  // quầng sáng cộng (additive): hắt sau màn hình, vệt sáng đèn treo trên bàn / tủ
+  const radial = radialTexture();
+  disposables.push(radial);
+  const pool = (color: Color, w: number, h: number, opacity: number) =>
+    new Mesh(new PlaneGeometry(w, h), basic({ color, alphaMap: radial, transparent: true, opacity, depthWrite: false, blending: AdditiveBlending, toneMapped: false }));
+  const place = (mesh: Mesh, x: number, y: number, z: number, flat = false) => {
+    mesh.position.set(x, y, z);
+    if (flat) mesh.rotation.x = -Math.PI / 2;
+    mesh.renderOrder = 2;
+    disposables.push(mesh.geometry);
+    root.add(mesh);
+  };
+  place(pool(p.aqua, 3.0, 2.2, 0.16), m.x, m.y + 0.05, R.z0 + 0.07);
+  const pendants: [number, number, number][] = [
+    [desk.x - 0.6, desk.z + 0.3, desk.top],
+    [L.sideboard.x + 0.45, L.sideboard.z + 0.4, L.sideboard.h],
+  ];
+  const shades: BufferGeometry[] = [];
+  const bulbs: BufferGeometry[] = [];
+  for (const [x, z, y] of pendants) {
+    shades.push(new CylinderGeometry(0.006, 0.006, 0.9, 6).translate(x, R.h - 0.45, z), new ConeGeometry(0.2, 0.18, 28, 1, true).translate(x, R.h - 0.95, z));
+    bulbs.push(new CircleGeometry(0.19, 28).rotateX(Math.PI / 2).translate(x, R.h - 1.03, z));
+    place(pool(p.soft, 1.7, 1.7, 0.34), x, y + 0.012, z, true);
+  }
+  add(mergeAll(shades), bodyMat);
+  add(mergeAll(bulbs), basic({ color: p.soft, toneMapped: false, side: DoubleSide }));
 
   for (const batch of batches.values()) own(batch.parts.length === 1 ? batch.parts[0] : mergeAll(batch.parts), batch.material, batch.section, batch.shadow);
   root.updateMatrixWorld(true);

@@ -73,7 +73,7 @@ const screenOn = (page, id) => page.waitForSelector(`.showroom-screen[data-secti
   });
   check("[desktop] lăn chuột phóng to / thu nhỏ; thu nhỏ hết cỡ camera vẫn nằm trong phòng", zoomIn < room.d0 - 1 && zoomOut.d > zoomIn + 1 && zoomOut.inside, `${room.d0.toFixed(1)} → ${zoomIn.toFixed(1)} → ${zoomOut.d.toFixed(1)}m, trong phòng: ${zoomOut.inside}`);
   const calls = await page.evaluate(() => window.__aegisRoom?.drawCalls ?? -1);
-  check("[desktop] lệnh vẽ ≤ 130 (kể cả bóng đổ)", calls > 0 && calls <= 130, String(calls));
+  check("[desktop] lệnh vẽ ≤ 150 (kể cả bóng đổ)", calls > 0 && calls <= 150, String(calls));
 
   // Thợ Aegis: đủ số lượng và đang di chuyển / cử động
   const m0 = await page.evaluate(() => window.__aegisRoom.makerState);

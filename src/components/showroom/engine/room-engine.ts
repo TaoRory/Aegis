@@ -1,4 +1,5 @@
 import {
+  Color,
   DirectionalLight,
   HemisphereLight,
   MathUtils,
@@ -6,6 +7,7 @@ import {
   PCFShadowMap,
   PerspectiveCamera,
   PMREMGenerator,
+  PointLight,
   Raycaster,
   Scene,
   SRGBColorSpace,
@@ -22,6 +24,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 import { loadImageTexture } from "@/components/space/engine/textures";
+import { buildMotes, type Motes } from "@/components/showroom/engine/motes";
 import { buildMakers, type Makers } from "@/components/showroom/engine/makers";
 import { ANCHORS, buildRoom, readRoomPalette, type BuiltRoom, type RoomPalette } from "@/components/showroom/engine/room-build";
 import { drawBrowser, drawCampaign, drawMessenger, drawMosaic, drawSplash, drawValues, unflip } from "@/components/showroom/engine/screens";
@@ -83,6 +86,7 @@ export class RoomEngine {
   private controls: OrbitControls;
   private room: BuiltRoom;
   private makers: Makers;
+  private motes: Motes;
   private palette: RoomPalette;
   private raycaster = new Raycaster();
   private pointer = new Vector2();
@@ -118,7 +122,7 @@ export class RoomEngine {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, opts.phone ? 1.5 : 1.75));
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.toneMapping = NeutralToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMappingExposure = 0.92;
     this.renderer.shadowMap.enabled = !opts.phone;
     this.renderer.shadowMap.type = PCFShadowMap;
     this.renderer.domElement.className = "showroom-canvas";
@@ -132,9 +136,20 @@ export class RoomEngine {
     const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     pmrem.dispose();
     this.scene.environment = env;
-    this.scene.environmentIntensity = 0.55;
-    this.scene.add(new HemisphereLight(this.palette.bright, this.palette.grey, 0.95));
-    const sun = new DirectionalLight(this.palette.bright, 2.9);
+    // ít ánh sáng nền phẳng, nắng mạnh có bóng: đồ vật có khối thay vì trắng bệch; điểm sáng màu từ đèn treo và cửa sổ
+    this.scene.environmentIntensity = 0.38;
+    this.scene.add(new HemisphereLight(this.palette.bright, this.palette.ink.clone().lerp(this.palette.grey, 0.4), 0.55));
+    const lamps: [number, number, number, Color, number][] = [
+      [-2.1, 2.0, -2.0, this.palette.soft, 3.2],
+      [-2.4, 2.0, -1.0, this.palette.soft, 2.4],
+      [-2.7, 1.7, 0.65, this.palette.aqua, 3.2],
+    ];
+    for (const [x, y, z, color, intensity] of lamps) {
+      const light = new PointLight(color, intensity, 5, 2);
+      light.position.set(x, y, z);
+      this.scene.add(light);
+    }
+    const sun = new DirectionalLight(this.palette.bright, 3.2);
     sun.position.set(4.5, 8, 5.5);
     sun.target.position.set(-0.5, 0, -1.2);
     sun.castShadow = !opts.phone;
@@ -152,6 +167,8 @@ export class RoomEngine {
     this.scene.add(this.room.root);
     this.makers = buildMakers(this.palette, { reduced: opts.reduced, shadows: !opts.phone });
     this.scene.add(this.makers.root);
+    this.motes = buildMotes(this.palette.aqua, opts.phone ? 36 : 70, { x: [-3.2, 3.6], y: [0.3, 2.8], z: [-3.0, 3.2] });
+    this.scene.add(this.motes.points);
     this.drawIdleScreens();
 
     const o = opts.phone ? OVERVIEW_PHONE : OVERVIEW;
@@ -559,6 +576,7 @@ export class RoomEngine {
     this.last = now;
     this.controls.update();
     this.makers.update(dt, now / 1000, this.camera.position);
+    if (!this.opts.reduced) this.motes.update(now / 1000);
     if (!this.opts.reduced) {
       const pulse = 0.82 + 0.18 * Math.sin(now / 900);
       for (const m of this.room.glows) m.opacity = m.transparent ? 0.55 * pulse : 1;
@@ -593,6 +611,7 @@ export class RoomEngine {
     this.controls.dispose();
     this.room.dispose();
     this.makers.dispose();
+    this.motes.dispose();
     for (const t of this.textures) t.dispose();
     (this.scene.environment as Texture | null)?.dispose();
     this.scene.traverse((o) => {
