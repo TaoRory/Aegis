@@ -1,12 +1,12 @@
 import {
   CanvasTexture,
-  IcosahedronGeometry,
   CircleGeometry,
   Color,
   ConeGeometry,
   CylinderGeometry,
   DoubleSide,
   Group,
+  IcosahedronGeometry,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -20,20 +20,23 @@ import {
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 
 import { boxAt, mergeAll } from "@/components/space/engine/builders/merge";
+import { radialTexture } from "@/components/space/engine/textures";
 import type { SectionId } from "@/content/showroom";
 
 /**
- * Dựng "Studio Aegis": một góc phòng làm việc ban ngày, tông sáng theo bảng màu brand (đọc từ CSS token, không có mã màu ở đây
- * trừ giá trị dự phòng). Hai vách (sau, trái) + sàn, mở về phía camera như một diorama.
+ * Dựng "Studio Aegis": mô hình cắt lớp một phòng làm việc ban ngày (sàn có độ dày + 2 vách, nổi trên nền sáng), tông màu
+ * đọc từ CSS token brand (không có mã màu ở đây trừ giá trị dự phòng). Các "Thợ Aegis" tí hon (makers.ts) sống trên đồ đạc.
  *
- * Toạ độ (mét): x −4..4 (trái → phải), z −3.5..3.5 (vách sau ở z = −3.5), y lên trên; vách trái ở x = −4.
- * Mỗi khu có một nhóm vật thể gắn `userData.section` để bắt rê/bấm chuột, và một điểm neo cho kim cương.
+ * Toạ độ (mét): x −4..4 (trái → phải), z −3.5..2.6 (vách sau ở z = −3.5), y lên trên; vách trái ở x = −4.
+ * Mỗi khu có một MÀN HÌNH (máy tính, TV, bảng hiển thị, khung ảnh, laptop): bấm vào thì camera bay thẳng trước màn hình và
+ * nội dung HTML hiện "trong" màn hình. Vật thể gắn `userData.section` để bắt rê/bấm chuột.
  */
 
 export interface RoomPalette {
   ink: Color;
   inkRaised: Color;
   teal: Color;
+  tealDeep: Color;
   aqua: Color;
   soft: Color;
   bright: Color;
@@ -51,6 +54,7 @@ export function readRoomPalette(): RoomPalette {
     ink: token("--palette-ink", "#071f1e"),
     inkRaised: token("--palette-ink-raised", "#062e30"),
     teal: token("--palette-teal", "#13b5a5"),
+    tealDeep: token("--palette-teal-deep", "#0a7369"),
     aqua: token("--palette-aqua", "#84e4d6"),
     soft: token("--palette-soft", "#c9f8f0"),
     bright: token("--palette-bright", "#f5f7f6"),
@@ -60,24 +64,56 @@ export function readRoomPalette(): RoomPalette {
 }
 
 const css = (c: Color) => `#${c.getHexString()}`;
-const mix = (a: Color, b: Color, t: number) => a.clone().lerp(b, t);
+export const mix = (a: Color, b: Color, t: number) => a.clone().lerp(b, t);
 
-export const ROOM = { w: 8, d: 7, h: 3.2, backZ: -3.5, leftX: -4 };
+export const ROOM = { x0: -4, x1: 4, z0: -3.5, z1: 2.6, h: 3.2 };
+
+/** Bố cục đồ đạc: dùng chung cho dựng phòng và lộ trình của Thợ Aegis */
+export const LAYOUT = {
+  desk: { x: -1.6, z: -2.85, w: 2.8, d: 1.05, top: 0.76 },
+  monitor: { x: -1.6, y: 1.27, z: -3.12, w: 1.2, h: 0.75 },
+  keyboard: { x: -1.68, z: -2.6, w: 0.62, d: 0.2, top: 0.786 },
+  house: { x: -0.66, z: -3.02 },
+  pile: { x: -0.45, z: -2.52 },
+  table: { x: 0.9, z: -2.78, r: 0.44, top: 0.72 },
+  laptop: { x: 0.86, z: -2.76, w: 0.5, h: 0.31, tilt: 0.2 },
+  board: { x: 2.95, y: 1.78, w: 2.1, h: 1.5 },
+  tv: { x: 2.95, y: 2.0, w: 1.28, h: 0.72 },
+  ladder: { x: 3.66, baseZ: -2.96, topY: 1.12 },
+  cardBox: { x: 3.0, z: -2.6 },
+  sideboard: { x: -3.7, z: 0.9, w: 0.55, d: 1.7, h: 0.62 },
+  signage: { x: -3.76, y: 1.05, z: 0.8, w: 0.88, h: 0.66 },
+  phone: { x: -3.74, z: 1.58 },
+  speaker: { x: -3.6, z: 2.02, w: 0.36, h: 0.6 },
+  bench: { x: -3.74, z: -1.2, w: 0.42, d: 1.2, h: 0.42 },
+  frame: { x: -3.975, y: 1.3, z: -1.2, w: 0.8, h: 0.6 },
+  emblem: { y: 2.38, z: -1.2 },
+  benchPlant: { z: -0.78 },
+};
 
 /** Điểm neo kim cương (toạ độ thế giới) của từng khu */
 export const ANCHORS: Record<SectionId, [number, number, number]> = {
-  web: [-1.6, 1.78, -3.05],
-  projects: [3.0, 2.48, -3.4],
-  marketing: [-3.55, 1.42, 0.9],
-  about: [-3.9, 2.82, -1.2],
-  contact: [-0.62, 1.12, -2.62],
+  web: [-1.6, 1.82, -3.1],
+  projects: [2.95, 2.55, -3.4],
+  marketing: [-3.72, 1.55, 0.8],
+  about: [-3.92, 1.78, -1.2],
+  contact: [0.86, 1.18, -2.88],
 };
+
+export interface RoomScreen {
+  id: SectionId;
+  mesh: Mesh;
+  canvas: HTMLCanvasElement;
+  texture: CanvasTexture;
+  /** kích thước thật của mặt màn hình (m) */
+  w: number;
+  h: number;
+}
 
 export interface BuiltRoom {
   root: Group;
   pickables: Mesh[];
-  /** Màn hình máy tính: đổi ảnh dự án theo thời gian */
-  monitor: { mesh: Mesh; canvas: HTMLCanvasElement; texture: CanvasTexture };
+  screens: Record<SectionId, RoomScreen>;
   /** Thẻ dự án trên bảng ghim: gắn ảnh khi tải xong */
   cards: Mesh[];
   /** Biểu tượng kính trên vách trái */
@@ -88,6 +124,7 @@ export interface BuiltRoom {
 }
 
 export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
+  const L = LAYOUT;
   const root = new Group();
   const pickables: Mesh[] = [];
   const disposables: { dispose(): void }[] = [];
@@ -105,7 +142,14 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
     }
     return m;
   };
-  const add = (geometry: BufferGeometry, material: Material, section?: SectionId, shadow: { cast?: boolean; receive?: boolean } = {}) => {
+  const basic = (params: ConstructorParameters<typeof MeshBasicMaterial>[0]) => {
+    const m = new MeshBasicMaterial(params);
+    disposables.push(m);
+    return m;
+  };
+  type Shadow = { cast?: boolean; receive?: boolean };
+  /** Vật thể cần biến đổi / vật liệu riêng (màn hình, thẻ dự án, logo…): một mesh riêng */
+  const own = (geometry: BufferGeometry, material: Material, section?: SectionId, shadow: Shadow = {}) => {
     const mesh = new Mesh(geometry, material);
     mesh.castShadow = !!shadow.cast && !opts.phone;
     mesh.receiveShadow = !!shadow.receive;
@@ -117,283 +161,402 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
     root.add(mesh);
     return mesh;
   };
+  /** Vật thể tĩnh: gom theo (vật liệu, khu, bóng) rồi gộp thành một mesh ở cuối, tiết kiệm lệnh vẽ */
+  const batches = new Map<string, { material: Material; section?: SectionId; shadow: Shadow; parts: BufferGeometry[] }>();
+  const add = (geometry: BufferGeometry, material: Material, section?: SectionId, shadow: Shadow = {}) => {
+    const key = `${material.uuid}|${section ?? ""}|${shadow.cast ? 1 : 0}${shadow.receive ? 1 : 0}`;
+    const batch = batches.get(key) ?? { material, section, shadow, parts: [] };
+    batch.parts.push(geometry);
+    batches.set(key, batch);
+  };
+  const rbox = (w: number, h: number, d: number, x: number, y: number, z: number, r = 0.02) =>
+    new RoundedBoxGeometry(w, h, d, 3, Math.min(r, w / 2 - 1e-3, h / 2 - 1e-3, d / 2 - 1e-3)).translate(x, y, z);
 
-  // ---------- Vỏ phòng ----------
-  const wallColor = p.bright;
-  const floorTex = plankTexture(mix(p.bright, p.grey, 0.16), mix(p.bright, p.grey, 0.4));
+  const inkMat = std(p.ink, 0.5, 0.1);
+  const inkGloss = std(p.ink, 0.28, 0.25);
+  const brightMat = std(p.bright, 0.55);
+  const tealMat = std(p.teal, 0.45, 0.1);
+
+  /** Màn hình phát sáng (canvas): luôn hướng về +z cục bộ */
+  const screens = {} as Record<SectionId, RoomScreen>;
+  const makeScreen = (id: SectionId, w: number, h: number, px: number) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = px;
+    canvas.height = Math.round((px * h) / w);
+    const texture = new CanvasTexture(canvas);
+    texture.colorSpace = SRGBColorSpace;
+    texture.anisotropy = 4;
+    disposables.push(texture);
+    const mesh = own(new PlaneGeometry(w, h), basic({ map: texture, toneMapped: false }), id);
+    screens[id] = { id, mesh, canvas, texture, w, h };
+    return mesh;
+  };
+
+  // ---------- Đế mô hình: sàn gỗ sáng trên khối đế ink, bóng mờ dưới đế ----------
+  const slabT = 0.28;
+  const zc = (ROOM.z0 + ROOM.z1) / 2;
+  add(rbox(ROOM.x1 - ROOM.x0 + 0.14, slabT, ROOM.z1 - ROOM.z0 + 0.14, (ROOM.x0 + ROOM.x1) / 2 - 0.07, -slabT / 2 - 0.002, zc - 0.07, 0.04), inkMat, undefined, { receive: true });
+  const floorTex = plankTexture(mix(p.bright, p.grey, 0.14), mix(p.bright, p.grey, 0.42));
   floorTex.wrapS = floorTex.wrapT = RepeatWrapping;
-  floorTex.repeat.set(2, 2);
+  floorTex.repeat.set(2.2, 2);
   disposables.push(floorTex);
-  const floor = new MeshStandardMaterial({ map: floorTex, roughness: 0.7 });
+  const floor = new MeshStandardMaterial({ map: floorTex, roughness: 0.72 });
   disposables.push(floor);
-  // sàn và vách kéo dài quá khung hình để camera không thấy mép
-  floorTex.repeat.set(4, 4);
-  add(new PlaneGeometry(18, 18).rotateX(-Math.PI / 2).translate(2, 0, 4.5), floor, undefined, { receive: true });
-
-  const wall = std(wallColor, 0.95);
-  // vách sau có ô cửa sổ (x 0.1..1.7, y 0.95..2.45) → ghép 4 khối quanh ô
-  const wx0 = 0.1, wx1 = 1.7, wy0 = 0.95, wy1 = 2.45, t = 0.12;
-  const back = mergeAll([
-    boxAt(wx0 - ROOM.leftX, ROOM.h, t, (ROOM.leftX + wx0) / 2, ROOM.h / 2, ROOM.backZ - t / 2),
-    boxAt(9 - wx1, ROOM.h, t, (wx1 + 9) / 2, ROOM.h / 2, ROOM.backZ - t / 2),
-    boxAt(wx1 - wx0, wy0, t, (wx0 + wx1) / 2, wy0 / 2, ROOM.backZ - t / 2),
-    boxAt(wx1 - wx0, ROOM.h - wy1, t, (wx0 + wx1) / 2, (wy1 + ROOM.h) / 2, ROOM.backZ - t / 2),
-  ]);
-  add(back, wall, undefined, { receive: true });
-  add(boxAt(t, ROOM.h, 13, ROOM.leftX - t / 2, ROOM.h / 2, 3), wall, undefined, { receive: true });
-  // mảng sơn Soft Aqua ở nửa dưới vách + chỉ teal mảnh: điểm màu thương hiệu cho căn phòng sáng
-  const band = std(mix(p.soft, p.bright, 0.62), 0.92);
+  add(new PlaneGeometry(ROOM.x1 - ROOM.x0, ROOM.z1 - ROOM.z0).rotateX(-Math.PI / 2).translate(0, 0, zc), floor, undefined, { receive: true });
+  // viền teal mảnh chạy quanh mép sàn (nét "bản vẽ" của brand)
   add(
     mergeAll([
-      boxAt(wx0 - ROOM.leftX, 0.95, 0.01, (ROOM.leftX + wx0) / 2, 0.475, ROOM.backZ + 0.006),
-      boxAt(9 - wx1, 0.95, 0.01, (wx1 + 9) / 2, 0.475, ROOM.backZ + 0.006),
-      boxAt(wx1 - wx0, 0.95, 0.01, (wx0 + wx1) / 2, 0.475, ROOM.backZ + 0.006),
-      boxAt(0.01, 0.95, 13, ROOM.leftX + 0.006, 0.475, 3),
+      boxAt(ROOM.x1 - ROOM.x0 + 0.14, 0.014, 0.014, -0.07, 0.0, ROOM.z1 + 0.0),
+      boxAt(0.014, 0.014, ROOM.z1 - ROOM.z0 + 0.14, ROOM.x1, 0.0, zc - 0.07),
+    ]),
+    basic({ color: p.teal, toneMapped: false }),
+  );
+  const ground = radialTexture();
+  disposables.push(ground);
+  add(
+    new PlaneGeometry(13, 11).rotateX(-Math.PI / 2).translate(0.3, -slabT - 0.05, zc + 0.3),
+    basic({ color: p.ink, alphaMap: ground, transparent: true, opacity: 0.32, depthWrite: false }),
+  );
+
+  // ---------- Vách sau (có ô cửa sổ) và vách trái ----------
+  const wall = std(p.bright, 0.95);
+  const wx0 = 0.1, wx1 = 1.7, wy0 = 0.95, wy1 = 2.45, t = 0.14;
+  const bz = ROOM.z0 - t / 2;
+  const backLeft = ROOM.x0 - t;
+  add(
+    mergeAll([
+      boxAt(wx0 - backLeft, ROOM.h, t, (backLeft + wx0) / 2, ROOM.h / 2, bz),
+      boxAt(ROOM.x1 - wx1, ROOM.h, t, (wx1 + ROOM.x1) / 2, ROOM.h / 2, bz),
+      boxAt(wx1 - wx0, wy0, t, (wx0 + wx1) / 2, wy0 / 2, bz),
+      boxAt(wx1 - wx0, ROOM.h - wy1, t, (wx0 + wx1) / 2, (wy1 + ROOM.h) / 2, bz),
+      boxAt(t, ROOM.h, ROOM.z1 - ROOM.z0, ROOM.x0 - t / 2, ROOM.h / 2, (ROOM.z0 + ROOM.z1) / 2),
+    ]),
+    wall,
+    undefined,
+    { receive: true, cast: true },
+  );
+  // nắp vách màu ink: nét cắt của mô hình
+  add(
+    mergeAll([
+      boxAt(ROOM.x1 - backLeft, 0.03, t + 0.004, (backLeft + ROOM.x1) / 2, ROOM.h + 0.015, bz),
+      boxAt(t + 0.004, 0.03, ROOM.z1 - ROOM.z0, ROOM.x0 - t / 2, ROOM.h + 0.015, (ROOM.z0 + ROOM.z1) / 2),
+      boxAt(0.03, ROOM.h + 0.03, t + 0.004, ROOM.x1 + 0.0, ROOM.h / 2, bz),
+      boxAt(t + 0.004, ROOM.h + 0.03, 0.03, ROOM.x0 - t / 2, ROOM.h / 2, ROOM.z1),
+    ]),
+    inkMat,
+  );
+  // mảng sơn Soft Aqua nửa dưới vách + chỉ teal mảnh
+  const band = std(mix(p.soft, p.bright, 0.55), 0.92);
+  const bandH = 0.95;
+  add(
+    mergeAll([
+      boxAt(wx0 - ROOM.x0, bandH, 0.01, (ROOM.x0 + wx0) / 2, bandH / 2, ROOM.z0 + 0.006),
+      boxAt(ROOM.x1 - wx1, bandH, 0.01, (wx1 + ROOM.x1) / 2, bandH / 2, ROOM.z0 + 0.006),
+      boxAt(wx1 - wx0, bandH, 0.01, (wx0 + wx1) / 2, bandH / 2, ROOM.z0 + 0.006),
+      boxAt(0.01, bandH, ROOM.z1 - ROOM.z0, ROOM.x0 + 0.006, bandH / 2, (ROOM.z0 + ROOM.z1) / 2),
     ]),
     band,
     undefined,
     { receive: true },
   );
-  add(mergeAll([boxAt(13, 0.012, 0.012, 2.5, 0.955, ROOM.backZ + 0.012), boxAt(0.012, 0.012, 13, ROOM.leftX + 0.012, 0.955, 3)]), std(p.teal, 0.5));
-  // chân tường (len chân tường) màu soft để tách vách với sàn
-  const skirt = std(mix(p.soft, p.grey, 0.25), 0.8);
-  add(mergeAll([boxAt(13, 0.08, 0.02, 2.5, 0.04, ROOM.backZ + 0.012), boxAt(0.02, 0.08, 13, ROOM.leftX + 0.012, 0.04, 3)]), skirt);
+  add(
+    mergeAll([
+      boxAt(ROOM.x1 - ROOM.x0, 0.012, 0.012, 0, bandH + 0.006, ROOM.z0 + 0.012),
+      boxAt(0.012, 0.012, ROOM.z1 - ROOM.z0, ROOM.x0 + 0.012, bandH + 0.006, zc),
+    ]),
+    tealMat,
+  );
+  const skirt = std(mix(p.soft, p.grey, 0.3), 0.8);
+  add(mergeAll([boxAt(ROOM.x1 - ROOM.x0, 0.07, 0.02, 0, 0.035, ROOM.z0 + 0.012), boxAt(0.02, 0.07, ROOM.z1 - ROOM.z0, ROOM.x0 + 0.012, 0.035, zc)]), skirt);
 
-  // ---------- Cửa sổ: bầu trời sáng + đường chân trời thành phố, khung ink ----------
+  // ---------- Cửa sổ: bầu trời sáng + chân trời thành phố ----------
   const sky = skyTexture(p);
   disposables.push(sky);
-  const skyMat = new MeshBasicMaterial({ map: sky, toneMapped: false });
-  disposables.push(skyMat);
-  const glass = add(new PlaneGeometry(wx1 - wx0, wy1 - wy0), skyMat, "about");
-  glass.position.set((wx0 + wx1) / 2, (wy0 + wy1) / 2, ROOM.backZ - t);
-  const frame = std(p.ink, 0.5, 0.2);
+  const glass = own(new PlaneGeometry(wx1 - wx0, wy1 - wy0), basic({ map: sky, toneMapped: false }));
+  glass.position.set((wx0 + wx1) / 2, (wy0 + wy1) / 2, ROOM.z0 - t + 0.01);
   const fw = 0.05;
   add(
     mergeAll([
-      boxAt(wx1 - wx0 + fw * 2, fw, 0.08, (wx0 + wx1) / 2, wy0, ROOM.backZ - 0.02),
-      boxAt(wx1 - wx0 + fw * 2, fw, 0.08, (wx0 + wx1) / 2, wy1, ROOM.backZ - 0.02),
-      boxAt(fw, wy1 - wy0, 0.08, wx0, (wy0 + wy1) / 2, ROOM.backZ - 0.02),
-      boxAt(fw, wy1 - wy0, 0.08, wx1, (wy0 + wy1) / 2, ROOM.backZ - 0.02),
-      boxAt(0.03, wy1 - wy0, 0.05, (wx0 + wx1) / 2, (wy0 + wy1) / 2, ROOM.backZ - 0.04),
-      boxAt(wx1 - wx0 + 0.3, 0.04, 0.22, (wx0 + wx1) / 2, wy0 - 0.02, ROOM.backZ + 0.08),
+      boxAt(wx1 - wx0 + fw * 2, fw, 0.1, (wx0 + wx1) / 2, wy0, ROOM.z0 - 0.04),
+      boxAt(wx1 - wx0 + fw * 2, fw, 0.1, (wx0 + wx1) / 2, wy1, ROOM.z0 - 0.04),
+      boxAt(fw, wy1 - wy0, 0.1, wx0, (wy0 + wy1) / 2, ROOM.z0 - 0.04),
+      boxAt(fw, wy1 - wy0, 0.1, wx1, (wy0 + wy1) / 2, ROOM.z0 - 0.04),
+      boxAt(0.03, wy1 - wy0, 0.05, (wx0 + wx1) / 2, (wy0 + wy1) / 2, ROOM.z0 - 0.07),
+      boxAt(wx1 - wx0 + 0.3, 0.04, 0.2, (wx0 + wx1) / 2, wy0 - 0.02, ROOM.z0 + 0.07),
     ]),
-    frame,
-    "about",
+    inkMat,
+    undefined,
     { cast: true },
   );
-  // ---------- Khu 01 Website & App: bàn, màn hình, ghế ----------
-  const desk = { x: -1.6, z: -2.9, w: 2.4, d: 1.0, top: 0.76 };
-  const inkMat = std(p.ink, 0.55, 0.1);
+
+  // ---------- 01 Website & App: bàn, màn hình lớn, bàn phím, ngôi nhà thu nhỏ đang xây ----------
+  const { desk } = L;
   add(
     mergeAll([
-      new RoundedBoxGeometry(desk.w, 0.06, desk.d, 2, 0.02).translate(desk.x, desk.top - 0.03, desk.z),
-      boxAt(0.06, desk.top - 0.06, desk.d - 0.1, desk.x - desk.w / 2 + 0.08, (desk.top - 0.06) / 2, desk.z),
-      boxAt(0.5, desk.top - 0.06, desk.d - 0.1, desk.x + desk.w / 2 - 0.3, (desk.top - 0.06) / 2, desk.z),
-      boxAt(desk.w - 0.2, 0.3, 0.03, desk.x, desk.top - 0.25, desk.z - desk.d / 2 + 0.06),
+      rbox(desk.w, 0.06, desk.d, desk.x, desk.top - 0.03, desk.z, 0.025),
+      rbox(0.06, desk.top - 0.06, desk.d - 0.12, desk.x - desk.w / 2 + 0.09, (desk.top - 0.06) / 2, desk.z, 0.02),
+      rbox(0.55, desk.top - 0.06, desk.d - 0.12, desk.x + desk.w / 2 - 0.33, (desk.top - 0.06) / 2, desk.z, 0.02),
+      boxAt(desk.w - 0.24, 0.28, 0.03, desk.x, desk.top - 0.22, desk.z - desk.d / 2 + 0.08),
     ]),
     inkMat,
     "web",
     { cast: true, receive: true },
   );
-  // dải LED teal ở mép trước mặt bàn
-  const led = new MeshBasicMaterial({ color: p.teal, toneMapped: false });
-  disposables.push(led);
+  const led = basic({ color: p.teal, toneMapped: false });
   glows.push(led);
-  add(boxAt(desk.w - 0.04, 0.012, 0.012, desk.x, desk.top - 0.052, desk.z + desk.d / 2 + 0.002), led, "web");
-  // tay nắm ngăn kéo
-  add(boxAt(0.18, 0.02, 0.02, desk.x + desk.w / 2 - 0.3, 0.5, desk.z + desk.d / 2 - 0.02), std(p.teal, 0.4, 0.3));
-
-  // màn hình
-  const screenW = 1.12, screenH = 0.66;
-  const mx = desk.x, my = desk.top + 0.46, mz = desk.z - 0.18;
+  add(boxAt(desk.w - 0.05, 0.012, 0.012, desk.x, desk.top - 0.052, desk.z + desk.d / 2 + 0.002), led);
   add(
     mergeAll([
-      new RoundedBoxGeometry(screenW + 0.06, screenH + 0.06, 0.04, 2, 0.015).translate(mx, my, mz - 0.025),
-      boxAt(0.05, 0.36, 0.05, mx, desk.top + 0.18, mz - 0.07),
-      new RoundedBoxGeometry(0.34, 0.02, 0.22, 2, 0.008).translate(mx, desk.top + 0.01, mz - 0.03),
+      boxAt(0.2, 0.02, 0.02, desk.x + desk.w / 2 - 0.33, 0.58, desk.z + desk.d / 2 - 0.05),
+      boxAt(0.2, 0.02, 0.02, desk.x + desk.w / 2 - 0.33, 0.34, desk.z + desk.d / 2 - 0.05),
     ]),
-    inkMat,
+    tealMat,
+  );
+
+  const m = L.monitor;
+  add(
+    mergeAll([
+      rbox(m.w + 0.06, m.h + 0.06, 0.045, m.x, m.y, m.z - 0.027, 0.018),
+      rbox(0.07, m.y - desk.top - 0.2, 0.05, m.x, desk.top + (m.y - desk.top - 0.2) / 2, m.z - 0.08, 0.02),
+      rbox(0.38, 0.022, 0.24, m.x, desk.top + 0.011, m.z - 0.04, 0.01),
+    ]),
+    inkGloss,
     "web",
     { cast: true },
   );
-  const monitorCanvas = document.createElement("canvas");
-  monitorCanvas.width = 1024;
-  monitorCanvas.height = 604;
-  const monitorTex = new CanvasTexture(monitorCanvas);
-  monitorTex.colorSpace = SRGBColorSpace;
-  disposables.push(monitorTex);
-  drawScreenPlaceholder(monitorCanvas, p);
-  const screenMat = new MeshBasicMaterial({ map: monitorTex, toneMapped: false });
-  disposables.push(screenMat);
-  const monitor = add(new PlaneGeometry(screenW, screenH), screenMat, "web");
-  monitor.position.set(mx, my, mz + 0.0);
+  makeScreen("web", m.w, m.h, 1280).position.set(m.x, m.y, m.z);
 
-  // bàn phím, chuột, cốc, sổ
-  const keyMat = std(mix(p.bright, p.grey, 0.12), 0.6);
+  const k = L.keyboard;
+  const keyMat = std(mix(p.bright, p.grey, 0.1), 0.5);
   add(
     mergeAll([
-      new RoundedBoxGeometry(0.62, 0.025, 0.2, 2, 0.008).translate(mx - 0.05, desk.top + 0.013, desk.z + 0.16),
-      new RoundedBoxGeometry(0.07, 0.03, 0.11, 2, 0.015).translate(mx + 0.4, desk.top + 0.015, desk.z + 0.18),
+      rbox(k.w, 0.026, k.d, k.x, desk.top + 0.013, k.z, 0.01),
+      rbox(0.07, 0.03, 0.11, k.x + 0.48, desk.top + 0.015, k.z + 0.02, 0.015),
     ]),
     keyMat,
     "web",
     { cast: true },
   );
-  add(new CylinderGeometry(0.045, 0.04, 0.1, 18).translate(desk.x - 0.85, desk.top + 0.05, desk.z + 0.12), std(p.teal, 0.45), undefined, { cast: true });
-  add(new RoundedBoxGeometry(0.24, 0.02, 0.32, 2, 0.006).rotateY(0.25).translate(desk.x - 0.62, desk.top + 0.01, desk.z + 0.05), std(p.soft, 0.7), undefined, { cast: true });
+  // hàng phím nổi: nhìn gần thấy rõ "bàn phím khổng lồ" cho thợ code ngồi
+  const keys: BufferGeometry[] = [];
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 13; c++) keys.push(rbox(0.036, 0.008, 0.034, k.x - k.w / 2 + 0.05 + c * 0.0435, desk.top + 0.03, k.z - 0.07 + r * 0.045, 0.004));
+  add(mergeAll(keys), std(p.bright, 0.4));
+  add(new CylinderGeometry(0.045, 0.04, 0.1, 20).translate(desk.x - 1.1, desk.top + 0.05, desk.z + 0.2), tealMat, undefined, { cast: true });
+  add(rbox(0.24, 0.02, 0.32, desk.x - 0.85, desk.top + 0.01, desk.z + 0.08, 0.006).rotateY(0.0), std(p.soft, 0.7), undefined, { cast: true });
+
+  buildMiniHouse(p, add, std, rbox);
 
   // ghế
-  const chair = std(p.inkRaised, 0.6, 0.1);
+  const chair = std(p.inkRaised, 0.55, 0.1);
   add(
     mergeAll([
-      new RoundedBoxGeometry(0.52, 0.08, 0.5, 2, 0.03).translate(desk.x + 0.05, 0.48, desk.z + 0.95),
-      new RoundedBoxGeometry(0.5, 0.6, 0.07, 2, 0.03).rotateX(-0.12).translate(desk.x + 0.05, 0.86, desk.z + 1.2),
-      new CylinderGeometry(0.03, 0.03, 0.38, 10).translate(desk.x + 0.05, 0.25, desk.z + 0.95),
-      new CylinderGeometry(0.28, 0.28, 0.03, 20).translate(desk.x + 0.05, 0.05, desk.z + 0.95),
+      rbox(0.54, 0.08, 0.5, desk.x + 0.05, 0.48, desk.z + 1.0, 0.035),
+      rbox(0.52, 0.6, 0.07, desk.x + 0.05, 0.86, desk.z + 1.26, 0.03).rotateX(0),
+      new CylinderGeometry(0.03, 0.03, 0.38, 12).translate(desk.x + 0.05, 0.25, desk.z + 1.0),
+      new CylinderGeometry(0.28, 0.28, 0.03, 24).translate(desk.x + 0.05, 0.04, desk.z + 1.0),
     ]),
     chair,
     "web",
     { cast: true },
   );
+  add(rbox(3.1, 0.012, 2.2, desk.x, 0.006, desk.z + 0.95, 0.006), std(mix(p.soft, p.grey, 0.2), 0.95), undefined, { receive: true });
 
-  // thảm dưới bàn
-  const rug = std(mix(p.soft, p.grey, 0.22), 0.95);
-  add(new RoundedBoxGeometry(3.0, 0.012, 2.2, 2, 0.006).translate(desk.x, 0.006, desk.z + 0.85), rug, undefined, { receive: true });
+  // ---------- 05 Liên hệ: bàn tròn dưới cửa sổ + laptop ----------
+  const tb = L.table;
+  add(
+    mergeAll([
+      new CylinderGeometry(tb.r, tb.r, 0.04, 40).translate(tb.x, tb.top - 0.02, tb.z),
+      new CylinderGeometry(0.03, 0.03, tb.top - 0.04, 12).translate(tb.x, (tb.top - 0.04) / 2, tb.z),
+      new CylinderGeometry(0.22, 0.24, 0.025, 28).translate(tb.x, 0.013, tb.z),
+    ]),
+    brightMat,
+    "contact",
+    { cast: true, receive: true },
+  );
+  add(new TorusGeometry(tb.r, 0.012, 8, 48).rotateX(Math.PI / 2).translate(tb.x, tb.top - 0.02, tb.z), tealMat);
+  const lp = L.laptop;
+  add(rbox(lp.w + 0.02, 0.016, 0.34, lp.x, tb.top + 0.008, lp.z, 0.008), inkGloss, "contact", { cast: true });
+  const lid = new Group();
+  lid.position.set(lp.x, tb.top + 0.016, lp.z - 0.17);
+  lid.rotation.x = -lp.tilt;
+  root.add(lid);
+  const lidBack = new Mesh(rbox(lp.w + 0.02, lp.h + 0.03, 0.012, 0, (lp.h + 0.03) / 2, -0.007, 0.008), inkGloss);
+  lidBack.castShadow = !opts.phone;
+  lidBack.userData.section = "contact";
+  pickables.push(lidBack);
+  disposables.push(lidBack.geometry);
+  lid.add(lidBack);
+  const lscreen = makeScreen("contact", lp.w, lp.h, 1024);
+  root.remove(lscreen);
+  lid.add(lscreen);
+  lscreen.position.set(0, (lp.h + 0.03) / 2, 0.0005);
 
-  // ---------- Khu 05 Liên hệ: kệ danh thiếp trên bàn ----------
-  const cardX = -0.62, cardZ = -2.62;
-  add(new RoundedBoxGeometry(0.22, 0.05, 0.12, 2, 0.01).translate(cardX, desk.top + 0.025, cardZ), inkMat, "contact", { cast: true });
-  const cardTex = businessCardTexture(p);
-  disposables.push(cardTex);
-  const cardMat = new MeshStandardMaterial({ map: cardTex, roughness: 0.6 });
-  disposables.push(cardMat);
-  const card = add(new PlaneGeometry(0.2, 0.12), cardMat, "contact", { cast: true });
-  card.position.set(cardX, desk.top + 0.1, cardZ + 0.01);
-  card.rotation.x = -0.32;
-
-  // ---------- Khu 02 Dự án: bảng ghim trên vách sau ----------
-  const board = { x: 3.0, y: 1.75, w: 1.7, h: 1.05 };
+  // ---------- 02 Dự án: bảng ghim lớn, TV ở giữa, 7 thẻ dự án quanh TV, thang cho thợ ghim ----------
+  const b = L.board;
   const pegTex = pegboardTexture(p);
   disposables.push(pegTex);
   const pegMat = new MeshStandardMaterial({ map: pegTex, roughness: 0.85 });
   disposables.push(pegMat);
-  add(new RoundedBoxGeometry(board.w, board.h, 0.03, 2, 0.01).translate(board.x, board.y, ROOM.backZ + 0.02), pegMat, "projects", { receive: true });
-  // viền sáng aqua quanh bảng (như đèn hắt)
-  const halo = new MeshBasicMaterial({ color: p.aqua, transparent: true, opacity: 0.55, toneMapped: false });
-  disposables.push(halo);
+  add(rbox(b.w, b.h, 0.03, b.x, b.y, ROOM.z0 + 0.02, 0.012), pegMat, "projects", { receive: true });
+  const halo = basic({ color: p.aqua, transparent: true, opacity: 0.55, toneMapped: false });
   glows.push(halo);
   add(
     mergeAll([
-      boxAt(board.w + 0.06, 0.012, 0.01, board.x, board.y + board.h / 2 + 0.02, ROOM.backZ + 0.005),
-      boxAt(board.w + 0.06, 0.012, 0.01, board.x, board.y - board.h / 2 - 0.02, ROOM.backZ + 0.005),
-      boxAt(0.012, board.h + 0.04, 0.01, board.x - board.w / 2 - 0.03, board.y, ROOM.backZ + 0.005),
-      boxAt(0.012, board.h + 0.04, 0.01, board.x + board.w / 2 + 0.03, board.y, ROOM.backZ + 0.005),
+      boxAt(b.w + 0.06, 0.012, 0.01, b.x, b.y + b.h / 2 + 0.02, ROOM.z0 + 0.005),
+      boxAt(b.w + 0.06, 0.012, 0.01, b.x, b.y - b.h / 2 - 0.02, ROOM.z0 + 0.005),
+      boxAt(0.012, b.h + 0.04, 0.01, b.x - b.w / 2 - 0.03, b.y, ROOM.z0 + 0.005),
+      boxAt(0.012, b.h + 0.04, 0.01, b.x + b.w / 2 + 0.03, b.y, ROOM.z0 + 0.005),
     ]),
     halo,
-    "projects",
   );
-  // 7 thẻ dự án treo bằng dây
+  const tv = L.tv;
+  add(rbox(tv.w + 0.06, tv.h + 0.06, 0.05, tv.x, tv.y, ROOM.z0 + 0.06, 0.015), inkGloss, "projects", { cast: true });
+  makeScreen("projects", tv.w, tv.h, 1280).position.set(tv.x, tv.y, ROOM.z0 + 0.0865);
+
   const cards: Mesh[] = [];
-  const strap = std(p.teal, 0.5);
-  const straps: BufferGeometry[] = [];
-  for (let i = 0; i < 7; i++) {
-    const cx = board.x - board.w / 2 + 0.16 + i * ((board.w - 0.32) / 6);
-    const cy = board.y - 0.12 + (i % 2 ? -0.06 : 0.02);
-    straps.push(boxAt(0.012, 0.36, 0.006, cx, cy + 0.27, ROOM.backZ + 0.045));
+  const pins: BufferGeometry[] = [];
+  const slots: [number, number][] = [
+    [b.x - b.w / 2 + 0.17, b.y + 0.42],
+    [b.x - b.w / 2 + 0.17, b.y + 0.02],
+    [b.x + b.w / 2 - 0.17, b.y + 0.42],
+    [b.x + b.w / 2 - 0.17, b.y + 0.02],
+    [b.x - 0.42, b.y - 0.5],
+    [b.x, b.y - 0.52],
+    [b.x + 0.42, b.y - 0.5],
+  ];
+  slots.forEach(([cx, cy], i) => {
+    pins.push(new IcosahedronGeometry(0.012, 1).translate(cx, cy + 0.11, ROOM.z0 + 0.05));
     const cardBack = new MeshStandardMaterial({ color: p.bright, roughness: 0.6 });
     disposables.push(cardBack);
-    const m = add(new PlaneGeometry(0.17, 0.25), cardBack, "projects", { cast: true });
-    m.position.set(cx, cy, ROOM.backZ + 0.05);
-    m.rotation.z = (i % 3 - 1) * 0.035;
-    cards.push(m);
-  }
-  add(mergeAll(straps), strap, "projects");
+    const card = own(new PlaneGeometry(0.2, 0.25), cardBack, "projects", { cast: true });
+    card.position.set(cx, cy, ROOM.z0 + 0.045);
+    card.rotation.z = ((i % 3) - 1) * 0.04;
+    cards.push(card);
+  });
+  add(mergeAll(pins), tealMat);
 
-  // ---------- Khu 03 Digital Marketing: tủ thấp ở vách trái + loa + điện thoại ----------
-  const sb = { x: ROOM.leftX + 0.3, z: 0.9, w: 0.55, d: 1.7, h: 0.62 };
+  // thang gỗ sáng tựa vào bảng
+  const ld = L.ladder;
+  const lean = Math.atan2(ld.baseZ - (ROOM.z0 + 0.06), ld.topY);
+  const rails: BufferGeometry[] = [];
+  const len = Math.hypot(ld.topY, ld.baseZ - (ROOM.z0 + 0.06));
+  for (const dx of [-0.1, 0.1]) rails.push(boxAt(0.022, len, 0.022, ld.x + dx, len / 2, 0));
+  for (let r = 0; r < 5; r++) rails.push(boxAt(0.2, 0.016, 0.018, ld.x, 0.16 + r * ((len - 0.25) / 4), 0));
+  const ladderGeo = mergeAll(rails).rotateX(-lean).translate(0, 0, ld.baseZ);
+  add(ladderGeo, std(mix(p.bright, p.grey, 0.25), 0.6), undefined, { cast: true });
+  // hộp thẻ dưới sàn
+  const cb = L.cardBox;
+  add(rbox(0.3, 0.14, 0.22, cb.x, 0.07, cb.z, 0.015), tealMat, undefined, { cast: true });
+  add(
+    mergeAll([0, 1, 2].map((i) => boxAt(0.17, 0.12, 0.004, cb.x - 0.05 + i * 0.05, 0.16, cb.z - 0.03 + i * 0.02).rotateZ(0))),
+    std(p.bright, 0.6),
+  );
+
+  // ---------- 03 Digital Marketing: tủ thấp + bảng hiển thị chiến dịch + điện thoại + loa sàn ----------
+  const sb = L.sideboard;
+  add(rbox(sb.w, sb.h, sb.d, sb.x, sb.h / 2, sb.z, 0.025), inkMat, "marketing", { cast: true, receive: true });
+  add(
+    mergeAll([boxAt(0.012, 0.22, 0.02, sb.x + sb.w / 2 + 0.002, 0.42, sb.z - 0.2), boxAt(0.012, 0.22, 0.02, sb.x + sb.w / 2 + 0.002, 0.42, sb.z + 0.2)]),
+    tealMat,
+  );
+  const sg = L.signage;
   add(
     mergeAll([
-      new RoundedBoxGeometry(sb.w, sb.h, sb.d, 2, 0.02).translate(sb.x, sb.h / 2, sb.z),
+      rbox(0.05, sg.h + 0.06, sg.w + 0.06, sg.x - 0.03, sg.y, sg.z, 0.015),
+      rbox(0.16, 0.025, 0.36, sg.x - 0.01, sb.h + 0.0125, sg.z, 0.01),
+      rbox(0.04, sg.y - sg.h / 2 - sb.h, 0.06, sg.x - 0.04, sb.h + (sg.y - sg.h / 2 - sb.h) / 2, sg.z, 0.01),
     ]),
-    inkMat,
+    inkGloss,
     "marketing",
-    { cast: true, receive: true },
+    { cast: true },
   );
-  add(
-    mergeAll([boxAt(0.01, 0.2, 0.02, sb.x + sb.w / 2 + 0.002, 0.42, sb.z - 0.2), boxAt(0.01, 0.2, 0.02, sb.x + sb.w / 2 + 0.002, 0.42, sb.z + 0.2)]),
-    std(p.teal, 0.4, 0.3),
-    "marketing",
-  );
-  // loa
-  const spk = { x: sb.x, z: sb.z - 0.45 };
-  add(new RoundedBoxGeometry(0.28, 0.42, 0.28, 3, 0.04).translate(spk.x, sb.h + 0.21, spk.z), std(p.bright, 0.5), "marketing", { cast: true });
-  const cone = std(p.ink, 0.4, 0.2);
+  const sgs = makeScreen("marketing", sg.w, sg.h, 1024);
+  sgs.position.set(sg.x - 0.0045, sg.y, sg.z);
+  sgs.rotation.y = Math.PI / 2;
+
+  const ph = L.phone;
   add(
     mergeAll([
-      new CircleGeometry(0.095, 28).rotateY(Math.PI / 2).translate(spk.x + 0.142, sb.h + 0.16, spk.z),
-      new CircleGeometry(0.04, 20).rotateY(Math.PI / 2).translate(spk.x + 0.142, sb.h + 0.33, spk.z),
+      rbox(0.02, 0.3, 0.15, 0, 0, 0, 0.008).rotateZ(-0.2).translate(ph.x, sb.h + 0.17, ph.z),
+      rbox(0.12, 0.02, 0.14, ph.x - 0.02, sb.h + 0.01, ph.z, 0.006),
     ]),
-    cone,
-    "marketing",
-  );
-  const ring = new MeshBasicMaterial({ color: p.teal, toneMapped: false });
-  disposables.push(ring);
-  glows.push(ring);
-  add(new TorusGeometry(0.1, 0.006, 8, 40).rotateY(Math.PI / 2).translate(spk.x + 0.145, sb.h + 0.16, spk.z), ring, "marketing");
-  // điện thoại dựng trên giá, màn hình là "bảng tin mạng xã hội" trừu tượng
-  const ph = { x: sb.x + 0.02, z: sb.z + 0.25 };
-  add(
-    mergeAll([
-      new RoundedBoxGeometry(0.02, 0.32, 0.16, 2, 0.008).rotateZ(-0.18).translate(ph.x, sb.h + 0.18, ph.z),
-      boxAt(0.12, 0.02, 0.14, ph.x - 0.02, sb.h + 0.01, ph.z),
-    ]),
-    inkMat,
+    inkGloss,
     "marketing",
     { cast: true },
   );
   const feed = feedTexture(p);
   disposables.push(feed);
-  const feedMat = new MeshBasicMaterial({ map: feed, toneMapped: false });
-  disposables.push(feedMat);
-  const screen = add(new PlaneGeometry(0.145, 0.3), feedMat, "marketing");
-  screen.position.set(ph.x + 0.012, sb.h + 0.18, ph.z);
-  screen.rotation.set(0, Math.PI / 2, -0.18);
-  // kệ sách phía trên tủ
-  const shelfY = 1.55;
-  add(boxAt(0.3, 0.03, 1.5, ROOM.leftX + 0.15, shelfY, sb.z), inkMat, undefined, { cast: true });
-  const bookCols = [mix(p.teal, p.ink, 0.35), p.ink, mix(p.aqua, p.grey, 0.4)];
+  const feedMesh = own(new PlaneGeometry(0.13, 0.27), basic({ map: feed, toneMapped: false }), "marketing");
+  feedMesh.position.set(ph.x + 0.012, sb.h + 0.17, ph.z);
+  feedMesh.rotation.set(0, Math.PI / 2, 0);
+  feedMesh.rotateX(-0.2);
+
+  const sp = L.speaker;
+  add(rbox(sp.w, sp.h, sp.w, sp.x, sp.h / 2, sp.z, 0.05), brightMat, "marketing", { cast: true });
+  add(
+    mergeAll([
+      new CircleGeometry(0.11, 32).rotateY(Math.PI / 2).translate(sp.x + sp.w / 2 + 0.002, sp.h * 0.36, sp.z),
+      new CircleGeometry(0.05, 24).rotateY(Math.PI / 2).translate(sp.x + sp.w / 2 + 0.002, sp.h * 0.74, sp.z),
+    ]),
+    inkMat,
+  );
+  const ring = basic({ color: p.teal, toneMapped: false });
+  glows.push(ring);
+  add(new TorusGeometry(0.115, 0.007, 8, 40).rotateY(Math.PI / 2).translate(sp.x + sp.w / 2 + 0.004, sp.h * 0.36, sp.z), ring);
+
+  // kệ sách trên tủ
+  const shelfY = 1.82;
+  add(boxAt(0.3, 0.03, 1.5, ROOM.x0 + 0.15, shelfY, sb.z), inkMat, undefined, { cast: true });
+  const bookCols = [mix(p.teal, p.ink, 0.3), p.ink, mix(p.aqua, p.grey, 0.35)];
   const bookGeo: BufferGeometry[][] = bookCols.map(() => []);
-  let bz = sb.z - 0.65;
+  let bzz = sb.z - 0.65;
   for (let i = 0; i < 12; i++) {
     const bh = 0.2 + ((i * 37) % 9) / 60;
     const bw = 0.04 + ((i * 13) % 4) / 100;
-    bookGeo[i % bookCols.length].push(boxAt(0.2, bh, bw, ROOM.leftX + 0.14, shelfY + 0.015 + bh / 2, bz));
-    bz += bw + 0.012;
+    bookGeo[i % bookCols.length].push(boxAt(0.2, bh, bw, ROOM.x0 + 0.14, shelfY + 0.015 + bh / 2, bzz));
+    bzz += bw + 0.012;
   }
-  bookCols.forEach((c, k) => add(mergeAll(bookGeo[k]), std(c, 0.7), undefined, { cast: true }));
+  bookCols.forEach((c, i) => add(mergeAll(bookGeo[i]), std(c, 0.7), undefined, { cast: true }));
 
-  // ---------- Khu 04 Về Aegis: biểu tượng kính trên vách trái ----------
-  const emblemMat = new MeshBasicMaterial({ transparent: true, toneMapped: false, color: p.bright, opacity: 0 });
-  disposables.push(emblemMat);
-  const emblem = add(new PlaneGeometry(0.9, 0.95), emblemMat, "about");
-  emblem.position.set(ROOM.leftX + 0.02, 2.2, -1.2);
+  // ---------- 04 Về Aegis: logo kính trên vách trái, khung ảnh điện tử, ghế băng + chậu cây nhỏ ----------
+  const emblemMat = basic({ transparent: true, toneMapped: false, color: p.bright, opacity: 0 });
+  const emblem = own(new PlaneGeometry(0.74, 0.78), emblemMat, "about");
+  emblem.position.set(ROOM.x0 + 0.02, L.emblem.y, L.emblem.z);
   emblem.rotation.y = Math.PI / 2;
-  // tấm nền ink tròn sau logo (để logo kính nổi trên vách sáng)
-  const plate = std(p.ink, 0.45, 0.15);
-  const plateMesh = add(new CircleGeometry(0.62, 64), plate, "about", { receive: true });
-  plateMesh.position.set(ROOM.leftX + 0.012, 2.2, -1.2);
+  const plateMesh = own(new CircleGeometry(0.52, 64), std(p.ink, 0.4, 0.15), "about", { receive: true });
+  plateMesh.position.set(ROOM.x0 + 0.012, L.emblem.y, L.emblem.z);
   plateMesh.rotation.y = Math.PI / 2;
 
-  // ---------- Cây xanh (tán tròn tông teal, gộp chung một mesh cho cả hai chậu) ----------
-  const pot = std(p.ink, 0.6);
-  const leaf = std(mix(p.teal, p.ink, 0.55), 0.8);
+  const fr = L.frame;
+  add(rbox(0.04, fr.h + 0.08, fr.w + 0.08, ROOM.x0 + 0.02, fr.y, fr.z, 0.015), std(mix(p.bright, p.grey, 0.15), 0.5), "about", { cast: true });
+  const frs = makeScreen("about", fr.w, fr.h, 1024);
+  frs.position.set(ROOM.x0 + 0.0405, fr.y, fr.z);
+  frs.rotation.y = Math.PI / 2;
+
+  const bn = L.bench;
+  add(
+    mergeAll([
+      rbox(bn.w, 0.05, bn.d, bn.x, bn.h - 0.025, bn.z, 0.02),
+      rbox(0.05, bn.h - 0.05, 0.05, bn.x - bn.w / 2 + 0.06, (bn.h - 0.05) / 2, bn.z - bn.d / 2 + 0.06, 0.01),
+      rbox(0.05, bn.h - 0.05, 0.05, bn.x + bn.w / 2 - 0.06, (bn.h - 0.05) / 2, bn.z - bn.d / 2 + 0.06, 0.01),
+      rbox(0.05, bn.h - 0.05, 0.05, bn.x - bn.w / 2 + 0.06, (bn.h - 0.05) / 2, bn.z + bn.d / 2 - 0.06, 0.01),
+      rbox(0.05, bn.h - 0.05, 0.05, bn.x + bn.w / 2 - 0.06, (bn.h - 0.05) / 2, bn.z + bn.d / 2 - 0.06, 0.01),
+    ]),
+    std(mix(p.bright, p.grey, 0.25), 0.6),
+    "about",
+    { cast: true, receive: true },
+  );
+
+  // ---------- Cây xanh (tán tròn tông teal, gộp chung) ----------
   const pots: BufferGeometry[] = [];
   const bushes: BufferGeometry[] = [];
-  for (const [x, z, s] of [
-    [3.75, -3.0, 1],
-    [-3.45, 2.6, 0.9],
-  ] as const) {
-    pots.push(new CylinderGeometry(0.22 * s, 0.17 * s, 0.42 * s, 24).translate(x, 0.21 * s, z));
+  const plants: [number, number, number, number][] = [
+    [3.62, 0, -0.35, 0.85],
+    [1.95, 0, -3.1, 0.75],
+    [bn.x, bn.h, L.benchPlant.z, 0.32],
+  ];
+  for (const [x, y, z, s] of plants) {
+    pots.push(new CylinderGeometry(0.22 * s, 0.17 * s, 0.42 * s, 24).translate(x, y + 0.21 * s, z));
     for (const [dx, dy, dz, r] of [
       [0, 0.78, 0, 0.3],
       [0.17, 0.62, 0.06, 0.22],
@@ -401,37 +564,99 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
       [0.04, 1.02, -0.03, 0.2],
       [-0.06, 0.6, 0.16, 0.18],
     ] as const) {
-      bushes.push(new IcosahedronGeometry(r * s, 1).translate(x + dx * s, dy * s, z + dz * s));
+      bushes.push(new IcosahedronGeometry(r * s, 1).translate(x + dx * s, y + dy * s, z + dz * s));
     }
   }
-  add(mergeAll(pots), pot, undefined, { cast: true });
-  add(mergeAll(bushes), leaf, undefined, { cast: true });
+  add(mergeAll(pots), inkMat, undefined, { cast: true });
+  add(mergeAll(bushes), std(mix(p.teal, p.ink, 0.5), 0.8), undefined, { cast: true });
 
   // ---------- Đèn treo trên bàn ----------
-  const lampMat = std(p.ink, 0.4, 0.3);
   add(
     mergeAll([
-      new CylinderGeometry(0.006, 0.006, 0.9, 6).translate(desk.x - 0.2, ROOM.h - 0.45, desk.z + 0.1),
-      new ConeGeometry(0.2, 0.18, 28, 1, true).translate(desk.x - 0.2, ROOM.h - 0.95, desk.z + 0.1),
+      new CylinderGeometry(0.006, 0.006, 0.9, 6).translate(desk.x - 0.55, ROOM.h - 0.45, desk.z + 0.15),
+      new ConeGeometry(0.2, 0.18, 28, 1, true).translate(desk.x - 0.55, ROOM.h - 0.95, desk.z + 0.15),
     ]),
-    lampMat,
+    std(p.ink, 0.4, 0.3),
   );
-  const bulb = new MeshBasicMaterial({ color: p.soft, toneMapped: false, side: DoubleSide });
-  disposables.push(bulb);
-  add(new CircleGeometry(0.19, 28).rotateX(Math.PI / 2).translate(desk.x - 0.2, ROOM.h - 1.03, desk.z + 0.1), bulb);
+  add(new CircleGeometry(0.19, 28).rotateX(Math.PI / 2).translate(desk.x - 0.55, ROOM.h - 1.03, desk.z + 0.15), basic({ color: p.soft, toneMapped: false, side: DoubleSide }));
+
+  for (const b of batches.values()) own(b.parts.length === 1 ? b.parts[0] : mergeAll(b.parts), b.material, b.section, b.shadow);
+  root.updateMatrixWorld(true);
 
   return {
     root,
     pickables,
-    monitor: { mesh: monitor, canvas: monitorCanvas, texture: monitorTex },
+    screens,
     cards,
     emblem,
     glows,
     dispose() {
       for (const d of disposables) d.dispose();
-      for (const m of cards) (m.material as Material).dispose();
+      for (const c of cards) (c.material as Material).dispose();
     },
   };
+}
+
+/** Ngôi nhà thu nhỏ đang xây trên bàn: "website là bất động sản số", thợ xây khiêng khối teal tới đặt */
+function buildMiniHouse(
+  p: RoomPalette,
+  add: (g: BufferGeometry, m: Material, s?: SectionId, sh?: { cast?: boolean; receive?: boolean }) => void,
+  std: (c: Color, r?: number, m?: number) => MeshStandardMaterial,
+  rbox: (w: number, h: number, d: number, x: number, y: number, z: number, r?: number) => BufferGeometry,
+) {
+  const { house, desk } = LAYOUT;
+  const y0 = desk.top;
+  const s = 0.05; // cạnh một khối
+  add(rbox(0.42, 0.012, 0.34, house.x, y0 + 0.006, house.z, 0.004), std(mix(p.soft, p.bright, 0.3), 0.8), "web", { receive: true });
+  const blocks: BufferGeometry[] = [];
+  const blocksLight: BufferGeometry[] = [];
+  const cols = 6;
+  const rows = 4;
+  const w = cols * s;
+  const d = 4 * s;
+  // 4 vách bằng khối; vách trước chừa cửa; hàng trên cùng còn dở (đang xây)
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const top = r === rows - 1 && c > 3;
+      if (top) continue;
+      const door = r < 2 && (c === 2 || c === 3);
+      const x = house.x - w / 2 + s / 2 + c * s;
+      const y = y0 + 0.012 + s / 2 + r * s;
+      const list = (r + c) % 2 ? blocksLight : blocks;
+      if (!door) list.push(boxAt(s * 0.96, s * 0.96, s * 0.96, x, y, house.z + d / 2 - s / 2));
+      list.push(boxAt(s * 0.96, s * 0.96, s * 0.96, x, y, house.z - d / 2 + s / 2));
+    }
+    for (let c = 1; c < 3; c++) {
+      const y = y0 + 0.012 + s / 2 + r * s;
+      const list = (r + c) % 2 ? blocks : blocksLight;
+      list.push(boxAt(s * 0.96, s * 0.96, s * 0.96, house.x - w / 2 + s / 2, y, house.z - d / 2 + s / 2 + c * s));
+      if (r < rows - 1) list.push(boxAt(s * 0.96, s * 0.96, s * 0.96, house.x + w / 2 - s / 2, y, house.z - d / 2 + s / 2 + c * s));
+    }
+  }
+  // đống khối chờ xây (thợ xây khiêng từ đây)
+  const { pile } = LAYOUT;
+  for (const [dx, dy, dz] of [
+    [-0.03, 0, -0.025],
+    [0.025, 0, -0.025],
+    [-0.03, 0, 0.03],
+    [0.025, 0, 0.03],
+    [0, 1, 0],
+  ] as const) (dy ? blocksLight : blocks).push(boxAt(s * 0.96, s * 0.96, s * 0.96, pile.x + dx, y0 + s / 2 + dy * s, pile.z + dz));
+  add(mergeAll(blocks), std(p.teal, 0.5), "web", { cast: true });
+  add(mergeAll(blocksLight), std(p.aqua, 0.55), "web", { cast: true });
+  // giàn giáo + nửa mái
+  const scaffold: BufferGeometry[] = [];
+  const sh = rows * s + 0.08;
+  for (const [dx, dz] of [
+    [w / 2 + 0.03, d / 2 + 0.03],
+    [w / 2 + 0.03, -d / 2 - 0.03],
+  ]) scaffold.push(boxAt(0.008, sh, 0.008, house.x + dx, y0 + sh / 2, house.z + dz));
+  scaffold.push(boxAt(0.008, 0.008, d + 0.06, house.x + w / 2 + 0.03, y0 + sh - 0.01, house.z));
+  scaffold.push(boxAt(0.06, 0.006, d + 0.06, house.x + w / 2 + 0.0, y0 + 2 * s + 0.012, house.z));
+  add(mergeAll(scaffold), std(p.grey, 0.5, 0.3), "web", { cast: true });
+  const roofY = y0 + 0.012 + rows * s;
+  const roof = new ConeGeometry(d * 0.82, 0.12, 4, 1).rotateY(Math.PI / 4).scale(w * 0.62 / d, 1, 1).translate(house.x - w * 0.18, roofY + 0.06, house.z);
+  add(roof, std(p.ink, 0.45, 0.1), "web", { cast: true });
 }
 
 // ---------- Texture vẽ bằng canvas (chỉ hình học trừu tượng, không chữ số / dữ liệu giả) ----------
@@ -474,7 +699,6 @@ function skyTexture(p: RoomPalette): CanvasTexture {
     grad.addColorStop(0.7, css(p.bright));
     g.fillStyle = grad;
     g.fillRect(0, 0, 512, 480);
-    // đường chân trời: khối nhà nhạt, có ô cửa
     const far = css(mix(p.bright, p.grey, 0.35));
     const near = css(mix(p.bright, p.grey, 0.55));
     let x = 0;
@@ -493,29 +717,15 @@ function skyTexture(p: RoomPalette): CanvasTexture {
 }
 
 function pegboardTexture(p: RoomPalette): CanvasTexture {
-  return canvasTex(512, 320, (g) => {
+  return canvasTex(640, 456, (g) => {
     g.fillStyle = css(p.ink);
-    g.fillRect(0, 0, 512, 320);
-    g.fillStyle = css(mix(p.ink, p.teal, 0.35));
-    for (let y = 12; y < 320; y += 16) for (let x = 12; x < 512; x += 16) {
+    g.fillRect(0, 0, 640, 456);
+    g.fillStyle = css(mix(p.ink, p.teal, 0.32));
+    for (let y = 12; y < 456; y += 16) for (let x = 12; x < 640; x += 16) {
       g.beginPath();
       g.arc(x, y, 2.2, 0, Math.PI * 2);
       g.fill();
     }
-  });
-}
-
-function businessCardTexture(p: RoomPalette): CanvasTexture {
-  return canvasTex(400, 240, (g) => {
-    g.fillStyle = css(p.ink);
-    g.fillRect(0, 0, 400, 240);
-    g.fillStyle = css(p.teal);
-    g.fillRect(0, 226, 400, 14);
-    g.fillStyle = css(p.bright);
-    g.font = "700 58px system-ui, sans-serif";
-    g.fillText("Aegis", 34, 118);
-    g.fillStyle = css(p.aqua);
-    g.fillRect(36, 146, 120, 6);
   });
 }
 
@@ -545,35 +755,4 @@ function feedTexture(p: RoomPalette): CanvasTexture {
     post(58, p.aqua);
     post(266, p.teal);
   });
-}
-
-/** Màn hình lúc chưa có ảnh dự án: khung trình duyệt brand */
-export function drawScreenPlaceholder(canvas: HTMLCanvasElement, p: RoomPalette) {
-  const g = canvas.getContext("2d")!;
-  g.fillStyle = css(p.bright);
-  g.fillRect(0, 0, canvas.width, canvas.height);
-  g.fillStyle = css(p.ink);
-  g.fillRect(0, 0, canvas.width, 40);
-  g.fillStyle = css(p.teal);
-  g.fillRect(0, 40, canvas.width, 6);
-}
-
-/** Vẽ ảnh dự án lên màn hình, kèm thanh trình duyệt brand ở trên */
-export function drawScreenShot(canvas: HTMLCanvasElement, image: CanvasImageSource & { width: number; height: number }, p: RoomPalette) {
-  const g = canvas.getContext("2d")!;
-  const bar = 40;
-  g.fillStyle = css(p.ink);
-  g.fillRect(0, 0, canvas.width, bar);
-  for (let k = 0; k < 3; k++) {
-    g.fillStyle = css(k === 0 ? p.teal : mix(p.ink, p.bright, 0.35));
-    g.beginPath();
-    g.arc(22 + k * 22, bar / 2, 6, 0, Math.PI * 2);
-    g.fill();
-  }
-  g.fillStyle = css(mix(p.ink, p.bright, 0.18));
-  g.fillRect(110, 11, canvas.width - 220, 18);
-  const h = canvas.height - bar;
-  const scale = Math.max(canvas.width / image.width, h / image.height);
-  const w = image.width * scale;
-  g.drawImage(image, (canvas.width - w) / 2, bar, w, image.height * scale);
 }

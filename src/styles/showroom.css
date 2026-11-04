@@ -250,34 +250,72 @@
   pointer-events: none;
 }
 
-/* ---------- Khung nội dung ---------- */
-.showroom-panel {
+/* ---------- Bong bóng tên Thợ Aegis ---------- */
+.showroom-bubble {
   position: absolute;
-  top: clamp(1rem, 2.5vw, 1.5rem);
-  right: clamp(1rem, 2.5vw, 1.5rem);
-  bottom: clamp(5.25rem, 8vw, 6rem);
-  display: flex;
-  flex-direction: column;
-  width: min(44vw, 40rem);
-  overflow: hidden;
+  top: 0;
+  left: 0;
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.45rem 0.75rem;
   border: 1px solid var(--sr-line);
-  border-radius: 1.25rem;
-  background: var(--palette-bright);
+  border-radius: 0.8rem;
+  background: var(--sr-glass);
+  backdrop-filter: blur(10px);
   box-shadow: var(--sr-shadow);
+  color: var(--palette-ink);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  pointer-events: none;
+  translate: -50% calc(-100% - 0.6rem);
+  will-change: transform;
 }
 
-.showroom-panel-bar {
+.showroom-bubble .label {
+  color: var(--palette-teal-deep);
+}
+
+.showroom-bubble[data-hidden="true"] {
+  visibility: hidden;
+}
+
+/* ---------- Lớp màn hình: khít khung màn hình 3D (engine ghi --sx --sy --sw --sh) ---------- */
+.showroom-screen {
+  position: absolute;
+  top: var(--sy, 10vh);
+  left: var(--sx, 10vw);
+  width: var(--sw, 80vw);
+  height: var(--sh, 70vh);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--palette-bright);
+  container-type: size;
+  container-name: sr-screen;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.showroom-screen[data-on] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.showroom-screen-bar {
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  padding: 0.7rem 0.9rem 0.7rem 1rem;
-  border-bottom: 1px solid var(--sr-line);
-  background: color-mix(in oklab, var(--palette-soft) 45%, var(--palette-bright));
+  flex: none;
+  height: clamp(2.4rem, 7cqh, 3.1rem);
+  padding: 0 0.6rem 0 1rem;
+  background: var(--palette-ink);
+  color: var(--palette-bright);
 }
 
-.showroom-panel-bar .label {
+.showroom-screen-bar .label {
   flex: 1;
-  color: var(--palette-ink);
+  color: var(--palette-soft);
   outline: none;
 }
 
@@ -307,33 +345,162 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 0.6rem;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   line-height: 1;
-  color: var(--palette-ink);
+  color: var(--palette-bright);
 }
 
 .showroom-close:hover {
-  background: color-mix(in oklab, var(--palette-ink) 8%, transparent);
+  background: color-mix(in oklab, var(--palette-bright) 14%, transparent);
 }
 
-.showroom-panel-scroll {
+.showroom-screen-scroll {
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: clamp(1.25rem, 2.5vw, 2rem);
+  padding: clamp(1.1rem, 4cqi, 3rem) clamp(1.1rem, 5cqi, 3.75rem);
+  container-type: inline-size;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .showroom-panel {
-    animation: sr-panel-in 0.6s var(--motion-ease-out) both;
+  /* màn hình "bật sáng": nhoè sáng rồi hiện nội dung */
+  .showroom-screen {
+    transition:
+      opacity 0.22s ease,
+      visibility 0s linear 0.22s;
+  }
+
+  .showroom-screen[data-on] {
+    transition:
+      opacity 0.45s var(--motion-ease-out),
+      visibility 0s;
+  }
+
+  .showroom-screen[data-on] .showroom-screen-scroll > * {
+    animation: sr-screen-in 0.6s var(--motion-ease-out) both;
   }
 }
 
-@keyframes sr-panel-in {
+@keyframes sr-screen-in {
   from {
     opacity: 0;
-    translate: 2rem 0;
+    translate: 0 0.75rem;
   }
+}
+
+/* ---------- Nội dung trên màn hình 3D: chữ to theo cỡ màn hình, mở ra là thấy ngay nội dung chính ---------- */
+.showroom-screen .sr-body {
+  gap: clamp(0.9rem, 2.4cqi, 1.6rem);
+}
+
+.showroom-screen .sr-title {
+  font-size: clamp(1.6rem, 4.3cqi, 3.4rem);
+  max-width: 24ch;
+}
+
+.showroom-screen .sr-lead {
+  font-size: clamp(0.98rem, 1.6cqi, 1.25rem);
+  max-width: 60ch;
+}
+
+.showroom-screen .sr-packages {
+  gap: clamp(0.75rem, 2cqi, 1.4rem);
+}
+
+.showroom-screen .sr-package {
+  padding: clamp(1rem, 2.4cqi, 1.75rem);
+}
+
+.showroom-screen .sr-package-name {
+  font-size: clamp(1.35rem, 2.8cqi, 2.1rem);
+}
+
+.showroom-screen .sr-list li {
+  font-size: clamp(0.92rem, 1.45cqi, 1.1rem);
+}
+
+.showroom-screen .sr-projects {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+}
+
+.showroom-screen .sr-values {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: clamp(0.75rem, 2cqi, 1.4rem);
+}
+
+.showroom-screen .sr-values li {
+  padding: clamp(1rem, 2.4cqi, 1.75rem);
+}
+
+.showroom-screen .sr-values strong {
+  font-size: clamp(1.2rem, 2.4cqi, 1.8rem);
+}
+
+.showroom-screen .sr-estate {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
+
+/* ---------- Tab ---------- */
+.sr-tabs {
+  display: grid;
+  gap: clamp(0.9rem, 2cqi, 1.4rem);
+}
+
+.sr-tablist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.3rem;
+  justify-self: start;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--palette-soft) 55%, var(--palette-bright));
+}
+
+.sr-tablist [role="tab"] {
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-weight: 650;
+  font-size: 0.95rem;
+  color: var(--palette-ink);
+}
+
+.sr-tablist [role="tab"]:hover {
+  background: color-mix(in oklab, var(--palette-bright) 70%, transparent);
+}
+
+.sr-tablist [role="tab"][aria-selected="true"] {
+  background: var(--palette-ink);
+  color: var(--palette-bright);
+}
+
+.sr-tabpanel {
+  display: grid;
+  gap: clamp(0.8rem, 2cqi, 1.3rem);
+  outline: none;
+}
+
+.sr-tabpanel[hidden] {
+  display: none;
+}
+
+.sr-flat-part {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.sr-card {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  padding: clamp(1rem, 2.4cqi, 1.6rem);
+  border: 1px solid var(--sr-line);
+  border-radius: 1rem;
+}
+
+.sr-card-title {
+  font-size: clamp(1.1rem, 2cqi, 1.45rem);
+  font-weight: 650;
+  letter-spacing: -0.015em;
 }
 
 /* ---------- Màn khởi động ---------- */
@@ -441,6 +608,11 @@ html[data-js] .showroom[data-mode="pending"] .showroom-flat {
   padding: 0.9rem 1rem;
   border-radius: 0.9rem;
   background: color-mix(in oklab, var(--palette-soft) 45%, var(--palette-bright));
+}
+
+.sr-estate-item > .label {
+  display: block;
+  margin-bottom: 0.35rem;
 }
 
 .sr-estate-item dt {
@@ -775,14 +947,14 @@ html[data-js] .showroom[data-mode="pending"] .showroom-flat {
     font-size: 0.68rem;
   }
 
-  .showroom-panel {
-    top: auto;
+  /* camera áp sát màn hình (vừa theo chiều ngang), rồi lớp màn hình giãn ra phủ khung nhìn, viền màn hình còn ở mép */
+  .showroom-screen[data-on] {
+    top: 0.5rem;
     left: 0.5rem;
-    right: 0.5rem;
-    bottom: 4.9rem;
-    width: auto;
-    height: min(62svh, 34rem);
-    border-radius: 1.25rem;
+    width: calc(100% - 1rem);
+    height: calc(100% - 5.6rem);
+    border-radius: 0.9rem;
+    box-shadow: 0 0 0 4px var(--palette-ink);
   }
 
   .sr-estate,
@@ -793,16 +965,20 @@ html[data-js] .showroom[data-mode="pending"] .showroom-flat {
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .showroom-panel {
-      animation-name: sr-sheet-in;
+    .showroom-screen[data-on] {
+      transition:
+        opacity 0.3s var(--motion-ease-out),
+        top 0.55s var(--motion-ease-out),
+        left 0.55s var(--motion-ease-out),
+        width 0.55s var(--motion-ease-out),
+        height 0.55s var(--motion-ease-out),
+        border-radius 0.55s var(--motion-ease-out),
+        visibility 0s;
     }
   }
-}
 
-@keyframes sr-sheet-in {
-  from {
-    opacity: 0;
-    translate: 0 2rem;
+  .showroom-bubble {
+    display: none;
   }
 }
 
@@ -812,23 +988,22 @@ html[data-js] .showroom[data-mode="pending"] .showroom-flat {
 }
 
 /* ---------- Form liên hệ bên trong khung nội dung: một cột, chữ vừa khung ---------- */
-.showroom-panel [data-js] .wizard-grid,
-html[data-js] .showroom-panel .wizard-grid {
+html[data-js] .showroom-screen .wizard-grid {
   grid-template-columns: minmax(0, 1fr);
   gap: 1.5rem;
 }
 
-html[data-js] .showroom-panel .wizard-sheet {
+html[data-js] .showroom-screen .wizard-sheet {
   display: none;
 }
 
-.showroom-panel .wizard-title,
+.showroom-screen .wizard-title,
 .showroom-flat .wizard-title {
   font-size: clamp(1.5rem, 1.2rem + 1vw, 2.1rem);
   max-width: none;
 }
 
-.showroom-panel .wizard-service-face {
+.showroom-screen .wizard-service-face {
   padding-block: 1rem;
 }
 
@@ -839,7 +1014,7 @@ html[data-js] .showroom-panel .wizard-sheet {
   }
 }
 
-.showroom-panel .wizard-service-title,
+.showroom-screen .wizard-service-title,
 .showroom-flat .wizard-service-title {
   font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
 }

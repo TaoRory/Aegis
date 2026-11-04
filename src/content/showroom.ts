@@ -12,6 +12,7 @@ import { services } from "@/content/services";
 
 export type SectionId = "web" | "projects" | "marketing" | "about" | "contact";
 export type PackageId = "own" | "grow";
+export type MakerRole = "coder" | "builder" | "architect" | "pinner" | "crier" | "poster" | "gardener" | "messenger" | "courier";
 
 export interface PackageInfo {
   id: PackageId;
@@ -35,7 +36,7 @@ export const showroom = {
     description: "Không gian 3D giới thiệu hai sản phẩm chính của Aegis: thiết kế, phát triển website và web app, và digital marketing cho doanh nghiệp.",
   },
   brand: { name: "AEGIS", line: "Website & App · Digital Marketing" },
-  boot: { label: "Đang dựng studio", enter: "Vào studio", hint: "Kéo để nhìn quanh · bấm vào đồ vật để xem", skip: "Bỏ qua" },
+  boot: { label: "Đang dựng studio", enter: "Vào studio", hint: "Kéo để nhìn quanh · bấm vào màn hình để xem", skip: "Bỏ qua" },
   chrome: {
     nav: "Các khu trong studio",
     close: "Đóng",
@@ -49,12 +50,34 @@ export const showroom = {
   },
 
   sections: [
-    { id: "web", index: "01", label: "Website & App", object: "Bàn làm việc" },
-    { id: "projects", index: "02", label: "Dự án", object: "Bảng ghim" },
-    { id: "marketing", index: "03", label: "Digital Marketing", object: "Loa và điện thoại" },
-    { id: "about", index: "04", label: "Về Aegis", object: "Cửa sổ" },
-    { id: "contact", index: "05", label: "Liên hệ", object: "Danh thiếp" },
+    { id: "web", index: "01", label: "Website & App", object: "Màn hình trên bàn làm việc" },
+    { id: "projects", index: "02", label: "Dự án", object: "TV trên bảng ghim" },
+    { id: "marketing", index: "03", label: "Digital Marketing", object: "Bảng hiển thị chiến dịch" },
+    { id: "about", index: "04", label: "Về Aegis", object: "Khung ảnh dưới logo" },
+    { id: "contact", index: "05", label: "Liên hệ", object: "Laptop dưới cửa sổ" },
   ] as { id: SectionId; index: string; label: string; object: string }[],
+
+  /** Linh vật "Thợ Aegis" (minibot minh hoạ, không đại diện nhân sự thật): nhãn hiện khi rê chuột */
+  makers: {
+    roles: {
+      coder: "Thợ code",
+      builder: "Thợ xây nền móng",
+      architect: "Kiến trúc sư",
+      pinner: "Thợ dự án",
+      crier: "Thợ marketing",
+      poster: "Thợ nội dung",
+      gardener: "Thợ chăm sóc",
+      messenger: "Thợ liên lạc",
+      courier: "Thợ kết nối",
+    } as Record<MakerRole, string>,
+    hint: "Bấm để xem khu",
+  },
+
+  /** Nhãn tab trong màn hình 3D (bản phẳng hiện tất cả nối tiếp) */
+  tabs: {
+    web: { packages: "Hai gói", estate: "Bất động sản số", compare: "So sánh", process: "Quy trình" },
+    marketing: { scope: "Phạm vi", approach: "Cách triển khai", link: "Đi cùng website" },
+  },
 
   hero: {
     title: "Studio Aegis",
