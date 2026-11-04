@@ -35,7 +35,7 @@ export const showroom = {
     title: "Studio Aegis: Website & App, Digital Marketing (bản demo)",
     description: "Không gian 3D giới thiệu hai sản phẩm chính của Aegis: thiết kế, phát triển website và web app, và digital marketing cho doanh nghiệp.",
   },
-  brand: { name: "AEGIS", line: "Website & App · Digital Marketing" },
+  brand: { name: "AEGIS", line: "Stands behind every stage of your business growth." },
   boot: { label: "Đang dựng studio", enter: "Vào studio", hint: "Kéo để nhìn quanh · bấm vào màn hình để xem", skip: "Bỏ qua" },
   chrome: {
     nav: "Các khu trong studio",

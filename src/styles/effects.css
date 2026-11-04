@@ -367,9 +367,11 @@
 
   .site-intro-tagline {
     color: color-mix(in oklab, var(--palette-aqua) 80%, var(--palette-bright));
-    letter-spacing: 0.42em;
-    margin-right: -0.42em;
-    white-space: nowrap;
+    letter-spacing: 0.2em;
+    margin-right: -0.2em;
+    max-width: min(88vw, 30rem);
+    text-align: center;
+    text-wrap: balance;
   }
 
   /* ---------- Màn chuyển trang "vẽ bản vẽ" (RouteCover.tsx): luôn nền mực, chữ giấy, vạch dẫn xanh ---------- */

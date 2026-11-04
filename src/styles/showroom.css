@@ -161,7 +161,7 @@
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  color: var(--palette-ink);
+  color: var(--palette-bright);
 }
 
 .showroom-brand-mark {
@@ -176,7 +176,7 @@
 }
 
 .showroom-brand .label {
-  color: var(--palette-teal-deep);
+  color: var(--palette-aqua);
 }
 
 .showroom-nav {
@@ -1015,7 +1015,7 @@ html[data-js] .showroom-screen .wizard-sheet {
 }
 
 /* Dòng mô tả thương hiệu chỉ hiện khi đủ chỗ (không đè thanh điều hướng) */
-@media (max-width: 95.99rem) {
+@media (max-width: 119.99rem) {
   .showroom-brand .label {
     display: none;
   }

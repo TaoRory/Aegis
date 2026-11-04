@@ -66,7 +66,7 @@ function measure(vw: number, vh: number): Layout {
 
 /**
  * Màn mở đầu của trang chính: logo AEGIS tự lắp ráp (motion identity: một dải sáng → xoắn → khép thành lục giác), dưới là chữ AEGIS
- * và Build / Deploy / Scale. Người dùng cuộn (bánh xe, vuốt, phím ↓ / Space) thì cả lớp phủ phóng to quanh LÕI MỞ của logo cho tới
+ * và tagline. Người dùng cuộn (bánh xe, vuốt, phím ↓ / Space) thì cả lớp phủ phóng to quanh LÕI MỞ của logo cho tới
  * khi lõi phủ kín màn hình và lộ ra trang chủ phía sau; có nút "Bỏ qua".
  * Chỉ hiển thị khi <html data-intro="playing"> (script đầu trang đặt: trang chủ, lần đầu trong phiên, không giảm chuyển động).
  * Hạt hero và chữ hero bắt đầu dựng khi lớp phủ đã phóng được một đoạn (sự kiện INTRO_DONE_EVENT), để ô cửa không trống.

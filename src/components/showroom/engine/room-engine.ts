@@ -118,14 +118,14 @@ export class RoomEngine {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, opts.phone ? 1.5 : 1.75));
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.toneMapping = NeutralToneMapping;
-    this.renderer.toneMappingExposure = 0.95;
+    this.renderer.toneMappingExposure = 1.05;
     this.renderer.shadowMap.enabled = !opts.phone;
     this.renderer.shadowMap.type = PCFShadowMap;
     this.renderer.domElement.className = "showroom-canvas";
     host.appendChild(this.renderer.domElement);
 
     this.palette = readRoomPalette();
-    this.scene.background = this.palette.bright.clone();
+    this.scene.background = this.palette.ink.clone();
 
     // Ánh sáng ban ngày: môi trường phòng (PBR) + trời/đất + nắng xiên có bóng mềm
     const pmrem = new PMREMGenerator(this.renderer);

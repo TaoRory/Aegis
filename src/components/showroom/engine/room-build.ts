@@ -188,9 +188,11 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
     new RoundedBoxGeometry(w, h, d, 3, Math.min(r, w / 2 - 1e-3, h / 2 - 1e-3, d / 2 - 1e-3)).translate(x, y, z);
 
   const inkMat = std(p.ink, 0.5, 0.1);
-  const inkGloss = std(p.ink, 0.28, 0.25);
   const brightMat = std(p.bright, 0.55);
   const tealMat = std(p.teal, 0.45, 0.1);
+  // Phòng nền tối, đồ vật màu sáng: thân đồ vật (bàn, tủ, kệ, chậu) và viền màn hình dùng màu sáng của palette
+  const bodyMat = std(mix(p.bright, p.soft, 0.3), 0.5, 0.05);
+  const bodyGloss = std(mix(p.bright, p.grey, 0.12), 0.3, 0.2);
 
   /** Màn hình phát sáng (canvas): luôn hướng về +z cục bộ */
   const screens = {} as Record<SectionId, RoomScreen>;
@@ -213,21 +215,21 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   const D = R.z1 - R.z0;
 
   // ---------- Sàn gỗ (đậm hơn một chút để đồ trắng nổi), trần ----------
-  const floorTex = plankTexture(mix(p.grey, p.bright, 0.42), mix(p.grey, p.ink, 0.25));
+  const floorTex = plankTexture(mix(p.ink, p.grey, 0.3), mix(p.ink, p.grey, 0.55));
   floorTex.wrapS = floorTex.wrapT = RepeatWrapping;
   floorTex.repeat.set(2.8, 2.4);
   disposables.push(floorTex);
   const floor = new MeshStandardMaterial({ map: floorTex, roughness: 0.72 });
   disposables.push(floor);
   add(new PlaneGeometry(W, D).rotateX(-Math.PI / 2).translate(xc, 0, zc), floor, undefined, { receive: true });
-  add(new PlaneGeometry(W, D).rotateX(Math.PI / 2).translate(xc, R.h, zc), basic({ color: mix(p.bright, p.soft, 0.2), toneMapped: false }));
+  add(new PlaneGeometry(W, D).rotateX(Math.PI / 2).translate(xc, R.h, zc), basic({ color: mix(p.inkRaised, p.tealDeep, 0.22), toneMapped: false }));
   // hai dải đèn trần
   const lightStrip = basic({ color: p.soft, toneMapped: false });
   add(mergeAll([boxAt(2.8, 0.02, 0.16, -0.6, R.h - 0.01, -1.2), boxAt(2.8, 0.02, 0.16, -0.6, R.h - 0.01, 0.9)]), lightStrip);
 
   // ---------- Bốn vách (khối đặt ngoài phòng, mặt trong quay vào) ; cửa sổ ở vách trái ----------
-  // Vách màu xanh dịu (Soft Aqua pha xám Grey) để có tương phản với đồ ink và đồ trắng; dải chân tường sáng hơn một nấc
-  const wall = std(mix(p.aqua, p.grey, 0.42), 0.95);
+  // Vách xanh đen sâu (Ink Raised pha Teal Deep) để đồ vật sáng màu nổi lên; dải chân tường tối hơn một nấc
+  const wall = std(mix(p.inkRaised, p.tealDeep, 0.32), 0.95);
   const t = 0.14;
   const { z0: zw0, z1: zw1, y0: wy0, y1: wy1 } = windowC;
   const zwm = (zw0 + zw1) / 2;
@@ -246,7 +248,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
     undefined,
     { receive: true },
   );
-  const band = std(mix(p.soft, p.aqua, 0.5), 0.92);
+  const band = std(mix(p.ink, p.inkRaised, 0.45), 0.92);
   const bandH = wy0;
   add(
     mergeAll([
@@ -275,7 +277,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
       boxAt(0.02, 0.07, D, R.x0 + 0.012, 0.035, zc),
       boxAt(0.02, 0.07, D, R.x1 - 0.012, 0.035, zc),
     ]),
-    std(p.inkRaised, 0.8),
+    std(mix(p.teal, p.ink, 0.5), 0.8),
   );
 
   // cửa sổ vách trái: bầu trời sáng + chân trời thành phố, khung ink
@@ -296,7 +298,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
       boxAt(0.05, wy1 - wy0, 0.03, R.x0 - 0.02, midY, zwm),
       boxAt(0.22, 0.04, zw1 - zw0 + 0.3, R.x0 + 0.07, wy0 - 0.02, zwm),
     ]),
-    inkMat,
+    bodyMat,
   );
 
   // ---------- 01 Website & App: bàn, màn hình lớn, bàn phím, ngôi nhà thu nhỏ đang xây ----------
@@ -308,7 +310,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
       rbox(0.55, desk.top - 0.06, desk.d - 0.12, desk.x + desk.w / 2 - 0.33, (desk.top - 0.06) / 2, desk.z, 0.02),
       boxAt(desk.w - 0.24, 0.28, 0.03, desk.x, desk.top - 0.22, desk.z - desk.d / 2 + 0.08),
     ]),
-    inkMat,
+    bodyMat,
     "web",
     { cast: true, receive: true },
   );
@@ -330,7 +332,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
       rbox(0.07, m.y - desk.top - 0.2, 0.05, m.x, desk.top + (m.y - desk.top - 0.2) / 2, m.z - 0.08, 0.02),
       rbox(0.38, 0.022, 0.24, m.x, desk.top + 0.011, m.z - 0.04, 0.01),
     ]),
-    inkGloss,
+    bodyGloss,
     "web",
     { cast: true },
   );
@@ -364,7 +366,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
       new CylinderGeometry(0.03, 0.03, 0.38, 12).translate(0, 0.25, 0),
       new CylinderGeometry(0.28, 0.28, 0.03, 24).translate(0, 0.04, 0),
     ]).rotateY(0.15).translate(desk.x - 0.55, 0, desk.z + 0.6),
-    std(p.inkRaised, 0.55, 0.1),
+    std(p.teal, 0.5, 0.1),
     "web",
     { cast: true },
   );
@@ -397,7 +399,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   lap.position.set(tb.x, tb.top, tb.z);
   lap.rotation.y = lp.yaw;
   root.add(lap);
-  const lapBase = new Mesh(rbox(lp.w + 0.02, 0.016, 0.34, 0, 0.008, 0, 0.008), inkGloss);
+  const lapBase = new Mesh(rbox(lp.w + 0.02, 0.016, 0.34, 0, 0.008, 0, 0.008), bodyGloss);
   lapBase.castShadow = !opts.phone;
   lapBase.userData.section = "contact";
   pickables.push(lapBase);
@@ -407,7 +409,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   lid.position.set(0, 0.016, -0.17);
   lid.rotation.x = -lp.tilt;
   lap.add(lid);
-  const lidBack = new Mesh(rbox(lp.w + 0.02, lp.h + 0.03, 0.012, 0, (lp.h + 0.03) / 2, -0.007, 0.008), inkGloss);
+  const lidBack = new Mesh(rbox(lp.w + 0.02, lp.h + 0.03, 0.012, 0, (lp.h + 0.03) / 2, -0.007, 0.008), bodyGloss);
   lidBack.castShadow = !opts.phone;
   lidBack.userData.section = "contact";
   pickables.push(lidBack);
@@ -437,7 +439,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
     halo,
   );
   const tv = L.tv;
-  add(rbox(tv.w + 0.06, tv.h + 0.06, 0.05, tv.x, tv.y, R.z0 + 0.06, 0.015), inkGloss, "projects", { cast: true });
+  add(rbox(tv.w + 0.06, tv.h + 0.06, 0.05, tv.x, tv.y, R.z0 + 0.06, 0.015), bodyGloss, "projects", { cast: true });
   makeScreen("projects", tv.w, tv.h, 1280).position.set(tv.x, tv.y, R.z0 + 0.0865);
 
   const cards: Mesh[] = [];
@@ -477,7 +479,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
 
   // ---------- 03 Digital Marketing: tủ thấp sát vách trái + bảng hiển thị chiến dịch + điện thoại + loa sàn ----------
   const sb = L.sideboard;
-  add(rbox(sb.w, sb.h, sb.d, sb.x, sb.h / 2, sb.z, 0.025), inkMat, "marketing", { cast: true, receive: true });
+  add(rbox(sb.w, sb.h, sb.d, sb.x, sb.h / 2, sb.z, 0.025), bodyMat, "marketing", { cast: true, receive: true });
   add(
     mergeAll([boxAt(0.012, 0.22, 0.02, sb.x + sb.w / 2 + 0.002, 0.42, sb.z - 0.2), boxAt(0.012, 0.22, 0.02, sb.x + sb.w / 2 + 0.002, 0.42, sb.z + 0.2)]),
     tealMat,
@@ -489,7 +491,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
       rbox(0.16, 0.025, 0.36, sg.x - 0.01, sb.h + 0.0125, sg.z, 0.01),
       rbox(0.04, sg.y - sg.h / 2 - sb.h, 0.06, sg.x - 0.04, sb.h + (sg.y - sg.h / 2 - sb.h) / 2, sg.z, 0.01),
     ]),
-    inkGloss,
+    bodyGloss,
     "marketing",
     { cast: true },
   );
@@ -503,7 +505,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
       rbox(0.02, 0.3, 0.15, 0, 0, 0, 0.008).rotateZ(-0.2).translate(ph.x, sb.h + 0.17, ph.z),
       rbox(0.12, 0.02, 0.14, ph.x - 0.02, sb.h + 0.01, ph.z, 0.006),
     ]),
-    inkGloss,
+    bodyGloss,
     "marketing",
     { cast: true },
   );
@@ -528,8 +530,8 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
 
   // kệ sách trên tủ
   const shelfY = 1.82;
-  add(boxAt(0.3, 0.03, 1.5, R.x0 + 0.15, shelfY, sb.z), inkMat, undefined, { cast: true });
-  const bookCols = [mix(p.teal, p.ink, 0.3), p.ink, mix(p.aqua, p.grey, 0.35)];
+  add(boxAt(0.3, 0.03, 1.5, R.x0 + 0.15, shelfY, sb.z), bodyMat, undefined, { cast: true });
+  const bookCols = [p.teal, p.aqua, mix(p.soft, p.grey, 0.3)];
   const bookGeo: BufferGeometry[][] = bookCols.map(() => []);
   let bzz = sb.z - 0.65;
   for (let i = 0; i < 12; i++) {
@@ -544,8 +546,6 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   const emblemMat = basic({ transparent: true, toneMapped: false, color: p.bright, opacity: 0 });
   const emblem = own(new PlaneGeometry(0.74, 0.78), emblemMat, "about");
   emblem.position.set(L.emblem.x, L.emblem.y, R.z0 + 0.02);
-  const plateMesh = own(new CircleGeometry(0.52, 64), std(p.ink, 0.4, 0.15), "about", { receive: true });
-  plateMesh.position.set(L.emblem.x, L.emblem.y, R.z0 + 0.012);
 
   const fr = L.frame;
   const easel = new Group();
@@ -568,7 +568,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   tilt.position.set(0, fr.y, 0);
   tilt.rotation.x = -0.1;
   easel.add(tilt);
-  const bezel = new Mesh(rbox(fr.w + 0.08, fr.h + 0.08, 0.04, 0, 0, -0.021, 0.015), inkGloss);
+  const bezel = new Mesh(rbox(fr.w + 0.08, fr.h + 0.08, 0.04, 0, 0, -0.021, 0.015), bodyGloss);
   bezel.castShadow = !opts.phone;
   bezel.userData.section = "about";
   pickables.push(bezel);
@@ -613,8 +613,8 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
       bushes.push(new IcosahedronGeometry(r * s, 1).translate(x + dx * s, y + dy * s, z + dz * s));
     }
   }
-  add(mergeAll(pots), inkMat, undefined, { cast: true });
-  add(mergeAll(bushes), std(mix(p.teal, p.ink, 0.5), 0.8), undefined, { cast: true });
+  add(mergeAll(pots), bodyMat, undefined, { cast: true });
+  add(mergeAll(bushes), std(mix(p.teal, p.aqua, 0.2), 0.8), undefined, { cast: true });
 
   for (const batch of batches.values()) own(batch.parts.length === 1 ? batch.parts[0] : mergeAll(batch.parts), batch.material, batch.section, batch.shadow);
   root.updateMatrixWorld(true);
@@ -754,9 +754,9 @@ function skyTexture(p: RoomPalette): CanvasTexture {
 
 function pegboardTexture(p: RoomPalette): CanvasTexture {
   return canvasTex(640, 456, (g) => {
-    g.fillStyle = css(p.ink);
+    g.fillStyle = css(mix(p.bright, p.soft, 0.5));
     g.fillRect(0, 0, 640, 456);
-    g.fillStyle = css(mix(p.ink, p.teal, 0.32));
+    g.fillStyle = css(mix(p.soft, p.grey, 0.55));
     for (let y = 12; y < 456; y += 16) for (let x = 12; x < 640; x += 16) {
       g.beginPath();
       g.arc(x, y, 2.2, 0, Math.PI * 2);
