@@ -27,7 +27,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 
 import { mergeAll } from "@/components/space/engine/builders/merge";
 import { radialTexture } from "@/components/space/engine/textures";
-import { LAYOUT, mix, type RoomPalette } from "@/components/showroom/engine/room-build";
+import { LAYOUT, mix, ROOM, type RoomPalette } from "@/components/showroom/engine/room-build";
 import type { MakerRole, SectionId } from "@/content/showroom";
 
 /**
@@ -117,7 +117,7 @@ const MAKERS: MakerDef[] = [
       act("bend", 0.7, PI),
       hold("card"),
       go(ladder.x, 0, ladder.baseZ + 0.08),
-      go(ladder.x, 0.98, -3.34, true),
+      go(ladder.x, 0.96, ROOM.z0 + 0.17, true),
       act("pin", 1.7, PI),
       hold(null),
       go(ladder.x, 0, ladder.baseZ + 0.08, true),
@@ -167,10 +167,10 @@ const MAKERS: MakerDef[] = [
     section: "projects",
     hat: "cap",
     suit: "deep",
-    start: [2.2, 0, -2.0],
+    start: [2.05, 0, -1.2],
     yaw: 0,
     prop: "cube",
-    script: [go(1.2, 0, -0.7), go(-0.6, 0, 0.15), go(-2.95, 0, 0.9), act("place", 0.9, -PI / 2), hold(null), go(-1.0, 0, 0.75), go(1.1, 0, -0.25), go(2.2, 0, -2.0), act("bend", 0.7, 0), hold("cube")],
+    script: [go(1.0, 0, -0.05), go(-0.5, 0, 0.3), go(-2.3, 0, -0.85), act("place", 0.9, -PI / 2), hold(null), go(-0.8, 0, 0.15), go(1.1, 0, -0.55), go(2.05, 0, -1.2), act("bend", 0.7, 0), hold("cube")],
   },
 ];
 

@@ -179,6 +179,11 @@ export function SiteIntro() {
         finish();
         return;
       }
+      // đã cuộn quá một đoạn rồi dừng: tự phóng nốt, không để lớp phủ gần trong suốt còn chặn trang phía sau
+      if (st.shown === st.target && st.target > 0.35) {
+        st.target = 1;
+        rate = 4;
+      }
       raf = st.shown === st.target ? 0 : requestAnimationFrame(step);
     };
     const go = (target: number, speed = 7) => {

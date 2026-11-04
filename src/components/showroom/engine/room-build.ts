@@ -66,38 +66,43 @@ export function readRoomPalette(): RoomPalette {
 const css = (c: Color) => `#${c.getHexString()}`;
 export const mix = (a: Color, b: Color, t: number) => a.clone().lerp(b, t);
 
-export const ROOM = { x0: -4, x1: 4, z0: -3.5, z1: 1.6, h: 3.2 };
+export const ROOM = { x0: -3.2, x1: 3.2, z0: -2.8, z1: 2.0, h: 3.0 };
 
-/** Bố cục đồ đạc: dùng chung cho dựng phòng và lộ trình của Thợ Aegis */
+/**
+ * Bố cục (dùng chung cho dựng phòng và lộ trình của Thợ Aegis). Hai sản phẩm chính chiếm hai vách đối diện camera:
+ * Website & App ở giữa vách sau, Digital Marketing ở vách trái; Dự án ở phần phải vách sau. Về Aegis và Liên hệ là hai
+ * "trạm" đứng ở nửa trước của sàn, màn hình quay chéo về phía người xem, lấp khoảng trống và tạo chiều sâu.
+ */
 export const LAYOUT = {
-  desk: { x: -1.6, z: -2.85, w: 2.8, d: 1.05, top: 0.76 },
-  monitor: { x: -1.6, y: 1.27, z: -3.12, w: 1.2, h: 0.75 },
-  keyboard: { x: -1.68, z: -2.6, w: 0.62, d: 0.2, top: 0.786 },
-  house: { x: -0.66, z: -3.02 },
-  pile: { x: -0.45, z: -2.52 },
-  table: { x: 0.9, z: -2.78, r: 0.44, top: 0.72 },
-  laptop: { x: 0.86, z: -2.76, w: 0.5, h: 0.31, tilt: 0.2 },
-  board: { x: 2.95, y: 1.78, w: 2.1, h: 1.5 },
-  tv: { x: 2.95, y: 2.0, w: 1.28, h: 0.72 },
-  ladder: { x: 3.66, baseZ: -2.96, topY: 1.12 },
-  cardBox: { x: 3.0, z: -2.6 },
-  sideboard: { x: -3.7, z: 0.6, w: 0.55, d: 1.6, h: 0.62 },
-  signage: { x: -3.76, y: 1.05, z: 0.48, w: 0.88, h: 0.66 },
-  phone: { x: -3.74, z: 1.2 },
-  speaker: { x: -3.6, z: -0.48, w: 0.36, h: 0.6 },
-  bench: { x: -3.74, z: -1.3, w: 0.42, d: 0.9, h: 0.42 },
-  frame: { x: -3.975, y: 1.3, z: -1.3, w: 0.8, h: 0.6 },
-  emblem: { y: 2.38, z: -1.3 },
-  benchPlant: { z: -0.98 },
+  desk: { x: -0.35, z: -2.15, w: 2.6, d: 1.05, top: 0.76 },
+  monitor: { x: -0.35, y: 1.27, z: -2.42, w: 1.2, h: 0.75 },
+  keyboard: { x: -0.43, z: -1.9, w: 0.62, d: 0.2, top: 0.786 },
+  house: { x: 0.55, z: -2.32 },
+  pile: { x: 0.72, z: -1.84 },
+  window: { x0: -2.95, x1: -1.85, y0: 0.95, y1: 2.45 },
+  board: { x: 2.15, y: 1.7, w: 1.8, h: 1.45 },
+  tv: { x: 2.15, y: 1.92, w: 1.1, h: 0.62 },
+  ladder: { x: 2.86, baseZ: -2.26, topY: 1.08 },
+  cardBox: { x: 1.55, z: -2.12 },
+  sideboard: { x: -2.9, z: -0.95, w: 0.55, d: 1.6, h: 0.62 },
+  signage: { x: -2.96, y: 1.05, z: -1.05, w: 0.88, h: 0.66 },
+  phone: { x: -2.94, z: -0.38 },
+  speaker: { x: -2.8, z: 0.22, w: 0.36, h: 0.6 },
+  emblem: { y: 2.2, z: -2.28 },
+  frame: { x: -1.35, z: 1.45, y: 1.06, w: 0.8, h: 0.6, yaw: Math.PI / 4 },
+  bench: { x: -2.55, z: 1.25, w: 0.42, d: 0.9, h: 0.42 },
+  benchPlant: { z: 1.52 },
+  table: { x: 2.05, z: 0.85, r: 0.44, top: 0.72 },
+  laptop: { w: 0.5, h: 0.31, tilt: 0.2, yaw: Math.PI / 4 },
 };
 
 /** Điểm neo kim cương (toạ độ thế giới) của từng khu */
 export const ANCHORS: Record<SectionId, [number, number, number]> = {
-  web: [-1.6, 1.82, -3.1],
-  projects: [2.95, 2.55, -3.4],
-  marketing: [-3.72, 1.55, 0.48],
-  about: [-3.92, 1.78, -1.3],
-  contact: [0.86, 1.18, -2.88],
+  web: [-0.35, 1.82, -2.4],
+  projects: [2.15, 2.52, -2.7],
+  marketing: [-2.97, 1.55, -1.05],
+  about: [-1.35, 1.55, 1.45],
+  contact: [2.05, 1.2, 0.85],
 };
 
 export interface RoomScreen {
@@ -220,7 +225,8 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
 
   // ---------- Vách sau (có ô cửa sổ) và vách trái ----------
   const wall = std(p.bright, 0.95);
-  const wx0 = 0.1, wx1 = 1.7, wy0 = 0.95, wy1 = 2.45, t = 0.14;
+  const { x0: wx0, x1: wx1, y0: wy0, y1: wy1 } = L.window;
+  const t = 0.14;
   const bz = ROOM.z0 - t / 2;
   const backLeft = ROOM.x0 - t;
   add(
@@ -359,18 +365,18 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
     "web",
     { cast: true },
   );
-  add(rbox(3.1, 0.012, 2.2, desk.x, 0.006, desk.z + 0.95, 0.006), std(mix(p.soft, p.grey, 0.2), 0.95), undefined, { receive: true });
+  add(rbox(2.7, 0.012, 1.6, desk.x, 0.006, desk.z + 0.85, 0.3), std(mix(p.soft, p.grey, 0.2), 0.95), "web", { receive: true });
 
   // ---------- Thảm theo khu (mỗi khu một sắc trong bảng màu brand, nhìn toàn cảnh tách bạch từng khu) ----------
   const rugAqua = std(mix(p.aqua, p.bright, 0.45), 0.95);
   const rugSoft = std(mix(p.soft, p.bright, 0.15), 0.95);
   const rugTeal = std(mix(p.teal, p.bright, 0.62), 0.95);
-  add(rbox(1.25, 0.012, 1.9, -3.12, 0.006, L.sideboard.z, 0.3), rugAqua, "marketing", { receive: true });
-  add(rbox(1.0, 0.012, 1.05, -3.25, 0.006, L.bench.z, 0.3), rugTeal, "about", { receive: true });
-  add(new CylinderGeometry(0.82, 0.82, 0.012, 48).translate(L.table.x, 0.006, L.table.z + 0.1), rugSoft, "contact", { receive: true });
-  add(rbox(2.3, 0.012, 1.25, L.board.x, 0.006, -2.75, 0.3), rugAqua, "projects", { receive: true });
+  add(rbox(1.25, 0.012, 1.9, L.sideboard.x + 0.6, 0.006, L.sideboard.z, 0.3), rugAqua, "marketing", { receive: true });
+  add(rbox(1.5, 0.012, 1.15, (L.bench.x + L.frame.x) / 2, 0.006, (L.bench.z + L.frame.z) / 2, 0.3), rugTeal, "about", { receive: true });
+  add(new CylinderGeometry(0.78, 0.78, 0.012, 48).translate(L.table.x, 0.006, L.table.z), rugSoft, "contact", { receive: true });
+  add(rbox(1.9, 0.012, 1.1, L.board.x, 0.006, ROOM.z0 + 0.72, 0.3), rugAqua, "projects", { receive: true });
 
-  // ---------- 05 Liên hệ: bàn tròn dưới cửa sổ + laptop ----------
+  // ---------- 05 Liên hệ: trạm bàn tròn phía trước bên phải, laptop quay chéo về người xem ----------
   const tb = L.table;
   add(
     mergeAll([
@@ -384,11 +390,20 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   );
   add(new TorusGeometry(tb.r, 0.012, 8, 48).rotateX(Math.PI / 2).translate(tb.x, tb.top - 0.02, tb.z), tealMat);
   const lp = L.laptop;
-  add(rbox(lp.w + 0.02, 0.016, 0.34, lp.x, tb.top + 0.008, lp.z, 0.008), inkGloss, "contact", { cast: true });
+  const lap = new Group();
+  lap.position.set(tb.x, tb.top, tb.z);
+  lap.rotation.y = lp.yaw;
+  root.add(lap);
+  const lapBase = new Mesh(rbox(lp.w + 0.02, 0.016, 0.34, 0, 0.008, 0, 0.008), inkGloss);
+  lapBase.castShadow = !opts.phone;
+  lapBase.userData.section = "contact";
+  pickables.push(lapBase);
+  disposables.push(lapBase.geometry);
+  lap.add(lapBase);
   const lid = new Group();
-  lid.position.set(lp.x, tb.top + 0.016, lp.z - 0.17);
+  lid.position.set(0, 0.016, -0.17);
   lid.rotation.x = -lp.tilt;
-  root.add(lid);
+  lap.add(lid);
   const lidBack = new Mesh(rbox(lp.w + 0.02, lp.h + 0.03, 0.012, 0, (lp.h + 0.03) / 2, -0.007, 0.008), inkGloss);
   lidBack.castShadow = !opts.phone;
   lidBack.userData.section = "contact";
@@ -527,7 +542,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   }
   bookCols.forEach((c, i) => add(mergeAll(bookGeo[i]), std(c, 0.7), undefined, { cast: true }));
 
-  // ---------- 04 Về Aegis: logo kính trên vách trái, khung ảnh điện tử, ghế băng + chậu cây nhỏ ----------
+  // ---------- 04 Về Aegis: logo kính trên vách trái + trạm khung ảnh trên giá đứng phía trước, ghế băng + chậu cây ----------
   const emblemMat = basic({ transparent: true, toneMapped: false, color: p.bright, opacity: 0 });
   const emblem = own(new PlaneGeometry(0.74, 0.78), emblemMat, "about");
   emblem.position.set(ROOM.x0 + 0.02, L.emblem.y, L.emblem.z);
@@ -537,10 +552,37 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   plateMesh.rotation.y = Math.PI / 2;
 
   const fr = L.frame;
-  add(rbox(0.04, fr.h + 0.08, fr.w + 0.08, ROOM.x0 + 0.02, fr.y, fr.z, 0.015), std(mix(p.bright, p.grey, 0.15), 0.5), "about", { cast: true });
+  const easel = new Group();
+  easel.position.set(fr.x, 0, fr.z);
+  easel.rotation.y = fr.yaw;
+  root.add(easel);
+  const standMat = std(mix(p.bright, p.grey, 0.15), 0.5);
+  const stand = new Mesh(
+    mergeAll([
+      rbox(0.56, 0.035, 0.34, 0, 0.0175, 0, 0.012),
+      rbox(0.05, fr.y - fr.h / 2 + 0.02, 0.05, 0, (fr.y - fr.h / 2 + 0.02) / 2, -0.02, 0.012),
+    ]),
+    standMat,
+  );
+  stand.castShadow = !opts.phone;
+  stand.userData.section = "about";
+  pickables.push(stand);
+  disposables.push(stand.geometry);
+  easel.add(stand);
+  const tilt = new Group();
+  tilt.position.set(0, fr.y, 0.0);
+  tilt.rotation.x = -0.1;
+  easel.add(tilt);
+  const bezel = new Mesh(rbox(fr.w + 0.08, fr.h + 0.08, 0.04, 0, 0, -0.021, 0.015), inkGloss);
+  bezel.castShadow = !opts.phone;
+  bezel.userData.section = "about";
+  pickables.push(bezel);
+  disposables.push(bezel.geometry);
+  tilt.add(bezel);
   const frs = makeScreen("about", fr.w, fr.h, 1024);
-  frs.position.set(ROOM.x0 + 0.0405, fr.y, fr.z);
-  frs.rotation.y = Math.PI / 2;
+  root.remove(frs);
+  tilt.add(frs);
+  frs.position.set(0, 0, 0.0005);
 
   const bn = L.bench;
   add(
@@ -560,7 +602,7 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   const pots: BufferGeometry[] = [];
   const bushes: BufferGeometry[] = [];
   const plants: [number, number, number, number][] = [
-    [1.95, 0, -3.1, 0.75],
+    [(wx0 + wx1) / 2, 0, ROOM.z0 + 0.32, 0.78],
     [bn.x, bn.h, L.benchPlant.z, 0.32],
   ];
   for (const [x, y, z, s] of plants) {

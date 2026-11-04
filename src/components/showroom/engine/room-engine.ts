@@ -44,8 +44,8 @@ interface Rig {
   fov: number;
 }
 
-const OVERVIEW: Rig = { pos: [5.7, 4.8, 4.8], target: [0.3, 0.7, -1.25], fov: 41 };
-const OVERVIEW_PHONE: Rig = { pos: [12.4, 12.0, 11.8], target: [0.3, 0.55, -0.8], fov: 50 };
+const OVERVIEW: Rig = { pos: [6.0, 5.0, 5.6], target: [0.05, 0.6, -0.45], fov: 41 };
+const OVERVIEW_PHONE: Rig = { pos: [10.6, 10.4, 10.6], target: [0.15, 0.5, -0.35], fov: 50 };
 const SCREEN_FOV = 30;
 
 export interface RoomEngineOptions {
