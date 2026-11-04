@@ -27,7 +27,7 @@ import type { SectionId } from "@/content/showroom";
  * Dựng "Studio Aegis": mô hình cắt lớp một phòng làm việc ban ngày (sàn có độ dày + 2 vách, nổi trên nền sáng), tông màu
  * đọc từ CSS token brand (không có mã màu ở đây trừ giá trị dự phòng). Các "Thợ Aegis" tí hon (makers.ts) sống trên đồ đạc.
  *
- * Toạ độ (mét): x −4..4 (trái → phải), z −3.5..2.6 (vách sau ở z = −3.5), y lên trên; vách trái ở x = −4.
+ * Toạ độ (mét): x −4..4 (trái → phải), z −3.5..1.6 (vách sau ở z = −3.5), y lên trên; vách trái ở x = −4.
  * Mỗi khu có một MÀN HÌNH (máy tính, TV, bảng hiển thị, khung ảnh, laptop): bấm vào thì camera bay thẳng trước màn hình và
  * nội dung HTML hiện "trong" màn hình. Vật thể gắn `userData.section` để bắt rê/bấm chuột.
  */
@@ -66,7 +66,7 @@ export function readRoomPalette(): RoomPalette {
 const css = (c: Color) => `#${c.getHexString()}`;
 export const mix = (a: Color, b: Color, t: number) => a.clone().lerp(b, t);
 
-export const ROOM = { x0: -4, x1: 4, z0: -3.5, z1: 2.6, h: 3.2 };
+export const ROOM = { x0: -4, x1: 4, z0: -3.5, z1: 1.6, h: 3.2 };
 
 /** Bố cục đồ đạc: dùng chung cho dựng phòng và lộ trình của Thợ Aegis */
 export const LAYOUT = {
@@ -81,22 +81,22 @@ export const LAYOUT = {
   tv: { x: 2.95, y: 2.0, w: 1.28, h: 0.72 },
   ladder: { x: 3.66, baseZ: -2.96, topY: 1.12 },
   cardBox: { x: 3.0, z: -2.6 },
-  sideboard: { x: -3.7, z: 0.9, w: 0.55, d: 1.7, h: 0.62 },
-  signage: { x: -3.76, y: 1.05, z: 0.8, w: 0.88, h: 0.66 },
-  phone: { x: -3.74, z: 1.58 },
-  speaker: { x: -3.6, z: 2.02, w: 0.36, h: 0.6 },
-  bench: { x: -3.74, z: -1.2, w: 0.42, d: 1.2, h: 0.42 },
-  frame: { x: -3.975, y: 1.3, z: -1.2, w: 0.8, h: 0.6 },
-  emblem: { y: 2.38, z: -1.2 },
-  benchPlant: { z: -0.78 },
+  sideboard: { x: -3.7, z: 0.6, w: 0.55, d: 1.6, h: 0.62 },
+  signage: { x: -3.76, y: 1.05, z: 0.48, w: 0.88, h: 0.66 },
+  phone: { x: -3.74, z: 1.2 },
+  speaker: { x: -3.6, z: -0.48, w: 0.36, h: 0.6 },
+  bench: { x: -3.74, z: -1.3, w: 0.42, d: 0.9, h: 0.42 },
+  frame: { x: -3.975, y: 1.3, z: -1.3, w: 0.8, h: 0.6 },
+  emblem: { y: 2.38, z: -1.3 },
+  benchPlant: { z: -0.98 },
 };
 
 /** Điểm neo kim cương (toạ độ thế giới) của từng khu */
 export const ANCHORS: Record<SectionId, [number, number, number]> = {
   web: [-1.6, 1.82, -3.1],
   projects: [2.95, 2.55, -3.4],
-  marketing: [-3.72, 1.55, 0.8],
-  about: [-3.92, 1.78, -1.2],
+  marketing: [-3.72, 1.55, 0.48],
+  about: [-3.92, 1.78, -1.3],
   contact: [0.86, 1.18, -2.88],
 };
 
@@ -361,6 +361,15 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   );
   add(rbox(3.1, 0.012, 2.2, desk.x, 0.006, desk.z + 0.95, 0.006), std(mix(p.soft, p.grey, 0.2), 0.95), undefined, { receive: true });
 
+  // ---------- Thảm theo khu (mỗi khu một sắc trong bảng màu brand, nhìn toàn cảnh tách bạch từng khu) ----------
+  const rugAqua = std(mix(p.aqua, p.bright, 0.45), 0.95);
+  const rugSoft = std(mix(p.soft, p.bright, 0.15), 0.95);
+  const rugTeal = std(mix(p.teal, p.bright, 0.62), 0.95);
+  add(rbox(1.25, 0.012, 1.9, -3.12, 0.006, L.sideboard.z, 0.3), rugAqua, "marketing", { receive: true });
+  add(rbox(1.0, 0.012, 1.05, -3.25, 0.006, L.bench.z, 0.3), rugTeal, "about", { receive: true });
+  add(new CylinderGeometry(0.82, 0.82, 0.012, 48).translate(L.table.x, 0.006, L.table.z + 0.1), rugSoft, "contact", { receive: true });
+  add(rbox(2.3, 0.012, 1.25, L.board.x, 0.006, -2.75, 0.3), rugAqua, "projects", { receive: true });
+
   // ---------- 05 Liên hệ: bàn tròn dưới cửa sổ + laptop ----------
   const tb = L.table;
   add(
@@ -551,7 +560,6 @@ export function buildRoom(p: RoomPalette, opts: { phone: boolean }): BuiltRoom {
   const pots: BufferGeometry[] = [];
   const bushes: BufferGeometry[] = [];
   const plants: [number, number, number, number][] = [
-    [3.62, 0, -0.35, 0.85],
     [1.95, 0, -3.1, 0.75],
     [bn.x, bn.h, L.benchPlant.z, 0.32],
   ];

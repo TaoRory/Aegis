@@ -13,9 +13,13 @@ const SECTIONS = ["web", "projects", "marketing", "about", "contact"];
 const gpu = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"];
 const browser = await chromium.launch({ args: gpu });
 
+/** Vào phòng: intro logo của trang chính đang chạy thì bấm "Bỏ qua" (phóng xuyên lõi), rồi chờ phòng nhận lệnh */
 async function enter(page) {
-  await page.waitForFunction(() => document.querySelector(".showroom-enter") && !document.querySelector(".showroom-enter").disabled, null, { timeout: 120_000 });
-  await page.locator(".showroom-enter").click();
+  const skip = page.locator(".site-intro-skip");
+  if (await skip.isVisible().catch(() => false)) await skip.click();
+  await page.waitForSelector(".showroom[data-entered]", { timeout: 120_000 });
+  await page.waitForSelector(".site-intro", { state: "detached", timeout: 20_000 }).catch(() => {});
+  await page.waitForFunction(() => document.querySelector(".showroom")?.dataset.mode !== "3d" || !!window.__aegisRoom || !location.search.includes("debug-room"), null, { timeout: 120_000 });
   await page.waitForTimeout(1200);
 }
 /** chờ camera tới nơi và lớp màn hình bật sáng */
@@ -42,7 +46,8 @@ const screenOn = (page, id) => page.waitForSelector(`.showroom-screen[data-secti
   page.on("pageerror", (e) => errors.push(String(e)));
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
   await page.goto(`${baseUrl}/demo?debug-room`, { waitUntil: "domcontentloaded" });
-  check("[desktop] màn khởi động hiện trước khi vào", await page.locator(".showroom-boot").isVisible());
+  await page.waitForTimeout(600);
+  check("[desktop] vào trang là intro logo của trang chính (không còn nút 'Vào studio')", (await page.locator(".site-intro").isVisible()) && (await page.locator(".showroom-enter").count()) === 0);
   await enter(page);
   check("[desktop] vào chế độ 3D", (await page.locator(".showroom").getAttribute("data-mode")) === "3d");
   const shown = await page.evaluate(() => [...document.querySelectorAll(".showroom-hotspot")].filter((e) => e.dataset.hidden === "false").length);
@@ -85,6 +90,13 @@ const screenOn = (page, id) => page.waitForSelector(`.showroom-screen[data-secti
 
   await page.locator('.showroom-nav button:has-text("Website")').click();
   await screenOn(page, "web");
+  const clear = await page.evaluate(() => {
+    const a = document.querySelector(".showroom-menu-btn").getBoundingClientRect();
+    const b = document.querySelector(".showroom-screen").getBoundingClientRect();
+    const hit = document.elementFromPoint(a.left + a.width / 2, a.top + a.height / 2);
+    return { overlap: !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom), top: !!hit?.closest(".showroom-menu-btn") };
+  });
+  check("[desktop] nút logo / menu không bị màn hình che", !clear.overlap && clear.top, JSON.stringify(clear));
   check("[desktop] màn hình Website mở ra là thấy ngay 2 gói", (await page.locator('.showroom-screen .sr-package:visible').count()) === 2);
   await page.locator('.showroom-screen [role="tab"]:has-text("So sánh")').click();
   await page.waitForTimeout(300);
@@ -135,7 +147,14 @@ const screenOn = (page, id) => page.waitForSelector(`.showroom-screen[data-secti
   await screenOn(page, "projects");
   await page.waitForTimeout(900);
   const box = await page.locator(".showroom-screen").boundingBox();
-  check("[mobile] màn hình giãn ra phủ khung nhìn (chừa thanh điều hướng)", !!box && box.x >= 0 && box.x + box.width <= 390 && box.width >= 360 && box.height >= 600, box ? `${Math.round(box.width)}×${Math.round(box.height)}` : "-");
+  check("[mobile] màn hình giãn ra phủ khung nhìn (chừa thanh điều hướng)", !!box && box.x >= 0 && box.x + box.width <= 390 && box.width >= 360 && box.height >= 540, box ? `${Math.round(box.width)}×${Math.round(box.height)}` : "-");
+  const logoClear = await page.evaluate(() => {
+    const a = document.querySelector(".showroom-menu-btn").getBoundingClientRect();
+    const hit = document.elementFromPoint(a.left + a.width / 2, a.top + a.height / 2);
+    const close = document.querySelector(".showroom-close").getBoundingClientRect();
+    return !!hit?.closest(".showroom-menu-btn") && (close.top >= a.bottom || close.right <= a.left);
+  });
+  check("[mobile] nút logo và nút đóng màn hình không đè nhau", logoClear);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   check("[mobile] không cuộn ngang", !overflow);
   await ctx.close();
@@ -147,7 +166,7 @@ const screenOn = (page, id) => page.waitForSelector(`.showroom-screen[data-secti
   const ctx = await flat.newContext({ viewport: { width: 1280, height: 860 } });
   const page = await ctx.newPage();
   await page.goto(`${baseUrl}/demo`, { waitUntil: "networkidle" });
-  await page.waitForTimeout(800);
+  await enter(page);
   const mode = await page.locator(".showroom").getAttribute("data-mode");
   check("[flat] không có WebGL → bản phẳng", mode === "flat", String(mode));
   check("[flat] có thông báo đang ở bản phẳng", await page.locator(".sr-flat-notice").isVisible().catch(() => false));

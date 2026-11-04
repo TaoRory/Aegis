@@ -44,8 +44,8 @@ interface Rig {
   fov: number;
 }
 
-const OVERVIEW: Rig = { pos: [6.1, 5.1, 6.5], target: [0.15, 0.7, -0.95], fov: 40 };
-const OVERVIEW_PHONE: Rig = { pos: [9.2, 9.4, 9.0], target: [0.1, 0.7, -0.9], fov: 46 };
+const OVERVIEW: Rig = { pos: [5.7, 4.8, 4.8], target: [0.3, 0.7, -1.25], fov: 41 };
+const OVERVIEW_PHONE: Rig = { pos: [12.4, 12.0, 11.8], target: [0.3, 0.55, -0.8], fov: 50 };
 const SCREEN_FOV = 30;
 
 export interface RoomEngineOptions {
@@ -334,8 +334,9 @@ export class RoomEngine {
   private frameArea() {
     const w = this.host.clientWidth;
     const h = this.host.clientHeight;
-    if (this.opts.phone) return { w, h, top: 64, bottom: 92, side: 10 };
-    return { w, h, top: Math.max(20, h * 0.03), bottom: Math.max(84, h * 0.1), side: Math.max(28, w * 0.04) };
+    if (this.opts.phone) return { w, h, top: 72, bottom: 92, side: 10 };
+    // lề trái/phải đủ rộng để nút logo + menu ở góc trên phải không nằm đè lên màn hình
+    return { w, h, top: Math.max(20, h * 0.03), bottom: Math.max(84, h * 0.1), side: Math.max(96, w * 0.065) };
   }
 
   /** Góc camera nhìn thẳng màn hình, khoảng cách để màn hình vừa khít vùng dành cho nó */
@@ -365,7 +366,7 @@ export class RoomEngine {
     c.enableRotate = true;
     c.enableZoom = true;
     c.minDistance = this.opts.phone ? 6 : 3.2;
-    c.maxDistance = this.opts.phone ? 19 : 12.5;
+    c.maxDistance = this.opts.phone ? 24 : 12.5;
     c.minAzimuthAngle = MathUtils.degToRad(4);
     c.maxAzimuthAngle = MathUtils.degToRad(84);
     c.minPolarAngle = MathUtils.degToRad(35);

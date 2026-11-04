@@ -87,14 +87,21 @@
   font-size: 0.85rem;
   font-weight: 600;
   white-space: nowrap;
-  opacity: 0;
-  translate: -50% 0.3rem;
   pointer-events: none;
 }
 
+.showroom-hotspot-label .label {
+  color: var(--palette-teal-deep);
+}
+
 .showroom-hotspot:is(:hover, :focus-visible, [data-hover]) .showroom-hotspot-label {
-  opacity: 1;
-  translate: -50% 0;
+  background: var(--palette-ink);
+  border-color: var(--palette-ink);
+  color: var(--palette-bright);
+}
+
+.showroom-hotspot:is(:hover, :focus-visible, [data-hover]) .showroom-hotspot-label .label {
+  color: var(--palette-aqua);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -104,8 +111,8 @@
 
   .showroom-hotspot-label {
     transition:
-      opacity 0.25s var(--motion-ease-out),
-      translate 0.35s var(--motion-ease-out);
+      background-color 0.2s ease,
+      color 0.2s ease;
   }
 }
 
@@ -143,6 +150,7 @@
 
 .showroom-nav {
   position: absolute;
+  z-index: 5;
   left: 50%;
   bottom: clamp(1rem, 2.5vw, 1.5rem);
   translate: -50% 0;
@@ -187,6 +195,7 @@
 
 .showroom-top {
   position: absolute;
+  z-index: 6;
   top: clamp(1rem, 2.5vw, 1.5rem);
   right: clamp(1rem, 2.5vw, 1.5rem);
 }
@@ -282,6 +291,7 @@
 /* ---------- Lớp màn hình: khít khung màn hình 3D (engine ghi --sx --sy --sw --sh) ---------- */
 .showroom-screen {
   position: absolute;
+  z-index: 2;
   top: var(--sy, 10vh);
   left: var(--sx, 10vw);
   width: var(--sw, 80vw);
@@ -503,60 +513,20 @@
   letter-spacing: -0.015em;
 }
 
-/* ---------- Màn khởi động ---------- */
-.showroom-boot {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  display: none;
-  place-content: center;
-  justify-items: center;
-  gap: 1.1rem;
-  background:
-    radial-gradient(ellipse 60% 50% at 50% 42%, color-mix(in oklab, var(--palette-soft) 70%, transparent), transparent 70%),
-    var(--palette-bright);
-  color: var(--palette-ink);
-  text-align: center;
-}
-
-html[data-js] .showroom-boot {
-  display: grid;
-}
-
-.showroom-boot-mark {
-  width: auto;
-  height: clamp(6rem, 18vmin, 9rem);
-}
-
-.showroom-boot-bar {
-  display: block;
-  width: min(16rem, 60vw);
-  height: 3px;
-  overflow: hidden;
+/* ---------- Nhãn tiến độ (phòng vẫn dùng được trong lúc ảnh dự án tải nốt) ---------- */
+.showroom-loading {
+  position: absolute;
+  left: 50%;
+  top: clamp(3.4rem, 6vw, 4.2rem);
+  translate: -50% 0;
+  padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  background: color-mix(in oklab, var(--palette-ink) 10%, transparent);
+  background: var(--sr-glass);
+  color: var(--palette-teal-deep);
+  pointer-events: none;
 }
 
-.showroom-boot-bar span {
-  display: block;
-  height: 100%;
-  background: var(--palette-teal);
-  transform-origin: left;
-  transition: transform 0.3s ease;
-}
-
-.showroom-enter[disabled] {
-  opacity: 0.35;
-  cursor: progress;
-}
-
-.showroom-boot-skip {
-  color: var(--fg-muted);
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
-}
-
-/* Trước khi chọn chế độ: giấu bản phẳng sau màn khởi động (chỉ khi có JS) */
+/* Trước khi chọn chế độ: giấu bản phẳng (intro logo đang che; chỉ khi có JS) */
 html[data-js] .showroom[data-mode="pending"] .showroom-flat {
   visibility: hidden;
 }
@@ -916,6 +886,11 @@ html[data-js] .showroom[data-mode="pending"] .showroom-flat {
 
 /* ---------- Điện thoại ---------- */
 @media (max-width: 63.99rem) {
+  .showroom-hotspot-label {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.68rem;
+  }
+
   .showroom-nav {
     left: 0.75rem;
     right: 0.75rem;
@@ -948,11 +923,12 @@ html[data-js] .showroom[data-mode="pending"] .showroom-flat {
   }
 
   /* camera áp sát màn hình (vừa theo chiều ngang), rồi lớp màn hình giãn ra phủ khung nhìn, viền màn hình còn ở mép */
+  /* chừa hàng trên cho chữ AEGIS + nút logo / menu */
   .showroom-screen[data-on] {
-    top: 0.5rem;
+    top: 4rem;
     left: 0.5rem;
     width: calc(100% - 1rem);
-    height: calc(100% - 5.6rem);
+    height: calc(100% - 9.1rem);
     border-radius: 0.9rem;
     box-shadow: 0 0 0 4px var(--palette-ink);
   }

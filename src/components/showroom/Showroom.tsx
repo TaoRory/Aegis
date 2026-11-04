@@ -7,14 +7,16 @@ import { AegisMark } from "@/components/brand/AegisLogo";
 import { SectionContent, type Quote } from "@/components/showroom/Sections";
 import type { RoomEngine } from "@/components/showroom/engine/room-engine";
 import { showroom, type MakerRole, type SectionId } from "@/content/showroom";
-import { MQ } from "@/lib/motion";
+import { MQ, onIntroDone } from "@/lib/motion";
 
 /**
  * Studio Aegis (/demo): căn phòng 3D giới thiệu Website & App và Digital Marketing.
  *  - 3D: kéo để nhìn quanh, bấm kim cương / màn hình / Thợ Aegis / mục 01–05 ở đáy → camera bay thẳng trước màn hình của khu,
  *    lớp HTML hiện "trong" màn hình đó (engine ghi khung màn hình vào biến CSS). Esc / nút đóng / Back để về toàn cảnh.
  *  - Bản phẳng: khi không có WebGL2 hoặc người dùng chọn; cùng nội dung, trang cuộn thường. Server luôn render bản phẳng
- *    (chữ có trong HTML), client quyết định chế độ rồi mới hiện; trong lúc chờ, màn khởi động che (chỉ khi có JS).
+ *    (chữ có trong HTML), client quyết định chế độ rồi mới hiện.
+ *  - Vào trang: intro logo của trang chính (SiteIntro, đặt ở layout) che trong lúc phòng dựng; cuộn để phóng xuyên lõi logo là
+ *    vào thẳng phòng (không có nút "Vào studio"). Giảm chuyển động thì không có intro, vào thẳng.
  * Khu đang mở ghi vào #hash (link chia sẻ được, nút Back đóng khung).
  */
 
@@ -62,6 +64,8 @@ export function Showroom({ isConfigured, covers, emblem }: { isConfigured: boole
   const engineRef = useRef<RoomEngine | null>(null);
   const sectionRef = useRef<SectionId | null>(null);
   const fadeTimer = useRef(0);
+  const enteredRef = useRef(false);
+  const hashDone = useRef(false);
 
   // Chọn chế độ sau khi mount (không đọc được WebGL lúc render server)
   useEffect(() => {
@@ -91,6 +95,30 @@ export function Showroom({ isConfigured, covers, emblem }: { isConfigured: boole
       else history.pushState({ showroom: null }, "", url);
     }
   }, []);
+
+  /** Địa chỉ có #khu thì mở thẳng khu đó (một lần, khi đã vào phòng và engine đã dựng) */
+  const openFromHash = useCallback(() => {
+    if (hashDone.current) return;
+    hashDone.current = true;
+    const h = decodeURIComponent(window.location.hash.slice(1));
+    if (isSection(h)) open(h, false);
+  }, [open]);
+
+  // Vào phòng khi intro logo phóng xuyên lõi (hoặc ngay nếu không có intro)
+  useEffect(() => {
+    let off = () => {};
+    const frame = requestAnimationFrame(() => {
+      off = onIntroDone(() => {
+        enteredRef.current = true;
+        setEntered(true);
+        if (engineRef.current) openFromHash();
+      });
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      off();
+    };
+  }, [openFromHash]);
 
   // Dựng engine khi chế độ là 3D
   useEffect(() => {
@@ -124,6 +152,7 @@ export function Showroom({ isConfigured, covers, emblem }: { isConfigured: boole
         return;
       }
       engineRef.current = engine;
+      if (enteredRef.current) openFromHash();
       if (process.env.NODE_ENV !== "production" || window.location.search.includes("debug-room")) {
         (window as unknown as { __aegisRoom?: RoomEngine }).__aegisRoom = engine;
       }
@@ -133,7 +162,7 @@ export function Showroom({ isConfigured, covers, emblem }: { isConfigured: boole
       engine?.dispose();
       engineRef.current = null;
     };
-  }, [mode, covers, emblem, open]);
+  }, [mode, covers, emblem, open, openFromHash]);
 
   // Đăng ký kim cương + bong bóng tên thợ với engine
   useEffect(() => {
@@ -164,13 +193,6 @@ export function Showroom({ isConfigured, covers, emblem }: { isConfigured: boole
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, [open]);
-
-  /** Vào studio; địa chỉ có #khu thì mở thẳng khu đó */
-  const enter = () => {
-    setEntered(true);
-    const h = decodeURIComponent(window.location.hash.slice(1));
-    if (isSection(h)) open(h, false);
-  };
 
   // Esc đóng khung; mở khung thì đưa focus vào khung
   useEffect(() => {
@@ -204,7 +226,6 @@ export function Showroom({ isConfigured, covers, emblem }: { isConfigured: boole
     try {
       localStorage.removeItem(MODE_KEY);
     } catch {}
-    setEntered(false);
     setReady(false);
     setProgress(0);
     setMode("3d");
@@ -318,23 +339,11 @@ export function Showroom({ isConfigured, covers, emblem }: { isConfigured: boole
         </>
       )}
 
-      {/* Màn khởi động (chỉ 3D); trước khi chọn chế độ cũng che trang để không chớp bản phẳng */}
-      {(mode === "pending" || (is3d && !entered)) && (
-        <div className="showroom-boot" role="status" aria-live="polite">
-          <AegisMark className="showroom-boot-mark" />
-          <p className="label">
-            {showroom.boot.label} {Math.round(progress * 100)}%
-          </p>
-          <span className="showroom-boot-bar" aria-hidden>
-            <span style={{ transform: `scaleX(${Math.max(0.04, progress)})` }} />
-          </span>
-          <button type="button" className="sr-cta showroom-enter" disabled={!ready} onClick={enter} data-cursor="link">
-            {showroom.boot.enter} <span aria-hidden>→</span>
-          </button>
-          <button type="button" className="showroom-boot-skip label" onClick={useFlat}>
-            {showroom.chrome.flat}
-          </button>
-        </div>
+      {/* Phòng còn đang tải ảnh: nhãn tiến độ nhỏ (phòng vẫn hiện và dùng được) */}
+      {is3d && entered && !ready && (
+        <p className="showroom-loading label" role="status">
+          {showroom.boot.label} {Math.round(progress * 100)}%
+        </p>
       )}
 
       {/* Bản phẳng: luôn có trong HTML server-render; ẩn khi đang 3D */}
