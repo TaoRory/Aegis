@@ -7,6 +7,8 @@ export interface Service {
   /** Tên ngắn, dùng cho đồ họa hero và lựa chọn trong form */
   shortTitle: string;
   summary: string;
+  /** Câu móc mở đầu chương dịch vụ trên trang chủ ("Nhiều doanh nghiệp… Aegis…"). ⚑ nháp chờ duyệt */
+  hook?: string;
   /** Mô tả cho thẻ meta description (140–160 ký tự) khi summary quá ngắn; không có thì dùng summary. Chỉ ghép lại ý đã có trong summary/scope. */
   seoDescription?: string;
   /** Nhu cầu thường gặp của khách hàng */

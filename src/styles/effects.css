@@ -2816,3 +2816,10 @@ summary,
     color: var(--fg);
   }
 }
+
+/* Câu móc dịch vụ: màn thấp (laptop ≤ 832px cao) ở chế độ ghim thì ẩn để chương vẫn vừa một màn hình */
+@media (max-height: 51.99rem) {
+  [data-mode="pinned"] .service-hook {
+    display: none;
+  }
+}

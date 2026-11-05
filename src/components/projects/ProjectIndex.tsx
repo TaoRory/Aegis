@@ -106,6 +106,7 @@ export function ProjectIndex({ projects, previews, categories, copy }: ProjectIn
   return (
     <div>
       <div className="flex flex-col gap-6 border-b border-line pb-6 sm:flex-row sm:items-center sm:justify-between">
+        {categories.length > 0 && (
         <div role="group" aria-label={copy.filter} className="no-scrollbar -mx-(--gutter) flex gap-2 overflow-x-auto px-(--gutter) pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
           {categories.map((category) => {
             const selected = category.id === filter;
@@ -126,6 +127,7 @@ export function ProjectIndex({ projects, previews, categories, copy }: ProjectIn
             );
           })}
         </div>
+        )}
         <p className="label text-muted" aria-live="polite">
           {fill(copy.showing, { n: String(visible.length).padStart(2, "0"), total: String(projects.length).padStart(2, "0") })}
         </p>

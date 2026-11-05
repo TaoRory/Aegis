@@ -40,6 +40,7 @@ export const vi: SiteDict = {
   nav: [
     { label: "Giới thiệu", href: "/#gioi-thieu" },
     { label: "Dịch vụ", href: "/#dich-vu" },
+    { label: "Dự án", href: "/#du-an-tieu-bieu" },
     { label: "Liên hệ", href: "/lien-he" },
   ],
   cta: { label: "Trao đổi nhu cầu", href: "/lien-he" },
@@ -112,6 +113,13 @@ export const vi: SiteDict = {
     contactLead: "Trả lời vài câu hỏi ngắn về dịch vụ này, chủ yếu là bấm chọn. Aegis đọc phiếu, tư vấn giải pháp và liên hệ lại để bắt tay triển khai.",
     others: "Các dịch vụ khác",
     metaSuffix: "Aegis",
+  },
+  homeProjects: {
+    label: "Dự án tiêu biểu",
+    lines: ["Công trình", "*đã bàn giao.*"],
+    lead: "Website Aegis đã làm cho doanh nghiệp, tổ chức giáo dục và sự kiện. Rê chuột (hoặc chạm) vào từng dự án để xem.",
+    all: "Xem tất cả dự án",
+    chapter: "Dự án",
   },
   webPage: {
     projects: { label: "Dự án", lines: projectsSection.lines, lead: projectsSection.lead, chapter: "Dự án" },

@@ -4,6 +4,7 @@ import { ChapterHud } from "@/components/motion/ChapterHud";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { About } from "@/components/sections/About";
 import { Contact } from "@/components/sections/Contact";
+import { FeaturedProjects } from "@/components/sections/FeaturedProjects";
 import { Hero } from "@/components/sections/Hero";
 import { Process } from "@/components/sections/Process";
 import { Services } from "@/components/sections/Services";
@@ -16,7 +17,7 @@ import { homeJsonLd } from "@/lib/seo/jsonld";
 
 /**
  * Trang chủ (/ và /en): Hero, Giới thiệu, bốn dịch vụ ngang hàng, Cách làm việc, Liên hệ.
- * Không có phần khoe dự án hay mẫu giao diện: sản phẩm đã làm chỉ hiện ở trang Web & web app, khi khách quan tâm tới mảng đó.
+ * Có "Dự án tiêu biểu" (4 dự án thật) sau phần Dịch vụ làm bằng chứng; toàn bộ dự án và mẫu giao diện ở trang Web & web app.
  */
 export function HomePage({ lang }: { lang: Locale }) {
   const { process } = getSiteDict(lang);
@@ -33,6 +34,7 @@ export function HomePage({ lang }: { lang: Locale }) {
         </SheetRise>
       </div>
       <Services lang={lang} />
+      <FeaturedProjects lang={lang} />
       <Process process={process} />
       <ServicesMarquee lang={lang} />
       <Contact lang={lang} />

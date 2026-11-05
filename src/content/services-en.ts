@@ -3,6 +3,7 @@ import type { Service, ServiceId } from "@/content/types";
 /** Dịch vụ bằng tiếng Anh, dùng chung cho trang chính, Factory và form liên hệ (không thêm tuyên bố nào ngoài nội dung tiếng Việt đã xác nhận) */
 export const serviceTextEn: Record<ServiceId, Omit<Service, "id">> = {
   ai: {
+    hook: "Many businesses want to use AI but don’t know where to start. Aegis starts from the problem, not the trend.",
     title: "Enterprise AI solutions",
     shortTitle: "AI solutions",
     summary: "We define the right problem first, then build AI tools that run inside your real workflows, not ones that chase trends.",
@@ -19,6 +20,7 @@ export const serviceTextEn: Record<ServiceId, Omit<Service, "id">> = {
     value: "AI placed in the right part of the workflow, serving the team's everyday work.",
   },
   software: {
+    hook: "Many businesses have their data scattered across many places. Aegis deploys software that fits how the team already works.",
     title: "Business management software implementation",
     shortTitle: "Business software",
     summary:
@@ -36,6 +38,7 @@ export const serviceTextEn: Record<ServiceId, Omit<Service, "id">> = {
     value: "A management system that fits how the business works, making operations clearer and more stable.",
   },
   web: {
+    hook: "Many businesses have a website that customers never find. Aegis builds websites that get found and are easy to update.",
     title: "Website and web app design & development",
     shortTitle: "Websites & web apps",
     summary: "From company and event websites to custom-built web systems.",
@@ -54,6 +57,7 @@ export const serviceTextEn: Record<ServiceId, Omit<Service, "id">> = {
     value: "A polished online presence that is easy to update and serves your business goals.",
   },
   marketing: {
+    hook: "Many businesses run ads without knowing where the money goes. Aegis plans the channels and reports clearly.",
     title: "Marketing for businesses",
     shortTitle: "Marketing",
     summary: "We plan and directly run marketing on online channels, bringing your business closer to its customers.",

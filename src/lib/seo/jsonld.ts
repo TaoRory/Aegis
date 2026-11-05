@@ -29,6 +29,19 @@ export function homeJsonLd(lang: Locale) {
         url: base,
         description: meta.description,
         knowsLanguage: ["vi", "en"],
+        // Chỉ khi siteConfig.contact đã được xác nhận (đang null thì không thêm gì)
+        ...(siteConfig.contact.email && { email: siteConfig.contact.email }),
+        ...(siteConfig.contact.phone && { telephone: siteConfig.contact.phone }),
+        ...(siteConfig.contact.address && { address: siteConfig.contact.address }),
+        ...((siteConfig.contact.email || siteConfig.contact.phone) && {
+          contactPoint: {
+            "@type": "ContactPoint",
+            contactType: "customer service",
+            availableLanguage: ["Vietnamese", "English"],
+            ...(siteConfig.contact.email && { email: siteConfig.contact.email }),
+            ...(siteConfig.contact.phone && { telephone: siteConfig.contact.phone }),
+          },
+        }),
         makesOffer: services.map((s) => ({
           "@type": "Offer",
           itemOffered: { "@type": "Service", name: s.title, url: abs(base, serviceHref(lang, s.id)) },

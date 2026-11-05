@@ -36,15 +36,16 @@ export const en: SiteDict = {
   nav: [
     { label: "About", href: "/en#gioi-thieu" },
     { label: "Services", href: "/en#dich-vu" },
+    { label: "Work", href: "/en#du-an-tieu-bieu" },
     { label: "Contact", href: "/en/contact" },
   ],
   cta: { label: "Talk to us", href: "/en/contact" },
   hero: {
-    label: "BV-00 — General plan",
+    label: "Websites, web apps, software, AI and digital marketing for businesses",
     scale: "Scale 1:1 — Business",
     lines: ["Build the foundation", "*solid,*", "to go far."],
     description:
-      "Aegis is a technology delivery team for businesses: we advise on the right solution, build AI, management software, websites and web apps ourselves, run marketing, and hand over the easiest product to use.",
+      "One team end to end: we advise on the right solution, build it ourselves, then hand over the easiest product to run on your own.",
     secondaryCta: { label: "See services", href: "#dich-vu" },
     scrollHint: "Scroll to see the blueprint",
     chapter: "Opening",
@@ -122,6 +123,13 @@ export const en: SiteDict = {
     contactLead: "Answer a few short questions about this service, mostly by tapping. Aegis reads your brief, advises on a solution and gets back to you to get started.",
     others: "Other services",
     metaSuffix: "Aegis",
+  },
+  homeProjects: {
+    label: "Selected work",
+    lines: ["Projects", "*handed over.*"],
+    lead: "Websites Aegis has built for businesses, educational organisations and events. Hover (or tap) a project to see it.",
+    all: "See all projects",
+    chapter: "Work",
   },
   webPage: {
     projects: {

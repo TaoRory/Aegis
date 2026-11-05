@@ -103,6 +103,8 @@ export interface SiteDict {
     others: string;
     metaSuffix: string;
   };
+  /** Dự án tiêu biểu trên trang chủ (4 dự án, link sang toàn bộ ở trang Web & web app) */
+  homeProjects: { label: string; lines: string[]; lead: string; all: string; chapter: string };
   /** Phần riêng của trang Web & web app: dự án, mẫu giao diện, lời mời tham quan Factory */
   webPage: {
     projects: { label: string; lines: string[]; lead: string; chapter: string };

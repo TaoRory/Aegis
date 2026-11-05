@@ -20,6 +20,8 @@ export const brandSerif = Newsreader({
   axes: ["opsz"],
   variable: "--font-brand-serif",
   display: "swap",
+  // không preload: chỉ dùng cho vài từ nhấn, không phải chữ LCP; trình duyệt tải khi gặp
+  preload: false,
 });
 
 /** Mono cho nhãn, chỉ số, metadata */
@@ -28,6 +30,7 @@ export const brandMono = JetBrains_Mono({
   weight: ["400", "500"],
   variable: "--font-brand-mono",
   display: "swap",
+  preload: false,
 });
 
 export const fontVariables = [brandSans.variable, brandSerif.variable, brandMono.variable].join(" ");

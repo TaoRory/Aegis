@@ -204,7 +204,8 @@ export function RouteCover() {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const link = (event.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
       if (!link || (link.target && link.target !== "_self") || link.hasAttribute("download")) return;
-      if (link.closest(".gallery, [data-no-cover]") || window.matchMedia(MQ.reduced).matches) return;
+      // Điện thoại / màn nhỏ: chuyển trang ngay, không chạy màn vẽ logo (~1 giây mỗi lần bấm)
+      if (link.closest(".gallery, [data-no-cover]") || window.matchMedia(MQ.reduced).matches || !window.matchMedia("(min-width: 64rem)").matches) return;
       const url = new URL(link.href, location.href);
       if (url.origin !== location.origin) return;
       if (url.pathname === location.pathname && url.search === location.search) return; // cùng trang hoặc chỉ đổi #hash

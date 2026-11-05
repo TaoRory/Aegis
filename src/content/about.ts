@@ -6,10 +6,10 @@ import type { ProcessStep, Value } from "@/content/types";
  */
 
 export const hero = {
-  label: "BV-00 — Tổng mặt bằng",
+  label: "Website, web app, phần mềm, AI và digital marketing cho doanh nghiệp",
   lines: ["Xây nền móng", "*vững chắc,*", "để tiến xa."],
   description:
-    "Aegis là đội triển khai công nghệ cho doanh nghiệp: tư vấn giải pháp, trực tiếp xây dựng AI, phần mềm quản trị, website – web app, chạy marketing, rồi bàn giao sản phẩm dễ dùng nhất.",
+    "Một đội làm trọn: tư vấn đúng giải pháp, tự tay xây dựng, rồi bàn giao sản phẩm dễ dùng nhất để doanh nghiệp tự vận hành.",
   secondaryCta: { label: "Xem dịch vụ", href: "#dich-vu" },
   scrollHint: "Cuộn để xem bản vẽ",
 };

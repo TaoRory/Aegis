@@ -117,8 +117,12 @@ for (const vp of viewports) {
 
   if (vp.name === "desktop") {
     // Trang chủ không còn phần khoe dự án / mẫu giao diện: sản phẩm đã làm chỉ hiện ở trang Web & web app
-    check("[desktop] trang chủ không có mục Dự án và Mẫu giao diện", (await page.locator("#du-an, #mau-giao-dien").count()) === 0);
-    check("[desktop] menu chính chỉ có Giới thiệu · Dịch vụ · Liên hệ", (await page.locator("header nav ul li").count()) === 3);
+    // Dự án tiêu biểu (4 dự án thật) trên trang chủ; toàn bộ dự án và mẫu giao diện vẫn chỉ ở trang Web
+    check("[desktop] trang chủ có Dự án tiêu biểu: 4 dự án, link xem tất cả → /web#du-an",
+      (await page.locator("#du-an-tieu-bieu li[data-project]").count()) === 4 && (await page.locator('#du-an-tieu-bieu a[href="/web#du-an"]').count()) === 1 && (await page.locator("#du-an, #mau-giao-dien").count()) === 0);
+    check("[desktop] menu chính: Giới thiệu · Dịch vụ · Dự án · Liên hệ", (await page.locator("header nav ul li").count()) === 4);
+    check("[desktop] hero nói rõ dịch vụ ngay trên tiêu đề", /website/i.test(await page.locator(".hero-meta").innerText()) && /marketing/i.test(await page.locator(".hero-meta").innerText()));
+    check("[desktop] mỗi dịch vụ có câu móc mở đầu", (await page.locator(".service-hook").count()) === 4);
 
     // Độ nhạy cuộn: một nấc lăn chuột 100 phải đi được ≥ 110px (hệ số 1,3)
     await page.mouse.move(700, 450);

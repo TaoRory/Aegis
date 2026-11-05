@@ -52,12 +52,13 @@ export function ParticleStage() {
       const desktop = window.matchMedia("(min-width: 64rem)").matches;
       const lowQuality = document.documentElement.dataset.quality === "low";
       const weak = lowQuality || (navigator.hardwareConcurrency ?? 8) <= 4;
-      const count = Math.round((desktop ? 26000 : 14000) * (lowQuality ? 0.3 : weak ? 0.55 : 1));
-      const dpr = Math.min(window.devicePixelRatio || 1, lowQuality ? 1 : desktop ? 2 : 1.5);
+      // Điện thoại ~5k hạt (trước 14k): hình vẫn đọc rõ, đỡ tốn CPU / pin khi cuộn
+      const count = Math.round((desktop ? 26000 : 5000) * (lowQuality ? 0.3 : weak ? 0.6 : 1));
+      const dpr = Math.min(window.devicePixelRatio || 1, lowQuality || !desktop ? 1 : 2);
 
       let engine: InstanceType<typeof ParticleEngine>;
       try {
-        engine = new ParticleEngine(canvas, createShapes(count), { dpr, pointSize: desktop ? 3.4 : 2.6 });
+        engine = new ParticleEngine(canvas, createShapes(count), { dpr, pointSize: desktop ? 3.4 : 3 });
       } catch (error) {
         console.warn("[ParticleStage] Bỏ qua hiệu ứng WebGL:", error);
         return;
@@ -169,14 +170,7 @@ export function ParticleStage() {
         gsap.to(s, { rotX: 0, duration: 0.8, overwrite: "auto" });
       };
       const stopPointer = onPointerMove((event) => (event ? onPointer(event) : onPointerLeave()));
-      // Cảm ứng: trình duyệt huỷ pointer khi bắt đầu cuộn, nên nghe thêm touchmove (passive, không chặn cuộn)
-      const onTouch = (event: TouchEvent) => {
-        const t = event.touches[0];
-        if (t) engine.pointer(t.clientX, t.clientY);
-      };
-      const onTouchEnd = () => engine.pointerLeave();
-      window.addEventListener("touchmove", onTouch, { passive: true });
-      window.addEventListener("touchend", onTouchEnd, { passive: true });
+      // Cảm ứng: hạt không phản ứng theo ngón tay (đỡ tốn CPU khi cuộn trên điện thoại)
 
       // Gió cuộn: phân tử lệch nhẹ theo vận tốc cuộn rồi trở lại (artwork "sống" cả khi không chạm)
       let lastY = window.scrollY;
@@ -223,8 +217,6 @@ export function ParticleStage() {
         document.removeEventListener("visibilitychange", sync);
         window.removeEventListener("resize", onResize);
         stopPointer();
-        window.removeEventListener("touchmove", onTouch);
-        window.removeEventListener("touchend", onTouchEnd);
         gsap.ticker.remove(windTick);
         engine.destroy();
       };

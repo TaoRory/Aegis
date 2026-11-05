@@ -22,8 +22,7 @@ export function Hero({ lang }: { lang: Locale }) {
 
       <div className="container-page relative flex flex-1 flex-col">
         <div className="hero-meta relative z-10 mt-6 grid grid-cols-2 gap-6 border-t border-line pt-4 text-muted lg:grid-cols-4">
-          <p className="label">{hero.label}</p>
-          <p className="label hidden lg:block">{hero.scale}</p>
+          <p className="label col-span-2 text-fg">{hero.label}</p>
           <ul className="label col-span-2 flex flex-wrap gap-x-4 gap-y-1 max-lg:hidden lg:col-span-2 lg:justify-end">
             {services.map((service) => (
               <li key={service.id}>

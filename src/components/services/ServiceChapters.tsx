@@ -197,7 +197,8 @@ export function ServiceChapters({ services, lang, copy }: { services: Service[];
                   <span aria-hidden className="h-px w-10 bg-line-strong" />
                   {copy.sheet} {pad(index + 1)} / {pad(services.length)}
                 </p>
-                <h3 id={`dich-vu-${service.id}-title`} className="mt-6 text-h3 font-semibold">
+                {service.hook && <p className="service-hook mt-5 max-w-[40rem] text-[1.0625rem] leading-relaxed">{service.hook}</p>}
+                <h3 id={`dich-vu-${service.id}-title`} className="mt-4 text-h3 font-semibold">
                   {service.title}
                 </h3>
                 <p className="mt-5 max-w-[42rem] text-lead text-muted">{service.summary}</p>

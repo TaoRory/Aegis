@@ -3,6 +3,7 @@ import type { Service } from "@/content/types";
 export const services: Service[] = [
   {
     id: "ai",
+    hook: "Nhiều doanh nghiệp muốn dùng AI nhưng chưa biết bắt đầu từ đâu. Aegis bắt đầu từ bài toán, không từ xu hướng.",
     title: "Giải pháp AI doanh nghiệp",
     shortTitle: "AI doanh nghiệp",
     summary:
@@ -21,6 +22,7 @@ export const services: Service[] = [
   },
   {
     id: "software",
+    hook: "Nhiều doanh nghiệp có dữ liệu nằm rải rác ở nhiều nơi. Aegis triển khai phần mềm khớp với cách đội ngũ đang làm việc.",
     title: "Triển khai phần mềm quản trị doanh nghiệp",
     shortTitle: "Phần mềm quản trị",
     summary:
@@ -39,6 +41,7 @@ export const services: Service[] = [
   },
   {
     id: "web",
+    hook: "Nhiều doanh nghiệp có website nhưng khách không tìm thấy. Aegis dựng website để được tìm thấy và dễ cập nhật.",
     title: "Thiết kế, phát triển website và web app",
     shortTitle: "Website & web app",
     summary:
@@ -59,6 +62,7 @@ export const services: Service[] = [
   },
   {
     id: "marketing",
+    hook: "Nhiều doanh nghiệp chạy quảng cáo nhưng không biết đồng tiền đi đâu. Aegis lên kế hoạch kênh và báo cáo rõ ràng.",
     title: "Marketing cho doanh nghiệp",
     shortTitle: "Marketing",
     summary: "Lên kế hoạch và trực tiếp triển khai marketing trên các kênh trực tuyến, đưa doanh nghiệp đến gần khách hàng hơn.",
