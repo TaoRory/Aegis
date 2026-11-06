@@ -16,6 +16,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **Chuyển động** đặt trong `@media (prefers-reduced-motion: no-preference)` (xem `src/styles/effects.css`).
 - **Form liên hệ** không được giả lập gửi thành công. Tích hợp gửi nằm ở `src/lib/contact/delivery.ts`; validation dùng chung ở `src/lib/contact/schema.ts`.
 - **Chuyển động:** import gsap từ `src/lib/motion.ts`; animation trong `useGSAP`/`gsap.matchMedia`; trạng thái ẩn chỉ dưới `[data-motion="on"]`.
-- **Bộ kit thiết kế:** `.claude/skills` (design-research, awwwards-art-direction, motion-engineering, webgl-experiences, design-qa, aegis-context, apple-design) và `.claude/agents`. Đọc `aegis-context` trước khi làm UI.
+- **Bộ kit thiết kế:** `.claude/skills` (design-research, awwwards-art-direction, motion-engineering, webgl-experiences, design-qa, aegis-context, apple-design, impeccable) và `.claude/agents`. Đọc `aegis-context` trước khi làm UI. `impeccable` đọc `PRODUCT.md` và `DESIGN.md` ở gốc dự án; chỉ dùng các lệnh tinh chỉnh (critique, audit, harden, adapt, optimize, typeset, layout, clarify, polish), không dùng lệnh đổi phong cách khi chưa được yêu cầu.
 - **Mẫu giao diện demo** (`/mau-giao-dien`): thương hiệu giả định, luôn ghi rõ là demo, không trộn với dự án thật; làm theo skill `template-gallery`. Mỗi mẫu có token riêng `.tpl-<slug>`.
 - Trước khi bàn giao: `pnpm check`, sau đó `pnpm qa <url>` trên bản build production, rồi chụp hành trình cuộn (skill `design-qa`).
