@@ -22,7 +22,7 @@ export default function Demo1ContactPage() {
     <section aria-labelledby="d1-contact-title" className="d1-wrap pt-[clamp(2rem,1.2rem+3vw,4.5rem)] pb-(--d1-section)">
       <div className="d1-grid gap-y-6 border-b border-line pb-10">
         <h1 id="d1-contact-title" className="d1-h2 col-span-12 lg:col-span-7">
-          {contact.pageTitle[0]} <span className="text-subtle">{contact.pageTitle[1]}</span>
+          {contact.pageTitle[0]} <span className="d1-faint">{contact.pageTitle[1]}</span>
         </h1>
         <p className="col-span-12 max-w-[30rem] text-muted lg:col-span-4 lg:col-start-9 lg:self-end">{contact.pageLead}</p>
       </div>

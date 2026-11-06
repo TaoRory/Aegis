@@ -19,7 +19,7 @@ export function D1Hero() {
         <div className="d1-grid gap-y-10">
           <div className="col-span-12 flex flex-col lg:col-span-7">
             <h1 id="d1-hero-title" className="d1-display max-w-[15em]">
-              {hero.title[0]} <span className="text-subtle">{hero.title[1]}</span>
+              {hero.title[0]} <span className="d1-faint">{hero.title[1]}</span>
             </h1>
             <p className="d1-lead mt-7 max-w-[32rem] text-muted lg:mt-9">{hero.lead}</p>
             <div className="mt-8 flex flex-wrap gap-2 lg:mt-10">
@@ -37,10 +37,9 @@ export function D1Hero() {
 
         <nav aria-label={hero.servicesLabel} className="mt-12 lg:mt-14">
           <ol className="d1-hero-services grid grid-cols-2 gap-x-(--d1-gutter) lg:grid-cols-4">
-            {services.items.map((service, index) => (
+            {services.items.map((service) => (
               <li key={service.id}>
                 <a href={`#dich-vu-${service.id}`}>
-                  <span className="d1-label text-muted">{String(index + 1).padStart(2, "0")}</span>
                   <span className="text-[0.9375rem] leading-snug font-medium">{service.shortTitle}</span>
                   <ArrowDownRight className="text-muted" />
                 </a>
@@ -77,12 +76,9 @@ export function D1About() {
         <div className="mt-16 lg:mt-24">
           <h3 className="d1-label text-muted">{about.valuesLabel}</h3>
           <ul className="mt-5 grid gap-x-(--d1-gutter) gap-y-8 md:grid-cols-3">
-            {about.values.map((value, index) => (
+            {about.values.map((value) => (
               <li key={value.title} className="border-t border-line pt-5">
-                <p className="flex items-baseline justify-between gap-4">
-                  <span className="text-[1.5rem] leading-tight font-medium tracking-[-0.025em]">{value.title}</span>
-                  <span className="d1-label text-muted">{String(index + 1).padStart(2, "0")}</span>
-                </p>
+                <p className="text-[1.5rem] leading-tight font-medium tracking-[-0.025em]">{value.title}</p>
                 <p className="mt-3 max-w-[28rem] text-[0.9375rem] leading-relaxed text-muted">{value.description}</p>
               </li>
             ))}
@@ -179,7 +175,7 @@ export function D1ContactCta() {
       <div className="d1-wrap d1-grid gap-y-12">
         <div className="col-span-12 lg:col-span-5">
           <h2 id="lien-he-title" className="d1-h2">
-            {contact.title[0]} <span className="text-subtle">{contact.title[1]}</span>
+            {contact.title[0]} <span className="d1-faint">{contact.title[1]}</span>
           </h2>
           <p className="mt-6 max-w-[28rem] text-muted">{contact.lead}</p>
           <div className="mt-8">
@@ -213,10 +209,9 @@ export function D1ContactCta() {
         <div className="col-span-12 lg:col-span-6 lg:col-start-7">
           <p className="d1-label mb-4 text-muted">{contact.pickerLabel}</p>
           <ul className="d1-pick">
-            {contact.options.map((option, index) => (
+            {contact.options.map((option) => (
               <li key={option.value}>
                 <Link href={d1ContactHref(option.value)}>
-                  <span className="d1-label text-muted">{String(index + 1).padStart(2, "0")}</span>
                   {option.label}
                   <ArrowRight />
                 </Link>

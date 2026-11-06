@@ -17,7 +17,7 @@
     --d1-ink: #071f1e; /* Deep Ink Teal */
     --d1-ink-2: #0f2c2b;
     --d1-muted: #536361; /* 5.5:1 trên giấy */
-    --d1-faint: #788583; /* 3.4:1 trên giấy: chỉ cho chữ lớn (tên dịch vụ đang đóng) */
+    --d1-faint: #788583; /* 3.4:1 trên giấy: CHỈ cho chữ lớn (vế xám của tiêu đề, tên dịch vụ đang đóng) */
     --d1-teal: #13b5a5; /* Transformative Teal: điểm nhấn diện tích nhỏ */
     --d1-teal-ink: #0a7369; /* teal cho chữ/link trên giấy: 5.2:1 */
     --d1-aqua: #84e4d6; /* Aqua Glow */
@@ -41,7 +41,8 @@
     --surface: var(--d1-paper-2);
     --fg: var(--d1-ink);
     --fg-muted: var(--d1-muted);
-    --fg-subtle: var(--d1-faint);
+    /* subtle vẫn đạt 4.9:1 vì component dùng chung (form liên hệ) in chữ nhỏ bằng màu này */
+    --fg-subtle: #5c6b69;
     --border: rgb(7 31 30 / 0.13);
     --border-strong: rgb(7 31 30 / 0.3);
     --accent: var(--d1-teal-ink);
@@ -76,7 +77,8 @@
     --surface: var(--d1-ink-2);
     --fg: var(--d1-cloud);
     --fg-muted: #93a3a1; /* 6.5:1 trên mực */
-    --fg-subtle: #637875; /* 3.7:1: chỉ chữ lớn */
+    --fg-subtle: #7d8f8d; /* 5.1:1 */
+    --d1-faint: #637875; /* 3.7:1: chỉ chữ lớn */
     --border: rgb(245 247 246 / 0.12);
     --border-strong: rgb(245 247 246 / 0.28);
     --accent: var(--d1-aqua);
@@ -90,6 +92,11 @@
     color-scheme: dark;
     background: var(--bg);
     color: var(--fg);
+  }
+
+  /* Sắc xám cho phần chữ lớn đứng sau (tiêu đề hai sắc độ) */
+  .d1-faint {
+    color: var(--d1-faint);
   }
 
   .d1 ::selection {
@@ -151,7 +158,7 @@
 
   .d1-statement {
     font-size: clamp(1.4rem, 1.02rem + 1.4vw, 2.35rem);
-    line-height: 1.22;
+    line-height: 1.3;
     letter-spacing: -0.024em;
     font-weight: 450;
     text-wrap: pretty;
@@ -193,7 +200,7 @@
 
   .d1-count {
     font-family: var(--d1-font-mono);
-    font-size: 0.32em;
+    font-size: max(0.75rem, 0.32em);
     font-weight: 400;
     letter-spacing: 0;
     vertical-align: super;
@@ -340,7 +347,7 @@
   /* ---------- Hero ---------- */
   .d1-hero-services a {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: baseline;
     gap: 0.75rem;
     height: 100%;
@@ -400,7 +407,7 @@
     align-items: center;
     column-gap: var(--d1-gutter);
     padding-block: clamp(0.9rem, 0.55rem + 1vw, 1.5rem);
-    color: var(--fg-subtle);
+    color: var(--d1-faint);
     list-style: none;
     cursor: pointer;
     transition: color 0.3s ease;
@@ -604,7 +611,7 @@
   /* ---------- Liên hệ: chọn hạng mục là bắt đầu phiếu ---------- */
   .d1-pick a {
     display: grid;
-    grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     column-gap: var(--d1-gutter);
     padding-block: 1.05rem;
@@ -644,9 +651,10 @@
     color: var(--fg);
   }
 
+  /* Chữ "Aegis" khổng lồ: rộng = 2.08 × cỡ chữ (đo thực tế với Hanken Grotesk 600, tracking -0.07em) → lấp đúng bề rộng nội dung */
   .d1-wordmark {
     display: block;
-    font-size: calc((min(100vw, var(--d1-max) + var(--d1-gutter) * 2) - var(--d1-gutter) * 2) / 2.3);
+    font-size: calc((min(100vw, var(--d1-max) + var(--d1-gutter) * 2) - var(--d1-gutter) * 2) / 2.08);
     font-weight: 600;
     line-height: 0.78;
     letter-spacing: -0.07em;

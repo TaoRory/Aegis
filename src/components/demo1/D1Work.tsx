@@ -41,13 +41,12 @@ export function D1Work() {
         </div>
 
         <ul className="mt-12 grid gap-x-(--d1-gutter) gap-y-14 md:grid-cols-2 lg:mt-16">
-          {copy.items.map((project, index) => {
+          {copy.items.map((project) => {
             const preview = pv[project.slug];
             return (
               <li key={project.slug}>
                 <D1ProjectCard
                   href={d1ProjectHref(project.slug)}
-                  index={index}
                   name={project.name}
                   type={project.type}
                   domain={domainOf(project.url)}

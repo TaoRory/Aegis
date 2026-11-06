@@ -17,7 +17,6 @@ const VIEW_RATIO = 10 / 16;
  */
 export function D1ProjectCard({
   href,
-  index,
   name,
   type,
   domain,
@@ -26,7 +25,6 @@ export function D1ProjectCard({
   alt,
 }: {
   href: string;
-  index: number;
   name: string;
   type: string;
   domain: string;
@@ -83,7 +81,6 @@ export function D1ProjectCard({
           </h3>
           <p className="mt-1 text-[0.9375rem] text-muted">{type}</p>
         </div>
-        <span className="d1-label pt-1 text-muted">{String(index + 1).padStart(2, "0")}</span>
       </div>
     </Link>
   );

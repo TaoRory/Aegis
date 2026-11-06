@@ -14,7 +14,7 @@ export default function Demo1NotFound() {
     <section aria-labelledby="d1-404-title" className="d1-wrap d1-section">
       <p className="d1-label text-muted">404</p>
       <h1 id="d1-404-title" className="d1-h2 mt-6 max-w-[16em]">
-        Không tìm thấy trang này. <span className="text-subtle">Có thể đường dẫn đã đổi hoặc gõ nhầm.</span>
+        Không tìm thấy trang này. <span className="d1-faint">Có thể đường dẫn đã đổi hoặc gõ nhầm.</span>
       </h1>
       <div className="mt-10 flex flex-wrap gap-2">
         <D1Button href={D1_BASE}>Về trang chủ</D1Button>
