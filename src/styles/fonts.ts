@@ -5,10 +5,10 @@ import { Bricolage_Grotesque, JetBrains_Mono, Newsreader } from "next/font/googl
  * Đổi font: thay import ở đây, giữ nguyên tên `variable` để tokens.css tiếp tục hoạt động.
  */
 
-/** Display + body: grotesk có cá tính, trục opsz/wdth */
+/** Display + body: grotesk có cá tính, trục opsz (bỏ trục wdth: chỉ dùng để hẹp tiêu đề hero 8% mà làm font nặng thêm) */
 export const brandSans = Bricolage_Grotesque({
   subsets: ["latin", "vietnamese"],
-  axes: ["opsz", "wdth"],
+  axes: ["opsz"],
   variable: "--font-brand-sans",
   display: "swap",
 });

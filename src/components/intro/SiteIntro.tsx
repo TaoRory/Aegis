@@ -66,8 +66,8 @@ function measure(vw: number, vh: number): Layout {
 
 /**
  * Màn mở đầu của trang chính: logo AEGIS tự lắp ráp (motion identity: một dải sáng → xoắn → khép thành lục giác), dưới là chữ AEGIS
- * và tagline. Người dùng cuộn (bánh xe, vuốt, phím ↓ / Space) thì cả lớp phủ phóng to quanh LÕI MỞ của logo cho tới
- * khi lõi phủ kín màn hình và lộ ra trang chủ phía sau; có nút "Bỏ qua".
+ * và tagline. Lắp xong thì cả lớp phủ TỰ phóng to quanh LÕI MỞ của logo cho tới khi lõi phủ kín màn hình và lộ ra trang chủ
+ * (không bắt người xem cuộn mới vào). Cuộn (bánh xe, vuốt, phím ↓ / Space) hoặc nút "Bỏ qua" thì vào ngay.
  * Chỉ hiển thị khi <html data-intro="playing"> (script đầu trang đặt: trang chủ, lần đầu trong phiên, không giảm chuyển động).
  * Hạt hero và chữ hero bắt đầu dựng khi lớp phủ đã phóng được một đoạn (sự kiện INTRO_DONE_EVENT), để ô cửa không trống.
  */
@@ -77,7 +77,6 @@ export function SiteIntro() {
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<SVGGElement>(null);
   const brandRef = useRef<HTMLDivElement>(null);
-  const hintRef = useRef<HTMLParagraphElement>(null);
   const [layout, setLayout] = useState<Layout | null>(null);
   const [gone, setGone] = useState(false);
   const layoutRef = useRef<Layout | null>(null);
@@ -123,8 +122,10 @@ export function SiteIntro() {
       tl.to(letters, { opacity: 1, y: 0, duration: 0.7, ease: "expo.out", stagger: 0.06 }, 1.05);
       tl.to(brand.querySelector(".site-intro-tagline"), { opacity: 1, duration: 0.6 }, 1.45);
     }
-    if (hintRef.current) tl.from(hintRef.current, { opacity: 0, duration: 0.5 }, 1.7);
     assembly.current = tl;
+    // Lắp xong (kể cả tagline) thì tự phóng vào trang
+    const auto = window.setTimeout(() => (rootRef.current as (HTMLDivElement & { _skip?: () => void }) | null)?._skip?.(), (tl.duration() + 0.15) * 1000);
+    return () => window.clearTimeout(auto);
   }, [ready]);
 
   const apply = (p: number) => {
@@ -136,7 +137,6 @@ export function SiteIntro() {
       g.setAttribute("transform", `translate(${l.cx} ${l.cy}) scale(${s}) translate(${-l.cx} ${-l.cy})`);
     }
     if (brandRef.current) brandRef.current.style.opacity = String(1 - clamp01(p * 4));
-    if (hintRef.current) hintRef.current.style.opacity = String(1 - clamp01(p * 10));
     if (rootRef.current) rootRef.current.style.opacity = String(1 - smooth(0.72, 0.96, p));
     const st = state.current;
     if (!st.announced && p > 0.3) {
@@ -175,12 +175,13 @@ export function SiteIntro() {
       st.shown += (st.target - st.shown) * (1 - Math.exp(-dt * rate));
       if (Math.abs(st.target - st.shown) < 0.002) st.shown = st.target;
       apply(st.shown);
-      if (st.shown >= 0.999) {
+      // Lớp phủ đã trong suốt hẳn từ 0.96 (xem apply): trả trang cho người xem ngay, không chờ phần đuôi của đường cong làm mượt
+      if (st.shown >= 0.97) {
         finish();
         return;
       }
-      // đã cuộn quá một đoạn rồi dừng: tự phóng nốt, không để lớp phủ gần trong suốt còn chặn trang phía sau
-      if (st.shown === st.target && st.target > 0.35) {
+      // đã cuộn (dù chỉ một nấc) rồi dừng: tự phóng nốt, không để logo kẹt nửa chừng giữa màn hình
+      if (st.shown === st.target && st.target > 0.05) {
         st.target = 1;
         rate = 4;
       }
@@ -263,13 +264,6 @@ export function SiteIntro() {
         </div>
       )}
       <div className="site-intro-ui">
-        <p ref={hintRef} className="site-intro-hint label">
-          <span className="site-intro-hint-mouse">{intro.hint}</span>
-          <span className="site-intro-hint-touch">{intro.hintTouch}</span>
-          <span aria-hidden className="site-intro-arrow">
-            ↓
-          </span>
-        </p>
         <button type="button" className="site-intro-skip label" onClick={() => (rootRef.current as (HTMLDivElement & { _skip?: () => void }) | null)?._skip?.()}>
           {intro.skip}
         </button>

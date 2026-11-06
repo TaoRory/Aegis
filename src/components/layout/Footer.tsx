@@ -20,7 +20,7 @@ export function Footer({ lang }: { lang: Locale }) {
         <div className="grid gap-12 lg:grid-cols-12">
           <div className="lg:col-span-6">
             <p className="label text-muted">{footer.label}</p>
-            <p className="mt-6 max-w-[34rem] text-statement font-medium">
+            <p className="mt-6 max-w-[34rem] text-statement font-medium text-balance">
               <Rich text={footer.statement} />
             </p>
             <div className="mt-10">

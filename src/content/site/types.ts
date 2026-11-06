@@ -39,12 +39,12 @@ export interface SiteDict {
   nav: SiteLink[];
   cta: SiteLink;
   hero: {
-    label: string;
-    scale: string;
     lines: string[];
+    /** Câu đầu nói Aegis làm gì, cho ai (thay cho nhãn mono nhỏ phía trên tiêu đề) */
     description: string;
+    /** Nhãn cho trình đọc màn hình của hàng link 4 dịch vụ trên đầu hero */
+    servicesAria: string;
     secondaryCta: SiteLink;
-    scrollHint: string;
     chapter: string;
   };
   about: {
@@ -53,7 +53,6 @@ export interface SiteDict {
     body: string;
     promise: { label: string; text: string };
     valuesLabel: string;
-    principles: string;
     chapter: string;
   };
   values: Value[];
@@ -67,7 +66,6 @@ export interface SiteDict {
     lines: string[];
     lead: string;
     pickerLabel: string;
-    start: string;
     sheet: string;
     channels: { email: string; phone: string; address: string };
     pageLabel: string;
@@ -87,7 +85,7 @@ export interface SiteDict {
   };
   settings: SettingsCopy;
   /** Màn mở đầu chữ AEGIS (SiteIntro) */
-  intro: { label: string; hint: string; hintTouch: string; skip: string; tagline: string };
+  intro: { label: string; skip: string; tagline: string };
   services: Service[];
   /** Trang dịch vụ (/web, /ai, /software, /marketing) */
   servicePage: {

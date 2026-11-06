@@ -9,7 +9,7 @@ import "@/styles/showroom.css";
 /**
  * Studio Aegis (/demo): toàn màn hình, không dùng header/footer của trang chính.
  * Nội dung nằm trong <main> để nút "Bỏ qua" và trình đọc màn hình tìm được.
- * Vào trang chạy intro logo của trang chính (SiteIntro; script đầu trang đặt data-intro cho /demo): cuộn để phóng xuyên lõi logo
+ * Vào trang chạy intro logo của trang chính (SiteIntro; script đầu trang đặt data-intro cho /demo): lắp xong tự phóng (hoặc cuộn) xuyên lõi logo
  * là vào thẳng phòng 3D. Intro phải là con trực tiếp của <main> (phần còn lại của <main> tạm inert trong lúc intro chạy).
  */
 export default function ShowroomLayout({ children }: Readonly<{ children: ReactNode }>) {

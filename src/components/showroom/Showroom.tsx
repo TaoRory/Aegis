@@ -15,7 +15,7 @@ import { MQ, onIntroDone } from "@/lib/motion";
  *    lớp HTML hiện "trong" màn hình đó (engine ghi khung màn hình vào biến CSS). Esc / nút đóng / Back để về toàn cảnh.
  *  - Bản phẳng: khi không có WebGL2 hoặc người dùng chọn; cùng nội dung, trang cuộn thường. Server luôn render bản phẳng
  *    (chữ có trong HTML), client quyết định chế độ rồi mới hiện.
- *  - Vào trang: intro logo của trang chính (SiteIntro, đặt ở layout) che trong lúc phòng dựng; cuộn để phóng xuyên lõi logo là
+ *  - Vào trang: intro logo của trang chính (SiteIntro, đặt ở layout) che trong lúc phòng dựng; lắp xong tự phóng (hoặc cuộn) xuyên lõi logo là
  *    vào thẳng phòng (không có nút "Vào studio"). Giảm chuyển động thì không có intro, vào thẳng.
  * Khu đang mở ghi vào #hash (link chia sẻ được, nút Back đóng khung).
  */

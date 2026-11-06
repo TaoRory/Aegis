@@ -6,16 +6,14 @@ import type { ProcessStep, Value } from "@/content/types";
  */
 
 export const hero = {
-  label: "Website, web app, phần mềm, AI và digital marketing cho doanh nghiệp",
   lines: ["Xây nền móng", "*vững chắc,*", "để tiến xa."],
   description:
-    "Một đội làm trọn: tư vấn đúng giải pháp, tự tay xây dựng, rồi bàn giao sản phẩm dễ dùng nhất để doanh nghiệp tự vận hành.",
+    "Website, web app, phần mềm quản trị, AI và digital marketing cho doanh nghiệp: một đội tư vấn, tự tay xây dựng và bàn giao sản phẩm dễ dùng để doanh nghiệp tự vận hành.",
   secondaryCta: { label: "Xem dịch vụ", href: "#dich-vu" },
-  scrollHint: "Cuộn để xem bản vẽ",
 };
 
 export const about = {
-  label: "[01] — Về Aegis",
+  label: "Về Aegis",
   statement:
     "Aegis là đội *triển khai công nghệ và marketing* của doanh nghiệp. Chúng tôi tư vấn đúng giải pháp, tự tay xây dựng và bàn giao *sản phẩm dễ dùng nhất,* để chủ doanh nghiệp tự vận hành được.",
   body: "Mỗi dự án bắt đầu từ bài toán thực tế: quy trình đang vận hành ra sao, đội ngũ cần gì và mục tiêu nào cần đạt. Tư vấn chỉ là bước mở đầu: Aegis chốt phạm vi rồi trực tiếp triển khai, không dừng lại ở bản đề xuất.",
@@ -45,13 +43,13 @@ export const values: Value[] = [
 ];
 
 export const servicesSection = {
-  label: "[02] — Dịch vụ",
+  label: "Dịch vụ",
   lines: ["Bốn bản vẽ,", "*một nền móng.*"],
   lead: "Aegis hỗ trợ doanh nghiệp ở cả nền tảng vận hành lẫn hoạt động tiếp cận khách hàng. Bắt đầu từ một nhu cầu cụ thể, mở rộng khi cần.",
 };
 
 export const process: { label: string; lines: string[]; lead: string; steps: ProcessStep[] } = {
-  label: "[03] — Cách làm việc",
+  label: "Cách làm việc",
   lines: ["Rõ ràng từ", "*cuộc trao đổi đầu tiên.*"],
   lead: "Mỗi dự án đi qua bốn bước, từ tư vấn đến bàn giao, để doanh nghiệp luôn biết việc gì đang được làm và vì sao.",
   steps: [
@@ -75,13 +73,13 @@ export const process: { label: string; lines: string[]; lead: string; steps: Pro
 };
 
 export const projectsSection = {
-  label: "[04] — Dự án",
+  label: "Dự án",
   lines: ["Dự án", "*đã thực hiện.*"],
   lead: "Các website Aegis đã thực hiện cho doanh nghiệp, tổ chức giáo dục và sự kiện.",
 };
 
 export const templatesSection = {
-  label: "[05] — Mẫu giao diện",
+  label: "Mẫu giao diện",
   lines: ["Mỗi ngành", "*một style riêng.*"],
   pageLabel: "Thư viện style",
   pageLines: ["Tám style,", "*tám ngành.*"],

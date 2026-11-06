@@ -8,7 +8,6 @@ import { FeaturedProjects } from "@/components/sections/FeaturedProjects";
 import { Hero } from "@/components/sections/Hero";
 import { Process } from "@/components/sections/Process";
 import { Services } from "@/components/sections/Services";
-import { ServicesMarquee } from "@/components/sections/ServicesMarquee";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ParticleStage } from "@/components/webgl/ParticleStage";
 import type { Locale } from "@/config/space";
@@ -16,7 +15,7 @@ import { getSiteDict } from "@/content/site";
 import { homeJsonLd } from "@/lib/seo/jsonld";
 
 /**
- * Trang chủ (/ và /en): Hero, Giới thiệu, bốn dịch vụ ngang hàng, Cách làm việc, Liên hệ.
+ * Trang chủ (/ và /en): Hero, Giới thiệu, bốn dịch vụ ngang hàng, Dự án tiêu biểu, Cách làm việc, Liên hệ.
  * Có "Dự án tiêu biểu" (4 dự án thật) sau phần Dịch vụ làm bằng chứng; toàn bộ dự án và mẫu giao diện ở trang Web & web app.
  */
 export function HomePage({ lang }: { lang: Locale }) {
@@ -36,7 +35,6 @@ export function HomePage({ lang }: { lang: Locale }) {
       <Services lang={lang} />
       <FeaturedProjects lang={lang} />
       <Process process={process} />
-      <ServicesMarquee lang={lang} />
       <Contact lang={lang} />
       <ChapterHud />
     </>

@@ -243,7 +243,7 @@ for (const vp of viewports) {
   await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   check("[intro] lần đầu vào trang chủ có màn chữ AEGIS", (await page.evaluate(() => document.documentElement.dataset.intro)) === "playing");
   await page.waitForSelector(".site-intro[data-ready='true']", { timeout: 15000 }).catch(() => {});
-  check("[intro] có nút Bỏ qua và gợi ý cuộn", (await page.locator(".site-intro-skip").count()) === 1 && (await page.locator(".site-intro-hint").count()) === 1);
+  check("[intro] có nút Bỏ qua", (await page.locator(".site-intro-skip").count()) === 1);
   await page.mouse.move(700, 450);
   await page.mouse.wheel(0, 500);
   await page.waitForFunction(() => Number(document.querySelector(".site-intro svg > g")?.getAttribute("transform")?.match(/scale\(([\d.]+)\)/)?.[1] ?? 1) > 1.5, null, { timeout: 8000 }).catch(() => {});
@@ -255,6 +255,29 @@ for (const vp of viewports) {
   check("[intro] Bỏ qua → vào trang, gỡ màn mở đầu", (await page.locator(".site-intro").count()) === 0 && !(await page.evaluate(() => document.documentElement.dataset.intro)));
   await page.reload({ waitUntil: "domcontentloaded" });
   check("[intro] chỉ một lần mỗi phiên", !(await page.evaluate(() => document.documentElement.dataset.intro)));
+
+  // Không thao tác gì: intro tự phóng vào trang sau khi logo lắp xong (không bắt cuộn mới thấy nội dung)
+  {
+    const idle = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    await idle.goto(baseUrl, { waitUntil: "domcontentloaded" });
+    const t0 = Date.now();
+    await idle.waitForFunction(() => !document.documentElement.dataset.intro, null, { timeout: 8000 }).catch(() => {});
+    const ms = Date.now() - t0;
+    check("[intro] tự mở trong ≤ 5s khi không cuộn", !(await idle.evaluate(() => document.documentElement.dataset.intro)) && ms <= 5000, `${ms}ms`);
+    await idle.close();
+  }
+
+  // Cuộn nhẹ (3 nấc) rồi dừng: intro không kẹt nửa chừng
+  {
+    const light = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    await light.goto(baseUrl, { waitUntil: "domcontentloaded" });
+    await light.waitForSelector(".site-intro[data-ready='true']", { timeout: 15000 }).catch(() => {});
+    await light.mouse.move(700, 450);
+    for (let i = 0; i < 3; i++) await light.mouse.wheel(0, 100);
+    await light.waitForFunction(() => !document.documentElement.dataset.intro, null, { timeout: 4000 }).catch(() => {});
+    check("[intro] cuộn nhẹ 3 nấc thì vào hẳn trang, không kẹt", !(await light.evaluate(() => document.documentElement.dataset.intro)));
+    await light.close();
+  }
 
   // Theme sáng/tối: mặc định SÁNG, công tắc đổi sang tối và nhớ lại
   await page.waitForTimeout(1500);

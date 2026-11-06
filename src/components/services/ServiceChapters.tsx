@@ -198,10 +198,11 @@ export function ServiceChapters({ services, lang, copy }: { services: Service[];
                   {copy.sheet} {pad(index + 1)} / {pad(services.length)}
                 </p>
                 {service.hook && <p className="service-hook mt-5 max-w-[40rem] text-[1.0625rem] leading-relaxed">{service.hook}</p>}
-                <h3 id={`dich-vu-${service.id}-title`} className="mt-4 text-h3 font-semibold">
+                {/* Khoảng trên tiêu đề lớn hơn khoảng dưới: tiêu đề gắn với đoạn tóm tắt nó mở ra */}
+                <h3 id={`dich-vu-${service.id}-title`} className="mt-7 text-h3 font-semibold">
                   {service.title}
                 </h3>
-                <p className="mt-5 max-w-[42rem] text-lead text-muted">{service.summary}</p>
+                <p className="mt-4 max-w-[42rem] text-lead text-muted">{service.summary}</p>
 
                 <button
                   type="button"

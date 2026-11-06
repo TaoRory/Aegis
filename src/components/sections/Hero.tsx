@@ -21,18 +21,19 @@ export function Hero({ lang }: { lang: Locale }) {
       <HeroFx />
 
       <div className="container-page relative flex flex-1 flex-col">
-        <div className="hero-meta relative z-10 mt-6 grid grid-cols-2 gap-6 border-t border-line pt-4 text-muted lg:grid-cols-4">
-          <p className="label col-span-2 text-fg">{hero.label}</p>
-          <ul className="label col-span-2 flex flex-wrap gap-x-4 gap-y-1 max-lg:hidden lg:col-span-2 lg:justify-end">
+        {/* Bốn mảng dịch vụ, bấm để nhảy tới chương tương ứng (cả điện thoại lẫn máy tính) */}
+        {/* Điện thoại: hàng chữ nằm trên vùng hạt nên có dải nền giấy mờ phía sau để đọc được */}
+        <nav aria-label={hero.servicesAria} className="hero-meta relative z-10 mt-6 border-t border-line pt-4 max-lg:bg-bg/85 max-lg:pb-3">
+          <ul className="label flex flex-wrap gap-x-5 gap-y-1 text-fg lg:gap-x-8">
             {services.map((service) => (
               <li key={service.id}>
-                <a href={`#dich-vu-${service.id}`} className="transition-colors hover:text-fg">
+                <a href={`#dich-vu-${service.id}`} className="inline-flex min-h-6 items-center transition-colors hover:text-accent">
                   {service.shortTitle}
                 </a>
               </li>
             ))}
           </ul>
-        </div>
+        </nav>
 
         {/* Điện thoại: nửa trên dành trọn cho artwork phân tử, chữ bắt đầu từ giữa màn hình */}
         <div className="flex flex-1 items-end pt-10 pb-10 max-lg:pt-[38svh] lg:pb-14">
@@ -56,13 +57,13 @@ export function Hero({ lang }: { lang: Locale }) {
             </SplitReveal>
 
             <div className="hero-foot mt-10 grid gap-8 border-t border-line pt-6 lg:mt-14 lg:grid-cols-12 lg:items-end">
-              <p className="text-lead text-muted lg:col-span-5">{hero.description}</p>
-              <div className="flex flex-col gap-5 lg:col-span-7 lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:gap-6">
+              <p className="text-lead lg:col-span-6">{hero.description}</p>
+              <div className="flex flex-col gap-5 lg:col-span-6 lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:gap-6">
                 {/* Điện thoại: nút chính to, dễ chạm bằng ngón cái; máy tính: nút tròn magnetic */}
                 <ButtonLink href={cta.href} className="h-14 w-full justify-center text-base lg:hidden">
                   {cta.label}
                 </ButtonLink>
-                <ButtonLink href={hero.secondaryCta.href} variant="link" className="self-center lg:self-auto">
+                <ButtonLink href={hero.secondaryCta.href} variant="link" className="min-h-11 self-center lg:self-auto">
                   {hero.secondaryCta.label}
                 </ButtonLink>
                 <RoundButton href={cta.href} className="max-lg:hidden">
@@ -73,16 +74,6 @@ export function Hero({ lang }: { lang: Locale }) {
           </div>
         </div>
       </div>
-
-      <a
-        href="#gioi-thieu"
-        className="label absolute right-[var(--gutter)] bottom-6 hidden items-center gap-3 text-muted transition-colors hover:text-fg lg:inline-flex"
-      >
-        {hero.scrollHint}
-        <span aria-hidden className="scroll-cue inline-block">
-          ↓
-        </span>
-      </a>
     </section>
   );
 }

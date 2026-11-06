@@ -77,7 +77,6 @@
     background-color: var(--bg);
     color: var(--fg);
     font-family: var(--font-family-sans);
-    font-variation-settings: "wdth" 100;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -108,7 +107,9 @@
     text-wrap: balance;
   }
 
-  p {
+  p,
+  li,
+  dd {
     text-wrap: pretty;
   }
 

@@ -34,7 +34,7 @@ export function TemplatesTeaser({ lang }: { lang: Locale }) {
           </div>
           <div className="lg:col-span-5">
             <p className="text-lead text-muted">{copy.lead}</p>
-            <p className="label mt-5 border-l-2 border-accent pl-3 leading-relaxed text-muted">{copy.notice}</p>
+            <p className="mt-5 max-w-[40rem] font-mono text-[0.8125rem] leading-relaxed text-muted">{copy.notice}</p>
           </div>
         </div>
         <div className="label mt-14 flex items-center justify-between border-b border-line pb-4 text-muted lg:mt-20">

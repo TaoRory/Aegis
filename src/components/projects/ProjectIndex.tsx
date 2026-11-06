@@ -26,9 +26,9 @@ function displayUrl(url: string) {
 }
 
 /**
- * Danh mục công trình dạng index: mỗi dòng là tên dự án cỡ lớn.
- * Thiết bị có chuột: ảnh xem trước bay theo con trỏ, các dòng khác mờ đi.
- * Cảm ứng: ảnh hiển thị ngay trong dòng.
+ * Danh mục công trình dạng index: mỗi dòng là tên dự án cỡ lớn kèm ảnh nhỏ tĩnh (bằng chứng thấy ngay, không cần rê chuột).
+ * Thiết bị có chuột: thêm ảnh lớn bay theo con trỏ, nằm PHÍA TRÊN con trỏ để không che chữ của dòng đang xem; các dòng khác mờ đi.
+ * Cảm ứng: thẻ vuốt ngang, ảnh ở đầu thẻ.
  */
 export function ProjectIndex({ projects, previews, categories, copy }: ProjectIndexProps) {
   const [filter, setFilter] = useState<Filter>("all");
@@ -168,9 +168,9 @@ export function ProjectIndex({ projects, previews, categories, copy }: ProjectIn
                 <span className="project-name text-[clamp(2rem,1.2rem+3.6vw,5rem)] leading-[1.02] font-semibold tracking-[-0.04em] lg:col-span-6">
                   <TextScramble text={project.name} trigger="parent" />
                 </span>
-                <span className="lg:col-span-4">
+                <span className="min-w-0 lg:col-span-3">
                   <span className="label text-accent">{project.type}</span>
-                  <span className="mt-2 block text-[0.95rem] leading-relaxed text-muted">{project.description}</span>
+                  <span className="mt-2 block text-[0.95rem] leading-relaxed text-pretty text-muted">{project.description}</span>
                   {project.highlights && (
                     <span className="label mt-3 flex flex-wrap gap-x-4 gap-y-1 text-muted">
                       {project.highlights.map((h) => (
@@ -180,24 +180,25 @@ export function ProjectIndex({ projects, previews, categories, copy }: ProjectIn
                       ))}
                     </span>
                   )}
-                </span>
-                <span className="label flex items-center gap-2 text-muted lg:col-span-1 lg:justify-self-end">
-                  <span className="hidden xl:inline">{displayUrl(project.url).split("/")[0]}</span>
-                  <span aria-hidden className="project-arrow text-lg text-fg">
-                    ↗
+                  {/* Tên miền một dòng (cắt "…" nếu dài), không xuống dòng đè lên mô tả */}
+                  <span className="label mt-4 flex min-w-0 items-center gap-2 text-muted">
+                    <span className="truncate">{displayUrl(project.url).split("/")[0]}</span>
+                    <span aria-hidden className="project-arrow text-lg text-fg">
+                      ↗
+                    </span>
+                    <span className="sr-only">{fill(copy.open, { name: project.name })}</span>
                   </span>
-                  <span className="sr-only">{fill(copy.open, { name: project.name })}</span>
                 </span>
 
-                {/* Ảnh trong dòng: chỉ hiện trên thiết bị cảm ứng / không có hover */}
+                {/* Ảnh trong dòng: ảnh nhỏ ở cột phải trên máy tính, ảnh đầu thẻ trên điện thoại */}
                 {preview && (
-                  <span className="project-inline-media relative aspect-[16/10] overflow-hidden lg:col-span-12">
+                  <span className="project-inline-media relative aspect-[16/10] overflow-hidden lg:col-span-2 lg:mt-0 lg:self-center">
                     <Image
                       src={preview.cover.src}
                       width={preview.cover.width}
                       height={preview.cover.height}
                       alt={fill(copy.shotAlt, { name: project.name })}
-                      sizes="100vw"
+                      sizes="(min-width: 64rem) 16vw, 80vw"
                       className="size-full object-cover object-top"
                     />
                   </span>

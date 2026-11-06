@@ -57,7 +57,9 @@ export function Header() {
       frame = requestAnimationFrame(() => {
         const y = window.scrollY;
         if (Math.abs(y - last) < 6) return;
-        setHidden(y > last && y > window.innerHeight * 0.6);
+        // Điện thoại: header nền trong suốt đè lên dòng đầu hero ngay khi cuộn, nên ẩn sớm (sau 48px); máy tính giữ tới 60% màn hình
+        const threshold = window.matchMedia("(min-width: 64rem)").matches ? window.innerHeight * 0.6 : 48;
+        setHidden(y > last && y > threshold);
         last = y;
       });
     };

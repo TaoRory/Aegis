@@ -53,26 +53,19 @@
   }
 
   .hero-title {
-    font-variation-settings: "wdth" 92, "opsz" 96;
+    font-variation-settings: "opsz" 96;
   }
 
   /* Thước ngắm bản vẽ trong hero (HeroFx) */
   .hero-crosshair-v,
   .hero-crosshair-h {
-    background: color-mix(in oklab, var(--accent) 45%, transparent);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-
-  .hero-crosshair-label {
-    color: var(--accent);
+    background: color-mix(in oklab, var(--accent) 25%, transparent);
     opacity: 0;
     transition: opacity 0.4s ease;
   }
 
   .hero-fx[data-active="true"] .hero-crosshair-v,
-  .hero-fx[data-active="true"] .hero-crosshair-h,
-  .hero-fx[data-active="true"] .hero-crosshair-label {
+  .hero-fx[data-active="true"] .hero-crosshair-h {
     opacity: 1;
   }
 
@@ -542,38 +535,6 @@
     pointer-events: none;
   }
 
-  .site-intro-hint {
-    position: absolute;
-    left: 50%;
-    bottom: clamp(2.5rem, 8vh, 4.5rem);
-    display: grid;
-    justify-items: center;
-    gap: 0.4rem;
-    transform: translateX(-50%);
-    color: var(--palette-bright);
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  .site-intro-hint-touch {
-    display: none;
-  }
-
-  @media (hover: none) {
-    .site-intro-hint-mouse {
-      display: none;
-    }
-
-    .site-intro-hint-touch {
-      display: inline;
-    }
-  }
-
-  .site-intro-arrow {
-    font-size: 1.1rem;
-    color: var(--palette-teal);
-  }
-
   .site-intro-skip {
     position: absolute;
     right: clamp(1rem, 3vw, 2rem);
@@ -591,39 +552,13 @@
     border-color: var(--palette-bright);
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .site-intro-arrow {
-      animation: space-nudge 1.6s ease-in-out infinite;
-    }
-  }
-
   [data-intro="playing"] {
     overflow: hidden;
   }
 
-  /* ---------- Tuyên ngôn & giá trị ---------- */
-  .scroll-reveal-text {
-    --progress: 1;
-  }
-
-  .scroll-reveal-text[data-reveal="on"] > span {
-    opacity: calc(0.14 + 0.86 * clamp(0, (var(--progress) - var(--at)) * 9, 1));
-    transition: opacity 180ms linear;
-  }
-
-  .scroll-reveal-text em {
-    color: var(--accent);
-  }
-
-  .value-row .value-word {
-    transition: transform 0.7s var(--motion-ease-out);
-  }
-
-  .value-row:hover .value-word {
-    transform: translateX(1.5rem);
-  }
-
-  .value-word em {
+  /* ---------- Tuyên ngôn ---------- */
+  /* Hiện đủ ngay, không sáng dần theo cuộn: đây là câu chào hàng rõ nhất của trang */
+  .about-statement em {
     color: var(--accent);
   }
 
@@ -965,7 +900,8 @@
     z-index: 60;
     width: clamp(18rem, 26vw, 28rem);
     margin-left: calc(clamp(18rem, 26vw, 28rem) / -2);
-    margin-top: calc(clamp(18rem, 26vw, 28rem) * -0.3125);
+    /* Đặt ảnh phía trên con trỏ (cao = rộng × 10/16, thêm 1.5rem), để không che tên và mô tả của dòng đang xem */
+    margin-top: calc(clamp(18rem, 26vw, 28rem) * -0.625 - 1.5rem);
     aspect-ratio: 16 / 10;
     pointer-events: none;
     display: none;
@@ -1012,12 +948,8 @@
     color: var(--palette-paper);
   }
 
-  /* Thiết bị có chuột + có chuyển động: ảnh nổi thay cho ảnh trong dòng */
+  /* Thiết bị có chuột + có chuyển động: thêm ảnh nổi theo con trỏ (ảnh nhỏ trong dòng vẫn giữ) */
   @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-    .project-inline-media {
-      display: none;
-    }
-
     .project-float {
       display: block;
     }
@@ -1401,12 +1333,6 @@
     }
   }
 
-  /* ---------- Marquee dịch vụ ---------- */
-  .marquee-outline {
-    color: transparent;
-    -webkit-text-stroke: 1.2px var(--fg);
-  }
-
   /* ---------- Form liên hệ từng bước (ContactWizard) ---------- */
   /* Không có JS: mọi câu hỏi xếp thành form dài. Có JS (html[data-js]): chỉ hiện câu hiện tại. */
   .wizard-grid {
@@ -1514,6 +1440,7 @@
     max-width: 40rem;
     color: var(--fg-muted);
     line-height: 1.55;
+    text-wrap: pretty;
   }
 
   .wizard-service-arrow {
@@ -1531,6 +1458,13 @@
   .wizard-service:hover .wizard-service-arrow,
   .wizard-service input:checked + .wizard-service-face .wizard-service-arrow {
     transform: translateX(0.5rem);
+  }
+
+  /* Trên tấm teal (accent = mực) đổi màu không thấy được: gạch chân tên hạng mục khi rê chuột */
+  [data-surface="accent"] .wizard-service:hover .wizard-service-title {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
   }
 
   .wizard-service input:focus-visible + .wizard-service-face,
@@ -2127,15 +2061,15 @@
     white-space: nowrap;
   }
 
+  /* Mỗi vạch là một nút rộng 24px, sát nhau: vùng bấm đạt WCAG 2.5.8, vạch vẽ vẫn mảnh 1px ở giữa */
   .gallery-ticks {
     display: flex;
     align-items: flex-end;
-    gap: 0.35rem;
   }
 
   .gallery-tick {
     position: relative;
-    width: 0.7rem;
+    width: 1.5rem;
     height: 1.5rem;
   }
 
@@ -2512,12 +2446,6 @@
 @keyframes reveal-failsafe {
   to {
     visibility: visible;
-  }
-}
-
-@keyframes space-nudge {
-  50% {
-    transform: translateY(0.35rem);
   }
 }
 
