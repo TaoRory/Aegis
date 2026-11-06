@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { D1Button } from "@/components/demo1/D1Button";
 import { ArrowRight } from "@/components/demo1/icons";
 import previews from "@/content/project-previews.json";
+import systems from "@/content/project-systems.json";
 import { D1_BASE, d1, d1ContactHref, d1ProjectHref } from "@/content/demo1";
 import type { ProjectPreviews } from "@/content/types";
 import { fill } from "@/lib/fill";
@@ -14,6 +15,15 @@ type Params = Promise<{ slug: string }>;
 
 const projects = d1.work.items;
 const pv = previews as ProjectPreviews;
+
+type ProjectSystem = {
+  fonts: { role: string; family: string; weight?: string }[];
+  colors: { hex: string; role: string }[];
+  mobile?: { src: string; width: number; height: number };
+  specimen?: { src: string; width: number; height: number; text?: string };
+};
+/** Đo từ website đang chạy bằng scripts/capture-project-systems.mjs (đã soát tay) */
+const ps = systems as Record<string, ProjectSystem>;
 
 export function generateStaticParams() {
   return projects.map((project) => ({ slug: project.slug }));
@@ -35,8 +45,9 @@ function domainOf(url: string) {
 }
 
 /**
- * Trang một dự án /demo1/du-an/[slug] (kiểu case study tối giản): tên cỡ lớn, hàng thông tin, ảnh trang chủ thật,
- * mô tả + tính năng đã xác nhận ở cột trái (dính khi cuộn), ảnh chụp toàn trang ở cột phải, rồi dự án tiếp theo.
+ * Trang một dự án /demo1/du-an/[slug] (kiểu trang Merla của Komma): tên cỡ lớn, hàng thông tin, ảnh thật trên khung laptop + điện thoại,
+ * mô tả + tính năng đã xác nhận ở cột trái (dính khi cuộn), ảnh chụp toàn trang ở cột phải, "hệ thống thiết kế" đo từ website đang chạy
+ * (kiểu chữ, mẫu chữ, bảng màu), rồi dự án tiếp theo.
  * Chỉ dùng dữ kiện trong projects.ts: không thêm năm, khách hàng, số liệu hay công nghệ.
  */
 export default async function Demo1ProjectPage({ params }: { params: Params }) {
@@ -46,6 +57,7 @@ export default async function Demo1ProjectPage({ params }: { params: Params }) {
   const project = projects[index];
   const next = projects[(index + 1) % projects.length];
   const preview = pv[project.slug];
+  const system = ps[project.slug];
   const nextPreview = pv[next.slug];
   const copy = d1.project;
   const serviceNames = project.services.map((id) => d1.services.items.find((s) => s.id === id)?.shortTitle).filter(Boolean);
@@ -84,24 +96,32 @@ export default async function Demo1ProjectPage({ params }: { params: Params }) {
       </header>
 
       {preview && (
-        <div className="d1-wrap mt-10 lg:mt-14">
-          <div className="d1-plate">
-            <div className="d1-frame">
-              <div className="d1-frame-bar">
-                <span className="d1-label">{domainOf(project.url)}</span>
+        <figure className="d1-wrap mt-10 lg:mt-14">
+          <div className="d1-devices">
+            <div className="d1-laptop">
+              <div className="d1-laptop-screen">
+                <Image
+                  src={preview.cover.src}
+                  width={preview.cover.width}
+                  height={preview.cover.height}
+                  alt={fill(copy.shotAlt, { name: project.name })}
+                  sizes="(min-width: 104rem) 70rem, 76vw"
+                  priority
+                />
               </div>
-              <Image
-                src={preview.cover.src}
-                width={preview.cover.width}
-                height={preview.cover.height}
-                alt={fill(copy.shotAlt, { name: project.name })}
-                sizes="(min-width: 104rem) 88rem, 88vw"
-                priority
-                className="block h-auto w-full"
-              />
+              <div aria-hidden className="d1-laptop-base" />
             </div>
+            {system?.mobile && (
+              <div className="d1-phone">
+                <Image src={system.mobile.src} width={system.mobile.width} height={system.mobile.height} alt={fill(copy.mobileAlt, { name: project.name })} sizes="(min-width: 64rem) 18vw, 30vw" />
+              </div>
+            )}
           </div>
-        </div>
+          <figcaption className="d1-label mt-3 flex justify-between text-muted">
+            <span>{copy.devices}</span>
+            <span>{domainOf(project.url)}</span>
+          </figcaption>
+        </figure>
       )}
 
       <div className="d1-wrap d1-section d1-grid gap-y-12">
@@ -140,6 +160,50 @@ export default async function Demo1ProjectPage({ params }: { params: Params }) {
           </figure>
         )}
       </div>
+
+      {system && (system.fonts.length > 0 || system.colors.length > 0) && (
+        <section aria-labelledby="d1-system-title" className="d1-section bg-bg-elevated">
+          <div className="d1-wrap">
+            <div className="d1-grid items-end gap-y-4">
+              <h2 id="d1-system-title" className="d1-h2 col-span-12 lg:col-span-8">
+                {copy.system}
+              </h2>
+              <p className="d1-label col-span-12 text-muted lg:col-span-4 lg:justify-self-end">{copy.systemNote}</p>
+            </div>
+            <div className="d1-grid mt-12 gap-y-12">
+              <div className="col-span-12 lg:col-span-7">
+                <h3 className="d1-label mb-4 text-muted">{copy.typeface}</h3>
+                {system.specimen && (
+                  <div className="d1-specimen">
+                    <Image src={system.specimen.src} width={system.specimen.width} height={system.specimen.height} alt={system.specimen.text ?? ""} sizes="(min-width: 64rem) 50vw, 92vw" />
+                  </div>
+                )}
+                <dl className="mt-6 grid gap-x-(--d1-gutter) gap-y-5 sm:grid-cols-2">
+                  {system.fonts.map((font) => (
+                    <div key={font.role} className="border-t border-line pt-4">
+                      <dt className="d1-label text-muted">{font.role}</dt>
+                      <dd className="mt-1 text-[1.5rem] leading-tight font-medium tracking-[-0.02em]">{font.family}</dd>
+                      {font.weight && <dd className="d1-label mt-1 text-muted">Weight {font.weight}</dd>}
+                    </div>
+                  ))}
+                </dl>
+              </div>
+              <div className="col-span-12 lg:col-span-4 lg:col-start-9">
+                <h3 className="d1-label mb-4 text-muted">{copy.palette}</h3>
+                <ul className="d1-swatches">
+                  {system.colors.map((color) => (
+                    <li key={color.hex}>
+                      <span aria-hidden className="d1-swatch" style={{ backgroundColor: color.hex }} />
+                      <span className="d1-label">{color.hex}</span>
+                      <span className="text-[0.875rem] text-muted">{color.role}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       <nav aria-label={copy.next} className="border-t border-line">
         <Link href={d1ProjectHref(next.slug)} className="d1-wrap d1-grid group items-center gap-y-6 py-[clamp(3rem,2rem+4vw,6rem)]">

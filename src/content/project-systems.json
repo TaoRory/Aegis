@@ -1,0 +1,288 @@
+{
+  "vidi26": {
+    "fonts": [
+      {
+        "role": "Tiêu đề",
+        "family": "sakana",
+        "weight": "400"
+      },
+      {
+        "role": "Nội dung",
+        "family": "Montserrat"
+      }
+    ],
+    "colors": [
+      {
+        "hex": "#050814",
+        "role": "Nền"
+      },
+      {
+        "hex": "#3FA9FF",
+        "role": "Nền"
+      },
+      {
+        "hex": "#64748B",
+        "role": "Chữ"
+      },
+      {
+        "hex": "#94A3B8",
+        "role": "Chữ"
+      }
+    ],
+    "mobile": {
+      "src": "/portfolio/vidi26-mobile.webp",
+      "width": 600,
+      "height": 1022
+    },
+    "specimen": {
+      "src": "/portfolio/vidi26-type.webp",
+      "width": 480,
+      "height": 128,
+      "text": "VIDI26"
+    }
+  },
+  "handle-vietnam": {
+    "fonts": [
+      {
+        "role": "Tiêu đề và nội dung",
+        "family": "Be Vietnam Pro",
+        "weight": "500"
+      }
+    ],
+    "colors": [
+      {
+        "hex": "#FFFFFF",
+        "role": "Nền"
+      },
+      {
+        "hex": "#0D0D0D",
+        "role": "Nền"
+      },
+      {
+        "hex": "#4A4744",
+        "role": "Chữ"
+      },
+      {
+        "hex": "#6E6A65",
+        "role": "Chữ"
+      },
+      {
+        "hex": "#C9A86A",
+        "role": "Nhấn"
+      }
+    ],
+    "mobile": {
+      "src": "/portfolio/handle-vietnam-mobile.webp",
+      "width": 600,
+      "height": 1022
+    },
+    "specimen": {
+      "src": "/portfolio/handle-vietnam-type.webp",
+      "width": 680,
+      "height": 354,
+      "text": "Chăm sóc sức khỏetại Việt Nam —đã có chúng tôi lo."
+    }
+  },
+  "integritas-vu-legal": {
+    "fonts": [
+      {
+        "role": "Tiêu đề và nội dung",
+        "family": "Cormorant Garamond",
+        "weight": "400"
+      }
+    ],
+    "colors": [
+      {
+        "hex": "#0D1B2A",
+        "role": "Nền"
+      },
+      {
+        "hex": "#F6F2EA",
+        "role": "Nền"
+      },
+      {
+        "hex": "#C1CBD1",
+        "role": "Chữ"
+      },
+      {
+        "hex": "#52636C",
+        "role": "Chữ"
+      },
+      {
+        "hex": "#8B6914",
+        "role": "Nhấn"
+      }
+    ],
+    "mobile": {
+      "src": "/portfolio/integritas-vu-legal-mobile.webp",
+      "width": 600,
+      "height": 1022
+    },
+    "specimen": {
+      "src": "/portfolio/integritas-vu-legal-type.webp",
+      "width": 881,
+      "height": 207,
+      "text": "Strategic Counsel. Resolute Advocacy."
+    }
+  },
+  "tedx-vinuniversity-2026": {
+    "fonts": [
+      {
+        "role": "Tiêu đề",
+        "family": "Neue Montreal",
+        "weight": "700"
+      },
+      {
+        "role": "Nội dung",
+        "family": "Inter"
+      }
+    ],
+    "colors": [
+      {
+        "hex": "#000000",
+        "role": "Nền"
+      },
+      {
+        "hex": "#C41E3A",
+        "role": "Nền"
+      },
+      {
+        "hex": "#FFFFFF",
+        "role": "Chữ"
+      },
+      {
+        "hex": "#D4AF37",
+        "role": "Chữ"
+      }
+    ],
+    "mobile": {
+      "src": "/portfolio/tedx-vinuniversity-2026-mobile.webp",
+      "width": 600,
+      "height": 1022
+    },
+    "specimen": {
+      "src": "/portfolio/tedx-vinuniversity-2026-type.webp",
+      "width": 900,
+      "height": 126,
+      "text": "THE LIMITLESS"
+    }
+  },
+  "rethink": {
+    "fonts": [
+      {
+        "role": "Tiêu đề",
+        "family": "Lexend",
+        "weight": "200"
+      },
+      {
+        "role": "Nội dung",
+        "family": "Be Vietnam Pro"
+      }
+    ],
+    "colors": [
+      {
+        "hex": "#04060C",
+        "role": "Nền"
+      },
+      {
+        "hex": "#E9ECF8",
+        "role": "Chữ"
+      },
+      {
+        "hex": "#70E0F0",
+        "role": "Chữ"
+      }
+    ],
+    "mobile": {
+      "src": "/portfolio/rethink-mobile.webp",
+      "width": 600,
+      "height": 1022
+    },
+    "specimen": {
+      "src": "/portfolio/rethink-type.webp",
+      "width": 656,
+      "height": 121,
+      "text": "RETHINK"
+    }
+  },
+  "tedx-vinuniversity-2025": {
+    "fonts": [
+      {
+        "role": "Tiêu đề",
+        "family": "Lexend",
+        "weight": "700"
+      },
+      {
+        "role": "Nội dung",
+        "family": "Be Vietnam Pro"
+      }
+    ],
+    "colors": [
+      {
+        "hex": "#04060C",
+        "role": "Nền"
+      },
+      {
+        "hex": "#E9ECF8",
+        "role": "Chữ"
+      },
+      {
+        "hex": "#E85CF5",
+        "role": "Chữ"
+      }
+    ],
+    "mobile": {
+      "src": "/portfolio/tedx-vinuniversity-2025-mobile.webp",
+      "width": 600,
+      "height": 1022
+    },
+    "specimen": {
+      "src": "/portfolio/tedx-vinuniversity-2025-type.webp",
+      "width": 189,
+      "height": 90,
+      "text": "TEDx"
+    }
+  },
+  "rethink-halloween": {
+    "fonts": [
+      {
+        "role": "Tiêu đề",
+        "family": "Homemade Apple",
+        "weight": "400"
+      },
+      {
+        "role": "Nội dung",
+        "family": "Be Vietnam Pro"
+      }
+    ],
+    "colors": [
+      {
+        "hex": "#070A03",
+        "role": "Nền"
+      },
+      {
+        "hex": "#3D5B03",
+        "role": "Nền"
+      },
+      {
+        "hex": "#DED9C4",
+        "role": "Chữ"
+      },
+      {
+        "hex": "#D1C91E",
+        "role": "Chữ"
+      }
+    ],
+    "mobile": {
+      "src": "/portfolio/rethink-halloween-mobile.webp",
+      "width": 600,
+      "height": 1022
+    },
+    "specimen": {
+      "src": "/portfolio/rethink-halloween-type.webp",
+      "width": 407,
+      "height": 360,
+      "text": "Halloween 26"
+    }
+  }
+}

@@ -3,9 +3,11 @@ import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { D1_BASE, d1 } from "@/content/demo1";
 
-/** Footer /demo1 (nền mực): bốn cột chữ nhỏ, dòng bản quyền + tagline, rồi chữ "Aegis" khổng lồ tràn ngang khép trang */
+import { D1Wordmark } from "./D1Wordmark";
+
+/** Footer /demo1 (nền mực): bốn cột chữ nhỏ, dòng bản quyền + tagline, rồi chữ AEGIS của bộ nhận diện tràn ngang khép trang */
 export function D1Footer() {
-  const { footer, nav, services, cta } = d1;
+  const { footer, nav, services, cta, brandLine } = d1;
   const { email, phone } = siteConfig.contact;
   return (
     <footer id="d1-footer" data-d1-tone="dark" className="d1-footer overflow-hidden">
@@ -63,12 +65,12 @@ export function D1Footer() {
         </div>
 
         <div className="mt-[clamp(3.5rem,2.5rem+4vw,6rem)] flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-line pt-5 text-muted">
-          <p className="d1-label">{footer.copyright}</p>
+          <p className="d1-label">
+            {footer.copyright} · {brandLine}
+          </p>
           <p className="text-[0.875rem]">{footer.tagline}</p>
         </div>
-        <p aria-hidden className="d1-wordmark mt-[clamp(1.5rem,1rem+2vw,3rem)]">
-          {siteConfig.name}
-        </p>
+        <D1Wordmark className="d1-wordmark-svg" title={siteConfig.name} />
       </div>
     </footer>
   );
