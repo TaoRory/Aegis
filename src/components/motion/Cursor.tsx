@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 import { gsap, MQ } from "@/lib/motion";
 import { onPointerMove, pointer } from "@/lib/pointer";
@@ -34,7 +35,12 @@ const SNAP_PAD = 9;
 const BUBBLE_SIZE = 104;
 const GLYPHS = "ABCDEFGHJKLMNPRSTUVXYZ↗↔→";
 
+/** Các khu dùng con trỏ gốc: bản thiết kế tối giản /demo1 (ngôn ngữ khác hẳn trang chính) */
+const NATIVE_CURSOR_ROUTES = ["/demo1"];
+
 export function Cursor() {
+  const pathname = usePathname();
+  const nativeRoute = NATIVE_CURSOR_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
   const [enabled, setEnabled] = useState(false);
   const blendRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
@@ -44,11 +50,11 @@ export function Cursor() {
 
   useEffect(() => {
     const media = window.matchMedia(`${MQ.fineHover} and ${MQ.anyMotion}`);
-    const update = () => setEnabled(media.matches && document.documentElement.dataset.cursorPref !== "off");
+    const update = () => setEnabled(media.matches && document.documentElement.dataset.cursorPref !== "off" && !nativeRoute);
     update();
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
-  }, []);
+  }, [nativeRoute]);
 
   useEffect(() => {
     const blend = blendRef.current;

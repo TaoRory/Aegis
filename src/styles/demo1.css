@@ -1,0 +1,778 @@
+/*
+ * /demo1 — bản thiết kế tối giản (tham khảo tinh thần contentarchitecture.dev, kommakomma.is và các site khách hàng của họ):
+ * một nền giấy trung tính + mực Deep Ink Teal + một điểm nhấn Transformative Teal; một grotesk trung tính + một mono cho nhãn;
+ * lưới 12 cột, nhiều khoảng trống, danh sách thay cho thẻ, chữ ký duy nhất là dấu Aegis dựng bằng ký tự.
+ *
+ * Token riêng (--d1-*) và ghi đè các biến vai trò (--bg, --fg, --fg-muted, --border…) trong phạm vi .d1,
+ * để class Tailwind theo vai trò (bg-bg, text-fg, text-muted, border-line…) dùng lại được mà không cần mã màu trong component.
+ * Màu lấy từ Brand Guideline "Transformative Teal"; các sắc xám được chỉnh để đạt WCAG AA trên nền tương ứng.
+ */
+
+@layer components {
+  .d1 {
+    /* ---- Palette ---- */
+    --d1-paper: #eef1f0;
+    --d1-paper-2: #e4e8e7;
+    --d1-plate: #dde3e1;
+    --d1-ink: #071f1e; /* Deep Ink Teal */
+    --d1-ink-2: #0f2c2b;
+    --d1-muted: #536361; /* 5.5:1 trên giấy */
+    --d1-faint: #788583; /* 3.4:1 trên giấy: chỉ cho chữ lớn (tên dịch vụ đang đóng) */
+    --d1-teal: #13b5a5; /* Transformative Teal: điểm nhấn diện tích nhỏ */
+    --d1-teal-ink: #0a7369; /* teal cho chữ/link trên giấy: 5.2:1 */
+    --d1-aqua: #84e4d6; /* Aqua Glow */
+    --d1-cloud: #f5f7f6; /* Cloud Dancer */
+
+    /* ---- Hình khối, nhịp, chuyển động ---- */
+    --d1-radius: 4px;
+    --d1-gutter: clamp(1rem, 0.4rem + 2.2vw, 2rem);
+    --d1-max: 104rem;
+    --d1-section: clamp(4.5rem, 2.75rem + 6vw, 8.5rem);
+    --d1-header: 4rem;
+    --d1-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* ---- Chữ ---- */
+    --d1-font-sans: var(--font-d1-sans), "Helvetica Neue", Arial, sans-serif;
+    --d1-font-mono: var(--font-d1-mono), ui-monospace, monospace;
+
+    /* ---- Vai trò (đọc bởi utility Tailwind và component dùng chung như form liên hệ) ---- */
+    --bg: var(--d1-paper);
+    --bg-elevated: var(--d1-paper-2);
+    --surface: var(--d1-paper-2);
+    --fg: var(--d1-ink);
+    --fg-muted: var(--d1-muted);
+    --fg-subtle: var(--d1-faint);
+    --border: rgb(7 31 30 / 0.13);
+    --border-strong: rgb(7 31 30 / 0.3);
+    --accent: var(--d1-teal-ink);
+    --accent-strong: var(--d1-ink);
+    --accent-soft: rgb(10 115 105 / 0.1);
+    --on-accent: var(--d1-cloud);
+    --accent-fill: var(--d1-ink);
+    --accent-fill-strong: var(--d1-teal-ink);
+    --on-accent-fill: var(--d1-cloud);
+    --focus-ring: var(--d1-teal-ink);
+    --danger: #c2362f;
+    --success: #1d7a4f;
+    --warning: #8a5a00;
+    --font-family-sans: var(--d1-font-sans);
+    --font-family-mono: var(--d1-font-mono);
+    --font-family-serif: var(--d1-font-sans);
+
+    color-scheme: light;
+    min-height: 100svh;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--d1-font-sans);
+    font-size: 1rem;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Vùng nền mực (Cách làm việc, footer) */
+  .d1 [data-d1-tone="dark"] {
+    --bg: var(--d1-ink);
+    --bg-elevated: var(--d1-ink-2);
+    --surface: var(--d1-ink-2);
+    --fg: var(--d1-cloud);
+    --fg-muted: #93a3a1; /* 6.5:1 trên mực */
+    --fg-subtle: #637875; /* 3.7:1: chỉ chữ lớn */
+    --border: rgb(245 247 246 / 0.12);
+    --border-strong: rgb(245 247 246 / 0.28);
+    --accent: var(--d1-aqua);
+    --accent-fill: var(--d1-cloud);
+    --accent-fill-strong: var(--d1-aqua);
+    --on-accent-fill: var(--d1-ink);
+    --focus-ring: var(--d1-aqua);
+    --danger: #ff8a80;
+    --success: #6fdcaa;
+    --warning: #f5c66b;
+    color-scheme: dark;
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  .d1 ::selection {
+    background: var(--d1-teal);
+    color: var(--d1-ink);
+  }
+
+  .d1 :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  .d1 :is(section, [id]) {
+    scroll-margin-top: calc(var(--d1-header) + 0.5rem);
+  }
+
+  /* ---------- Bố cục ---------- */
+  .d1-wrap {
+    width: 100%;
+    max-width: calc(var(--d1-max) + var(--d1-gutter) * 2);
+    margin-inline: auto;
+    padding-inline: var(--d1-gutter);
+  }
+
+  .d1-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--d1-gutter);
+  }
+
+  .d1-section {
+    padding-block: var(--d1-section);
+  }
+
+  /* ---------- Chữ ---------- */
+  .d1-display {
+    font-size: clamp(2.3rem, 1.2rem + 3.7vw, 4.85rem);
+    line-height: 1;
+    letter-spacing: -0.036em;
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  .d1-h2 {
+    font-size: clamp(2rem, 1.35rem + 2.3vw, 3.5rem);
+    line-height: 1.04;
+    letter-spacing: -0.032em;
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  .d1-h3 {
+    font-size: clamp(1.45rem, 1.15rem + 1.1vw, 2.2rem);
+    line-height: 1.14;
+    letter-spacing: -0.024em;
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  .d1-statement {
+    font-size: clamp(1.4rem, 1.02rem + 1.4vw, 2.35rem);
+    line-height: 1.22;
+    letter-spacing: -0.024em;
+    font-weight: 450;
+    text-wrap: pretty;
+  }
+
+  .d1-lead {
+    font-size: clamp(1.075rem, 0.97rem + 0.42vw, 1.3rem);
+    line-height: 1.5;
+    letter-spacing: -0.012em;
+    text-wrap: pretty;
+  }
+
+  .d1-label {
+    font-family: var(--d1-font-mono);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  /* Nhãn cột trái kiểu "Introduction" (nằm cạnh nội dung, không chồng lên tiêu đề) */
+  .d1-side {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .d1-side::before {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 1px;
+    background: var(--d1-teal);
+  }
+
+  .d1-count {
+    font-family: var(--d1-font-mono);
+    font-size: 0.32em;
+    font-weight: 400;
+    letter-spacing: 0;
+    vertical-align: super;
+    margin-left: 0.35em;
+    color: var(--fg-muted);
+  }
+
+  /* ---------- Nút ---------- */
+  .d1-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.85rem;
+    height: 2.75rem;
+    padding: 0 0.4rem 0 1rem;
+    border-radius: var(--d1-radius);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: -0.008em;
+    white-space: nowrap;
+    transition:
+      background-color 0.25s ease,
+      color 0.25s ease;
+  }
+
+  .d1-btn-ink {
+    background: var(--accent-fill);
+    color: var(--on-accent-fill);
+  }
+
+  .d1-btn-ink:hover {
+    background: var(--accent-fill-strong);
+  }
+
+  .d1-btn-soft {
+    padding-right: 1rem;
+    background: var(--bg-elevated);
+    color: var(--fg);
+  }
+
+  .d1-btn-soft:hover {
+    background: color-mix(in oklab, var(--bg-elevated), var(--fg) 9%);
+  }
+
+  .d1-btn-icon {
+    display: grid;
+    place-items: center;
+    width: 1.95rem;
+    height: 1.95rem;
+    border-radius: 2px;
+    background: color-mix(in oklab, currentColor 16%, transparent);
+  }
+
+  .d1-btn-icon svg {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  .d1-link {
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, currentColor 35%, transparent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    transition:
+      text-decoration-color 0.25s ease,
+      color 0.25s ease;
+  }
+
+  .d1-link:hover {
+    color: var(--accent);
+    text-decoration-color: currentColor;
+  }
+
+  /* ---------- Header ---------- */
+  .d1-skip {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 100;
+    padding: 0.7rem 1rem;
+    border-radius: var(--d1-radius);
+    background: var(--d1-ink);
+    color: var(--d1-cloud);
+    transform: translateY(-6rem);
+  }
+
+  .d1-skip:focus {
+    transform: none;
+  }
+
+  .d1-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s ease;
+  }
+
+  .d1-header[data-scrolled="true"] {
+    border-bottom-color: var(--border);
+  }
+
+  .d1-header .aegis-logo {
+    font-size: 1.2rem;
+  }
+
+  .d1-header .aegis-logo .aegis-mark {
+    height: 1.55em;
+  }
+
+  .d1-nav a {
+    color: var(--fg-muted);
+    font-size: 0.9375rem;
+    transition: color 0.2s ease;
+  }
+
+  .d1-nav a:hover {
+    color: var(--fg);
+  }
+
+  .d1-menu {
+    position: fixed;
+    inset: var(--d1-header) 0 0;
+    z-index: 49;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+  }
+
+  .d1-menu-link {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: clamp(1.9rem, 1.4rem + 2vw, 2.6rem);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+
+  /* ---------- Hero ---------- */
+  .d1-hero-services a {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 0.75rem;
+    height: 100%;
+    padding: 1rem 0 1.15rem;
+    border-top: 1px solid var(--border);
+    transition: border-color 0.3s ease;
+  }
+
+  .d1-hero-services a:hover {
+    border-top-color: var(--fg);
+  }
+
+  .d1-hero-services svg {
+    width: 0.85rem;
+    height: 0.85rem;
+    transition: transform 0.4s var(--d1-ease);
+  }
+
+  .d1-hero-services a:hover svg {
+    transform: translate(2px, 2px);
+  }
+
+  /* Dấu Aegis dựng bằng ký tự (AsciiMark) */
+  .d1-mark {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: var(--d1-radius);
+    background: var(--d1-ink);
+  }
+
+  .d1-mark canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    font-family: var(--d1-font-mono);
+    opacity: 0;
+  }
+
+  .d1-mark[data-ready="true"] canvas {
+    opacity: 1;
+  }
+
+  /* ---------- Dịch vụ: danh sách lớn, mục đang mở đậm màu, các mục khác xám ---------- */
+  .d1-svc {
+    border-top: 1px solid var(--border);
+  }
+
+  .d1-svc:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .d1-svc > summary {
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--d1-gutter);
+    padding-block: clamp(0.9rem, 0.55rem + 1vw, 1.5rem);
+    color: var(--fg-subtle);
+    list-style: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .d1-svc > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .d1-svc > summary:hover,
+  .d1-svc[open] > summary {
+    color: var(--fg);
+  }
+
+  .d1-svc-title {
+    font-size: clamp(1.85rem, 1rem + 3.5vw, 4.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.036em;
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  .d1-plus {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: none;
+    border-radius: var(--d1-radius);
+    transition: background-color 0.25s ease;
+  }
+
+  .d1-plus svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    transition: transform 0.45s var(--d1-ease);
+  }
+
+  .d1-svc > summary:hover .d1-plus {
+    background: var(--bg-elevated);
+  }
+
+  .d1-svc[open] > summary .d1-plus svg,
+  .d1-faq-item[open] > summary .d1-plus svg {
+    transform: rotate(45deg);
+  }
+
+  .d1-svc-body {
+    padding-bottom: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
+  }
+
+  .d1-bullets li {
+    display: grid;
+    grid-template-columns: 1rem minmax(0, 1fr);
+    gap: 0.25rem;
+    padding-block: 0.55rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .d1-bullets li::before {
+    content: "";
+    width: 0.4rem;
+    height: 1px;
+    margin-top: 0.8em;
+    background: currentColor;
+    opacity: 0.6;
+  }
+
+  /* ---------- Dự án: ảnh thật đặt trên tấm nền, khung trình duyệt tối giản ---------- */
+  .d1-card {
+    display: block;
+  }
+
+  .d1-plate {
+    padding: 6% 6% 0;
+    border-radius: var(--d1-radius);
+    background: var(--d1-plate);
+    overflow: hidden;
+    transition: background-color 0.4s ease;
+  }
+
+  .d1-card:hover .d1-plate {
+    background: color-mix(in oklab, var(--d1-plate), var(--d1-ink) 6%);
+  }
+
+  .d1-frame {
+    overflow: hidden;
+    border-radius: 3px 3px 0 0;
+    background: var(--d1-cloud);
+    box-shadow: 0 0 0 1px rgb(7 31 30 / 0.08);
+  }
+
+  .d1-frame-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.75rem;
+    padding-inline: 0.75rem;
+    border-bottom: 1px solid rgb(7 31 30 / 0.08);
+    color: var(--d1-muted);
+  }
+
+  .d1-frame-bar .d1-label {
+    font-size: 0.6875rem;
+    text-transform: none;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .d1-frame-view {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+  }
+
+  .d1-frame-view > img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .d1-frame-full {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+  }
+
+  .d1-card-arrow {
+    width: 1rem;
+    height: 1rem;
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition:
+      opacity 0.3s ease,
+      transform 0.45s var(--d1-ease);
+  }
+
+  .d1-card:hover .d1-card-arrow,
+  .d1-card:focus-visible .d1-card-arrow {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Thẻ thư viện mẫu: bốn ảnh mẫu thu nhỏ, ghi rõ là demo */
+  .d1-tpl-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4%;
+    padding-bottom: 6%;
+  }
+
+  .d1-tpl-grid img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top;
+    border-radius: 3px;
+    box-shadow: 0 0 0 1px rgb(7 31 30 / 0.08);
+  }
+
+  /* ---------- Cách làm việc ---------- */
+  .d1-steps li {
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    column-gap: var(--d1-gutter);
+    padding-block: 1.6rem 1.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ---------- Câu hỏi ---------- */
+  .d1-faq-item {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .d1-faq-item > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 1.1rem;
+    font-size: clamp(1.075rem, 0.98rem + 0.4vw, 1.3rem);
+    font-weight: 500;
+    letter-spacing: -0.014em;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .d1-faq-item > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .d1-faq-item > summary:hover .d1-plus {
+    background: var(--bg-elevated);
+  }
+
+  /* ---------- Liên hệ: chọn hạng mục là bắt đầu phiếu ---------- */
+  .d1-pick a {
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--d1-gutter);
+    padding-block: 1.05rem;
+    border-top: 1px solid var(--border);
+    font-size: clamp(1.25rem, 1rem + 0.95vw, 1.85rem);
+    font-weight: 500;
+    letter-spacing: -0.024em;
+    line-height: 1.15;
+    transition: color 0.25s ease;
+  }
+
+  .d1-pick li:last-child a {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .d1-pick a:hover {
+    color: var(--accent);
+  }
+
+  .d1-pick svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    transition: transform 0.45s var(--d1-ease);
+  }
+
+  .d1-pick a:hover svg {
+    transform: translateX(4px);
+  }
+
+  /* ---------- Footer ---------- */
+  .d1-footer a {
+    color: var(--fg-muted);
+    transition: color 0.2s ease;
+  }
+
+  .d1-footer a:hover {
+    color: var(--fg);
+  }
+
+  .d1-wordmark {
+    display: block;
+    font-size: calc((min(100vw, var(--d1-max) + var(--d1-gutter) * 2) - var(--d1-gutter) * 2) / 2.3);
+    font-weight: 600;
+    line-height: 0.78;
+    letter-spacing: -0.07em;
+    white-space: nowrap;
+    margin-left: -0.045em;
+    /* chừa chỗ cho phần đuôi chữ g */
+    padding-bottom: 0.2em;
+    color: var(--fg);
+  }
+
+  /* ---------- Trang dự án ---------- */
+  .d1-case-title {
+    font-size: clamp(3rem, 1.4rem + 7.4vw, 10rem);
+    line-height: 0.92;
+    letter-spacing: -0.05em;
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  .d1-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem var(--d1-gutter);
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (min-width: 64rem) {
+    .d1-meta {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .d1-longshot {
+    overflow: hidden;
+    border-radius: var(--d1-radius);
+    background: var(--d1-cloud);
+    box-shadow: 0 0 0 1px var(--border);
+  }
+
+  .d1-longshot img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ---------- Form liên hệ dùng chung (ContactWizard) trong ngôn ngữ /demo1 ---------- */
+  .d1 .wizard-service-title,
+  .d1 .wizard-option-label {
+    letter-spacing: -0.024em;
+  }
+
+  .d1 .wizard-sheet-inner {
+    top: calc(var(--d1-header) + 2rem);
+    border: 0;
+    border-radius: var(--d1-radius);
+    background: var(--bg-elevated);
+  }
+
+  .d1 .wizard-sheet-mark {
+    display: none;
+  }
+
+  .d1 .btn-box {
+    border-radius: var(--d1-radius);
+    font-family: var(--d1-font-sans);
+    font-size: 0.9375rem;
+    letter-spacing: -0.008em;
+    text-transform: none;
+  }
+
+  .d1 .btn-box::before,
+  .d1 .btn-box::after {
+    display: none;
+  }
+
+  /* ---------- Chuyển động (chỉ khi không giảm chuyển động) ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .d1 {
+      interpolate-size: allow-keywords;
+    }
+
+    /* Mở/đóng mục dịch vụ và câu hỏi: chiều cao chuyển mượt (trình duyệt chưa hỗ trợ thì mở tức thì) */
+    .d1-svc::details-content,
+    .d1-faq-item::details-content {
+      height: 0;
+      overflow: clip;
+      transition:
+        height 0.55s var(--d1-ease),
+        content-visibility 0.55s allow-discrete;
+    }
+
+    .d1-svc[open]::details-content,
+    .d1-faq-item[open]::details-content {
+      height: auto;
+    }
+
+    .d1-mark canvas {
+      transition: opacity 0.9s ease;
+    }
+
+    .d1-btn-icon {
+      transition: transform 0.45s var(--d1-ease);
+    }
+
+    .d1-btn:hover .d1-btn-icon {
+      transform: translateX(2px);
+    }
+
+    /* Rê chuột vào thẻ dự án: ảnh toàn trang trượt xuống chậm như đang cuộn website thật */
+    .d1-frame-full {
+      transition:
+        transform 0.9s var(--d1-ease),
+        opacity 0.3s ease;
+    }
+
+    .d1-card:hover .d1-frame-full[data-ready="true"] {
+      opacity: 1;
+      transform: translateY(var(--d1-scroll, 0));
+      transition:
+        transform 7s cubic-bezier(0.45, 0, 0.55, 1) 0.15s,
+        opacity 0.3s ease;
+    }
+
+    .d1-frame-view > img:first-child {
+      transition: transform 0.9s var(--d1-ease);
+    }
+  }
+}

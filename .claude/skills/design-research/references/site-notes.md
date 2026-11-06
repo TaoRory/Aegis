@@ -112,3 +112,15 @@ Nghiên cứu để dựng bản mobile của Xưởng Aegis. Dựng bằng Astr
 - **Kéo quanh rất rộng:** giới hạn yaw `[-0.8, 1.3]` rad khi màn dọc (≈120°), pitch cho phép nhìn từ trên xuống; có gợi ý "Drag to look around" kèm chevron. Camera tự căn để bounding box của vật thể nằm trong vùng trống giữa các HUD (margin 32px phải, 128px trên, 88px dưới trên điện thoại).
 - **Sống động nhỏ:** xe chạy ngoài cửa sổ, ánh đèn bàn, loa rung, hotspot hình thoi nhấp nháy.
 - **Áp dụng cho Aegis:** `references/spatial-site.md` mục "Điện thoại kiểu game".
+
+---
+
+## Tối giản kiểu studio: contentarchitecture.dev, kommakomma.is và site khách hàng của họ (2026-11)
+
+Nghiên cứu cho bản /demo1 (người dùng: "thích tối giản và tinh gọn như các mẫu này", đồng ý dựng lại toàn bộ). Ảnh chụp hành trình cuộn desktop + mobile ở scratchpad, không commit.
+
+- **The Content Architecture** (Edoardo Lunardi, Next.js + Sanity, Lenis, Geist Sans/Mono): nền giấy ấm `#F1EEE7` + than `#232323`, một chấm cam nhỏ. Hero chia đôi: chữ trái cỡ vừa (~40px), panel tối phải có **chữ xếp xoắn ốc bằng chính tên thương hiệu** (WebGL). Số lớn kiểu "~00 / ~31 giờ", danh sách đánh số `001 /`, khung code repo thật, lưới dự án 2 cột ảnh dither, FAQ dài dạng `+`. Nav viên thuốc giữa trên có ticker.
+- **Komma Komma** (Reykjavík, BDO Grotesk, Lenis + Three): nền xám nhạt `#EAEAEA`, mực đen, một nhãn đỏ. Header chỉ có dấu logo + "Book a call [→]" + hamburger. Hero là ảnh dự án tiêu biểu tràn màn hình kèm hàng metadata; "We only design what's important" đổi màu xám/đen theo từ; nhãn cột trái kiểu "Introduction" đặt **cạnh** nội dung; danh sách dịch vụ chữ lớn (mục đang chọn đen, còn lại xám); footer 4 cột chữ nhỏ + **wordmark khổng lồ**. Trang dự án: tên cực lớn, hàng Client/Category/Year/Scope, ảnh toàn khổ, "Project Description" trái/phải, bảng màu, typography.
+- **Site khách hàng của CA:** Good Fella (đen + cam, ảnh dot-matrix, "How we work." 4 bước, FAQ, footer wordmark), Aspen Search (lưới ô vuông, mint, số lớn, chữ in hoa nặng), blink (giấy ấm, gradient mờ cam/xanh rêu, mono), Prism (tím, protein 3D, chuyển nền sáng/tối), Anuc Home (serif + lưới hairline, logo khối), Muralia (ô bo tròn, ảnh tranh tường, khối màu xanh/lá/vàng).
+- **Mẫu số chung:** một nền trung tính + một mực + **một** điểm nhấn diện tích nhỏ; một grotesk trung tính + mono cho nhãn; lưới 12 cột, nhiều khoảng trống; danh sách thay cho thẻ; hai sắc độ chữ (đen/xám) thay cho chữ nghiêng; **một** chữ ký (chữ ASCII / dot-matrix / ảnh dự án); không preloader, không ẩn nội dung chờ cuộn; footer wordmark khổng lồ.
+- **Áp dụng cho Aegis (/demo1):** Mona Sans + Geist Mono, Cloud/giấy + Deep Ink Teal + Transformative Teal; chữ ký là **dấu Aegis dựng bằng tên bốn mảng dịch vụ** (canvas 2D, không WebGL); dịch vụ dạng danh sách chữ lớn mở bằng `<details>`; dự án là ảnh thật trong khung trình duyệt tối giản, rê chuột thì ảnh toàn trang trượt như đang cuộn; trang dự án kiểu case study chỉ với dữ kiện đã xác nhận.
