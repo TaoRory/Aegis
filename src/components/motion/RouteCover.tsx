@@ -256,7 +256,8 @@ export function RouteCover() {
               <path key={d} data-geo d={d} pathLength={1} />
             ))}
             {HEX.map(([x, y]) => (
-              <circle key={`${x}-${y}`} data-node cx={x} cy={y} r={7} className="route-cover-node" />
+              // Làm tròn: số thực in khác nhau giữa server và trình duyệt gây lệch hydrate
+              <circle key={`${x}-${y}`} data-node cx={x.toFixed(2)} cy={y.toFixed(2)} r={7} className="route-cover-node" />
             ))}
           </g>
           <defs>

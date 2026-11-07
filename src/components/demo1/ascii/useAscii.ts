@@ -15,7 +15,7 @@ export interface AsciiController {
   beforeDraw?: (field: AsciiField, t: number) => void;
 }
 
-interface UseAsciiOptions extends Partial<Pick<FieldOptions, "flowMs" | "sweep" | "threshold" | "tone" | "dot" | "fontSize">> {
+interface UseAsciiOptions extends Partial<Pick<FieldOptions, "flowMs" | "sweep" | "threshold" | "tone" | "dot" | "fontSize" | "glyphs">> {
   text: string;
   /** Khung hình/giây trên máy tính (điện thoại tự giảm còn 2/3, tối đa 20) */
   fps?: number;
@@ -60,6 +60,7 @@ export function useAscii(wrapRef: RefObject<HTMLElement | null>, canvasRef: RefO
       tone: o.tone,
       flowMs: o.flowMs,
       sweep: fine ? o.sweep : false,
+      glyphs: o.glyphs,
     });
     const controller = o.build();
     field.source = controller.source;

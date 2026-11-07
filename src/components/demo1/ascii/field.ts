@@ -31,6 +31,11 @@ export interface FieldOptions {
   flowMs?: number;
   /** Dải sáng chéo quét qua */
   sweep?: boolean;
+  /**
+   * "text": in chuỗi `text` theo hàng (chữ đọc được, chảy theo `flowMs`);
+   * "binary": mỗi ô là 0 hoặc 1, tự lật ngẫu nhiên khoảng mỗi `flowMs` (lệch pha từng ô) — hình rõ hơn vì không có chữ vụn
+   */
+  glyphs?: "text" | "binary";
 }
 
 export class AsciiField {
@@ -157,6 +162,8 @@ export class AsciiField {
     const sweep = still || !options.sweep ? -9 : sweepT * 1.8 - 0.4;
     const levels = options.ramp.length;
     const resolve = this.resolve;
+    const binary = options.glyphs === "binary";
+    const flip = still || !options.flowMs ? 0 : t / options.flowMs;
 
     // Ô đã "rõ" thành màu thật
     if (resolve > 0) {
@@ -185,8 +192,15 @@ export class AsciiField {
         if (resolve > 0 && this.reveal[i] <= resolve) continue;
         const c = i % this.cols;
         const r = (i / this.cols) | 0;
-        const glyph = this.chars[(r * this.cols + c + flow) % len];
-        if (glyph === " ") continue;
+        let glyph: string;
+        if (binary) {
+          // Pha lật riêng từng ô (lấy từ thứ tự "rõ dần" đã xáo sẵn) → các ô không lật cùng lúc
+          const k = Math.floor(flip + this.reveal[i] * 5);
+          glyph = fract(Math.sin(i * 7.317 + k * 3.971) * 24634.6345) > 0.5 ? "1" : "0";
+        } else {
+          glyph = this.chars[(r * this.cols + c + flow) % len];
+          if (glyph === " ") continue;
+        }
         ctx.fillText(glyph, this.offX + c * this.cw, this.offY + r * this.ch);
       }
     }

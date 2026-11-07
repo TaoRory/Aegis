@@ -124,8 +124,21 @@ for (const vp of viewports) {
   check(`[${vp.name}] chưa có lời khách / ảnh đội ngũ thì ẩn hai khối đó`, empty);
 
   if (vp.name === "desktop") {
-    // Viên thuốc + dải chữ chạy, bản đồ trang
-    check("[desktop] menu viên thuốc có dải chữ chạy", (await page.locator(".d1-pill").isVisible()) && /BUILD/.test((await page.locator(".d1-pill .d1-ticker").textContent()) ?? ""));
+    // Menu nằm trong thanh header (đã cuộn thì thanh có nền, không đè lên chữ); bản vẽ dịch vụ in bằng 0/1 đã vẽ; bản đồ trang
+    const navOk = (await page.locator(".d1-nav").isVisible()) && (await page.locator(".d1-nav a").count()) === 5;
+    const barBg = await page.locator(".d1-top").evaluate((el) => getComputedStyle(el).backgroundColor);
+    check("[desktop] menu nằm trong thanh header, đã cuộn thì thanh có nền", navOk && barBg !== "rgba(0, 0, 0, 0)", barBg);
+    await scrollToId(page, "dich-vu", 0);
+    await page.waitForTimeout(1800);
+    const blueprint = await page.evaluate(() => {
+      const c = document.querySelector("#dich-vu .d1-mark canvas");
+      if (!c) return 0;
+      const { data } = c.getContext("2d").getImageData(0, 0, c.width, c.height);
+      let bright = 0;
+      for (let i = 0; i < data.length; i += 16) if (data[i + 1] > 120) bright++;
+      return bright;
+    });
+    check("[desktop] bản vẽ dịch vụ (0/1) đã vẽ", blueprint > 200, String(blueprint));
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(800);
     const mapHidden = await page.locator(".d1-map").evaluate((el) => getComputedStyle(el).visibility === "hidden");

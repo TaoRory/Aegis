@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { d1, d1ContactHref } from "@/content/demo1";
 import { gsap, MQ, ScrollTrigger, useGSAP } from "@/lib/motion";
 
-import { AsciiShapes } from "./ascii/AsciiShapes";
+import { AsciiBlueprint } from "./ascii/AsciiBlueprint";
 import { D1Button } from "./D1Button";
 import { Plus } from "./icons";
 
@@ -14,10 +14,10 @@ const pad = (n: number) => String(n).padStart(2, "0");
 /**
  * Dịch vụ kiểu danh sách chữ lớn của Komma + "bản vẽ" bằng ký tự:
  * - mục đang đọc (theo cuộn, hoặc rê chuột) màu mực, mục khác xám; tóm tắt luôn hiện, phạm vi chi tiết mở bằng nút;
- * - cột phải dính khi cuộn (máy tính): bản vẽ ký tự của mảng đó, morph khi đổi mục (nền móng → AI → phần mềm → web → marketing).
+ * - cột phải dính khi cuộn (máy tính): bản vẽ nét in bằng 0/1 của mảng đó, đổi mục thì bản vẽ mới được "in" lại bằng dòng quét.
  */
 export function D1Services() {
-  const { services, hero } = d1;
+  const { services } = d1;
   const [active, setActive] = useState(0);
   const ref = useRef<HTMLElement>(null);
   const current = services.items[active];
@@ -113,7 +113,7 @@ export function D1Services() {
 
           <div aria-hidden className="col-span-12 max-lg:hidden lg:col-span-5 lg:col-start-8">
             <div className="lg:sticky lg:top-[calc(var(--d1-header)+2rem)]">
-              <AsciiShapes index={active + 1} text={hero.markText} className="aspect-[4/5]" />
+              <AsciiBlueprint index={active} className="aspect-[4/5]" />
               <p className="d1-label mt-3 flex justify-between text-muted">
                 <span>
                   {services.drawing} {pad(active + 1)} / {pad(services.items.length)}

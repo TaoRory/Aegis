@@ -12,11 +12,11 @@ import { D1Wordmark } from "./D1Wordmark";
 import { ArrowRight } from "./icons";
 
 /**
- * Header nổi /demo1 (không có thanh nền):
+ * Header /demo1: trong suốt ở đầu trang, cuộn xuống thành thanh mảnh cùng tông với phần trang phía sau (viền tóc, không đè lên chữ):
  * - trái: dấu Möbius + chữ AEGIS của bộ nhận diện;
- * - giữa (máy tính): "viên thuốc" tối chứa menu chữ mono, mục đang xem đổi nền, kèm dải chữ chạy BUILD / DEPLOY / SCALE · bốn mảng;
- * - phải: nút "Trao đổi nhu cầu"; điện thoại thêm "Menu" mở danh sách chữ lớn toàn màn hình.
- * Khi phần trang phía sau là vùng tối, header tự đổi sang tông sáng (đọc data-d1-tone của phần tử dưới mép trái header).
+ * - giữa (máy tính): menu chữ mono cùng kiểu nhãn của trang, mục đang xem đậm màu mực kèm ô vuông teal;
+ * - phải: nút "Trao đổi nhu cầu"; điện thoại thêm "Menu" mở danh sách chữ lớn toàn màn hình (có dải chữ chạy).
+ * Khi phần trang phía sau là vùng tối, header tự đổi sang tông tối (đọc data-d1-tone của phần tử dưới mép trái header).
  */
 export function D1Header() {
   const { chrome, nav, cta } = d1;
@@ -29,6 +29,7 @@ export function D1Header() {
   const [active, setActive] = useState<string | null>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   // Tông của phần trang nằm dưới header
   useEffect(() => {
@@ -37,7 +38,9 @@ export function D1Header() {
     const check = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        const under = document.elementFromPoint(6, 30);
+        // Bỏ qua chính header (đã cuộn thì header có nền và nhận chuột nên nằm trên cùng)
+        const header = headerRef.current;
+        const under = document.elementsFromPoint(6, 30).find((el) => !header?.contains(el));
         setOnDark(under?.closest("[data-d1-tone]")?.getAttribute("data-d1-tone") === "dark");
         setScrolled(window.scrollY > 8);
         // Bản đồ trang + nút lối tắt chỉ hiện sau màn đầu (trang không có màn đầu: hiện luôn)
@@ -108,14 +111,14 @@ export function D1Header() {
   }, [open]);
 
   return (
-    <header className="d1-top" data-d1-tone={onDark && !open ? "dark" : undefined} data-open={open} data-scrolled={scrolled}>
+    <header ref={headerRef} className="d1-top" data-d1-tone={onDark && !open ? "dark" : undefined} data-open={open} data-scrolled={scrolled}>
       <div className="d1-wrap d1-top-row">
         <Link href={D1_BASE} aria-label={chrome.home} className="d1-top-logo" onClick={() => setOpen(false)}>
           <AegisMark small className="h-7 w-auto" />
           <D1Wordmark className="h-[0.78rem] w-auto" />
         </Link>
 
-        <nav aria-label={chrome.navLabel} className="d1-pill">
+        <nav aria-label={chrome.navLabel} className="d1-nav">
           <ul>
             {nav.map((item) => (
               <li key={item.id}>
@@ -125,12 +128,6 @@ export function D1Header() {
               </li>
             ))}
           </ul>
-          <div aria-hidden className="d1-ticker">
-            <span>
-              {chrome.ticker}
-              {chrome.ticker}
-            </span>
-          </div>
         </nav>
 
         <div className="d1-top-actions">
