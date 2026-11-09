@@ -17,18 +17,18 @@ export const metadata: Metadata = {
 };
 
 /**
- * Trang chủ /demo1: mở đầu (logo ký tự, cánh cửa tối) → cách làm (sổ cái) → dịch vụ (bản vẽ ký tự) → dự án (chồng thẻ 3D)
- * → lời khách (khi có) → về Aegis → câu hỏi → lời mời. Bản đồ trang thu nhỏ ở góc phải (máy tính).
+ * Trang chủ /demo1: mở đầu (logo ký tự, cánh cửa tối) → về Aegis → dịch vụ (bản vẽ 0/1) → cách làm (nền tối) → dự án (chồng thẻ 3D)
+ * → lời khách (khi có) → câu hỏi → lời mời. Bản đồ trang thu nhỏ ở góc phải (máy tính).
  */
 export default function Demo1Page() {
   return (
     <>
       <D1Hero />
-      <D1Ledger />
+      <D1Studio />
       <D1Services />
+      <D1Ledger />
       <D1ProjectStack />
       <D1Testimonials />
-      <D1Studio />
       <D1Faq />
       <D1ContactCta />
       <D1Minimap />

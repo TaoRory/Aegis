@@ -58,11 +58,12 @@ export const d1 = {
     quickClose: "Đóng lối tắt",
     quickTitle: "Bắt đầu nhanh",
   },
+  /** Thứ tự theo góp ý: Về Aegis → Dịch vụ → Cách làm → Dự án → Câu hỏi (cũng là thứ tự các phần trên trang) */
   nav: [
-    { id: "cach-lam-viec", label: "Cách làm", href: `${D1_BASE}#cach-lam-viec` },
-    { id: "dich-vu", label: "Dịch vụ", href: `${D1_BASE}#dich-vu` },
-    { id: "du-an", label: "Dự án", href: `${D1_BASE}#du-an` },
     { id: "ve-aegis", label: "Về Aegis", href: `${D1_BASE}#ve-aegis` },
+    { id: "dich-vu", label: "Dịch vụ", href: `${D1_BASE}#dich-vu` },
+    { id: "cach-lam-viec", label: "Cách làm", href: `${D1_BASE}#cach-lam-viec` },
+    { id: "du-an", label: "Dự án", href: `${D1_BASE}#du-an` },
     { id: "cau-hoi", label: "Câu hỏi", href: `${D1_BASE}#cau-hoi` },
   ],
   cta: { label: "Trao đổi nhu cầu", short: "Trao đổi", href: d1ContactHref() },
@@ -86,7 +87,6 @@ export const d1 = {
     /** process.lead, viết gọn */
     lead: "Mỗi dự án đi qua bốn bước. Lúc nào bạn cũng biết việc gì đang được làm và vì sao.",
     counter: "Bước",
-    head: ["Quy trình Aegis", "Rõ từ đầu"],
     /** Tách từ mô tả 4 bước trong about.ts (process.steps), không thêm việc mới */
     steps: [
       { title: process.steps[0].title, items: ["Lắng nghe bài toán và mục tiêu", "Tìm hiểu bối cảnh vận hành", "Đề xuất giải pháp phù hợp"] },
@@ -107,13 +107,22 @@ export const d1 = {
     scope: "Aegis hỗ trợ",
     value: "Giá trị mang lại",
     talk: "Trao đổi về mảng này",
-    items: services,
+    /** Câu tóm tắt mảng AI do người dùng viết lại (góp ý 2026-11-09); các mảng khác giữ nguyên */
+    items: services.map((s) =>
+      s.id === "ai"
+        ? {
+            ...s,
+            summary:
+              "Tư vấn đúng bài toán và xây dựng các công cụ AI vận hành hiệu quả trong quy trình thực tế của doanh nghiệp, thay vì chạy theo xu hướng công nghệ.",
+          }
+        : s,
+    ),
   },
 
   work: {
     label: "Dự án",
-    title: "Đã bàn giao. Đang chạy thật.",
-    lead: "Website cho doanh nghiệp, tổ chức giáo dục và sự kiện, đang chạy ở tên miền thật. Chọn một dự án để xem.",
+    title: "Sản phẩm đã đến tay khách hàng",
+    lead: "Dưới đây là những sản phẩm AEGIS đã làm và bàn giao cho khách hàng.",
     open: "Bấm để xem",
     view: "Xem dự án",
     prev: "Dự án trước",
@@ -127,9 +136,19 @@ export const d1 = {
 
   studio: {
     label: "Về Aegis",
-    title: "Một đội. Tư vấn, xây dựng, bàn giao.",
-    statement: plain(about.statement),
-    body: about.body,
+    /** Tiêu đề, câu mở và hai ý "vấn đề / sứ mệnh" do người dùng viết (góp ý 2026-11-09) */
+    title: "Một đội ngũ đảm nhận toàn bộ quy trình, từ tư vấn đến bàn giao.",
+    statement: "AEGIS xây dựng giải pháp công nghệ thiết thực và dễ ứng dụng giúp giải quyết các bài toán vận hành của doanh nghiệp.",
+    story: [
+      {
+        label: "Vấn đề",
+        text: "Với các startup và doanh nghiệp vừa và nhỏ (SME), thách thức lớn nhất thường là thiếu nhân sự chuyên môn để hiện thực hóa ý tưởng thành một hệ thống vận hành hiệu quả.",
+      },
+      {
+        label: "Sứ mệnh",
+        text: "AEGIS lấp đầy khoảng trống đó bằng cách đóng vai trò như một bộ phận công nghệ chuyên trách, đồng hành cùng doanh nghiệp từ khâu tư vấn, phát triển giải pháp AI, thiết kế và phát triển website / webapp, xây dựng phần mềm quản trị đến triển khai marketing.",
+      },
+    ],
     promiseLabel: about.promise.label,
     promise: plain(about.promise.text),
     valuesLabel: about.valuesLabel,

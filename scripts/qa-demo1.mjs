@@ -95,16 +95,25 @@ for (const vp of viewports) {
   // Cuộn như người dùng (lăn chuột / vuốt): trên máy tính Lenis giữ vị trí cuộn riêng nên scrollTo bằng script không đáng tin
   await scrollToId(page, "mo-dau", 0);
   await page.waitForTimeout(300);
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < 260; i++) {
     const top = await page.evaluate(() => document.querySelector("#cach-lam-viec [data-step='3']").getBoundingClientRect().top / window.innerHeight);
     if (top < 0.5) break;
-    if (vp.name === "mobile") await page.evaluate(() => window.scrollBy(0, 120));
-    else await page.mouse.wheel(0, 120);
-    await page.waitForTimeout(60);
+    if (vp.name === "mobile") await page.evaluate(() => window.scrollBy(0, 240));
+    else await page.mouse.wheel(0, 240);
+    await page.waitForTimeout(50);
   }
   await page.waitForTimeout(900);
+  const lastActive = await page.locator("#cach-lam-viec [data-step='3']").getAttribute("data-active");
   const counter = await page.locator("#cach-lam-viec .d1-counter-num").textContent();
-  check(`[${vp.name}] sổ cái 4 bước, số lớn chạy theo cuộn`, steps === 4 && counter?.trim() !== "01", `bước=${steps}, số=${counter?.trim()}`);
+  check(`[${vp.name}] cách làm 4 bước, bước đang đọc sáng lên theo cuộn`, steps === 4 && lastActive === "true" && counter?.trim() !== "01", `bước=${steps}, bước 4 sáng=${lastActive}, số=${counter?.trim()}`);
+
+  // Thứ tự các phần theo góp ý: Về Aegis → Dịch vụ → Cách làm → Dự án → Câu hỏi (cả menu lẫn trang)
+  const order = await page.evaluate(() => {
+    const y = (id) => document.getElementById(id).getBoundingClientRect().top + window.scrollY;
+    const ids = ["ve-aegis", "dich-vu", "cach-lam-viec", "du-an", "cau-hoi"];
+    return { inPage: ids.every((id, i) => i === 0 || y(ids[i - 1]) < y(id)), menu: [...document.querySelectorAll(".d1-nav a")].map((a) => a.textContent.trim()).join(" > ") };
+  });
+  check(`[${vp.name}] thứ tự phần: Về Aegis → Dịch vụ → Cách làm → Dự án → Câu hỏi`, order.inPage, order.menu);
 
   // Dịch vụ: 4 mục, tóm tắt luôn hiện
   const summaries = await page.$$eval("#dich-vu [data-svc] .d1-svc2-body > p.text-muted", (els) => els.filter((el) => getComputedStyle(el).opacity === "1" && el.getBoundingClientRect().height > 0).length);
@@ -179,7 +188,7 @@ for (const [name, options] of [
   await page.waitForTimeout(600);
   const visible = await page.evaluate(() => {
     const ok = (sel) => [...document.querySelectorAll(sel)].every((el) => getComputedStyle(el).opacity === "1" && getComputedStyle(el).visibility !== "hidden");
-    return ok("h1") && ok("#cach-lam-viec .d1-sheet-row") && ok("#dich-vu .d1-svc-title") && ok("#du-an h2") && document.querySelectorAll("#cach-lam-viec .d1-sheet-row").length >= 14;
+    return ok("h1") && ok("#cach-lam-viec .d1-step-item") && ok("#dich-vu .d1-svc-title") && ok("#du-an h2") && document.querySelectorAll("#cach-lam-viec .d1-step-item").length === 10;
   });
   await page.evaluate(() => window.scrollTo(0, window.innerHeight * 0.8));
   await page.waitForTimeout(500);

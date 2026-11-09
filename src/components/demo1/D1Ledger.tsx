@@ -8,9 +8,11 @@ import { gsap, MQ, ScrollTrigger, useGSAP } from "@/lib/motion";
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /**
- * "Cách làm" kiểu bảng ước tính của contentarchitecture.dev (nền tối):
- * trái là số bước cỡ lớn (đứng yên khi cuộn trên máy tính), phải là "tờ quy trình" mono có dòng chấm, liệt kê 4 bước và việc của từng bước.
- * Tờ hiện đủ ngay; cuộn chỉ đổi số lớn và làm sáng bước đang đọc. Không có số giờ/ngày (không có dữ kiện).
+ * "Cách làm" (nền tối): trái là tiêu đề + số bước cỡ lớn (đứng yên khi cuộn trên máy tính); phải là 4 bước xếp dọc,
+ * mỗi bước có tên cỡ lớn và các việc của bước đó in cỡ chữ đọc thoải mái (không phải chữ mono nhỏ như bảng cũ).
+ * Bước đang đọc sáng hẳn, kèm vạch teal bên trái; các bước còn lại mờ đi nhưng vẫn đọc được.
+ * Mỗi bước cao gần một màn hình trên máy tính nên số bước đổi chậm theo nhịp đọc. Mọi chữ hiện đủ ngay; cuộn chỉ đổi mức sáng.
+ * Không có số giờ/ngày (không có dữ kiện).
  */
 export function D1Ledger() {
   const { ledger } = d1;
@@ -26,8 +28,8 @@ export function D1Ledger() {
         const triggers = [...root.querySelectorAll<HTMLElement>("[data-step]")].map((group, index) =>
           ScrollTrigger.create({
             trigger: group,
-            start: "top 62%",
-            end: "bottom 62%",
+            start: "top 55%",
+            end: "bottom 55%",
             onToggle: (self) => self.isActive && setActive(index),
           }),
         );
@@ -46,7 +48,7 @@ export function D1Ledger() {
             {ledger.title}
           </h2>
           <p className="mt-6 max-w-[28rem] text-muted">{ledger.lead}</p>
-          <div className="d1-counter mt-10 lg:mt-16" aria-hidden>
+          <div className="d1-counter mt-10 max-lg:hidden lg:mt-16" aria-hidden>
             <span key={active} className="d1-counter-num">
               {pad(active + 1)}
             </span>
@@ -56,37 +58,26 @@ export function D1Ledger() {
           </div>
         </div>
 
-        <div className="col-span-12 lg:col-span-6 lg:col-start-7">
-          <div className="d1-sheet">
-            <div className="d1-sheet-head">
-              <span>{ledger.head[0]}</span>
-              <span>{ledger.head[1]}</span>
-            </div>
-            <ol>
-              {ledger.steps.map((step, i) => (
-                <li key={step.title} data-step={i} data-active={i === active} className="d1-sheet-group">
-                  <h3 className="d1-sheet-row d1-sheet-step">
-                    <span>
-                      {ledger.counter} {pad(i + 1)}
+        <ol className="col-span-12 lg:col-span-6 lg:col-start-7">
+          {ledger.steps.map((step, i) => (
+            <li key={step.title} data-step={i} data-active={i === active} className="d1-step">
+              <p className="d1-label d1-step-no">
+                {ledger.counter} {pad(i + 1)}
+              </p>
+              <h3 className="d1-step-title">{step.title}</h3>
+              <ul className="d1-step-items">
+                {step.items.map((item, j) => (
+                  <li key={item} className="d1-step-item">
+                    <span className="d1-label d1-step-idx">
+                      {i + 1}.{j + 1}
                     </span>
-                    <span>{step.title}</span>
-                  </h3>
-                  <ul>
-                    {step.items.map((item, j) => (
-                      <li key={item} className="d1-sheet-row">
-                        <span>{item}</span>
-                        <span aria-hidden className="d1-leader" />
-                        <span className="text-muted">
-                          {i + 1}.{j + 1}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

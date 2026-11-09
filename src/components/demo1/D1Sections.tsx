@@ -26,7 +26,14 @@ export function D1Studio() {
               {studio.title}
             </h2>
             <p className="d1-statement mt-8">{studio.statement}</p>
-            <p className="mt-8 max-w-[36rem] text-muted">{studio.body}</p>
+            <dl className="d1-story mt-10">
+              {studio.story.map((item) => (
+                <div key={item.label}>
+                  <dt className="d1-label text-muted">{item.label}</dt>
+                  <dd className="d1-story-text">{item.text}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </div>
 
