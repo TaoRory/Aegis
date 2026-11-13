@@ -36,7 +36,7 @@ const BUBBLE_SIZE = 104;
 const GLYPHS = "ABCDEFGHJKLMNPRSTUVXYZ↗↔→";
 
 /** Các khu dùng con trỏ gốc: bản thiết kế tối giản /demo1 (ngôn ngữ khác hẳn trang chính) */
-const NATIVE_CURSOR_ROUTES = ["/demo1"];
+const NATIVE_CURSOR_ROUTES = ["/demo1", "/demo2"];
 
 export function Cursor() {
   const pathname = usePathname();
