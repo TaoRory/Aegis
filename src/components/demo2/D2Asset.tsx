@@ -1,0 +1,96 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
+import { ArrowRight } from "@/components/demo1/icons";
+import { d2Href, d2PlanLayers, type D2Dict, type D2LayerId, type D2PlanId } from "@/content/demo2";
+
+import { LayerMock } from "./D2Bits";
+
+const PLANS: D2PlanId[] = ["own", "grow", "amplify"];
+const LAYERS: D2LayerId[] = ["site", "search", "social", "ai"];
+
+/**
+ * Điểm nhấn của màn đầu: "tài sản số" gồm bốn lớp (Website · Search · Social · AI) và ba nút gói.
+ * Chọn gói nào thì các lớp của gói đó sáng lên; lớp AI không thuộc gói nào (làm riêng theo tư vấn) nên luôn ở trạng thái "theo yêu cầu".
+ * Tự lần lượt đổi gói cho tới khi người xem bấm chọn hoặc bấm Tạm dừng. Giảm chuyển động / không JS: đứng ở gói Grow.
+ */
+export function D2Asset({ t }: { t: D2Dict }) {
+  const { home, plans, chrome } = t;
+  const [plan, setPlan] = useState<D2PlanId>("grow");
+  const [auto, setAuto] = useState(false);
+
+  useEffect(() => {
+    // Chỉ biết được sau khi gắn vào trình duyệt (SSR luôn dựng trạng thái tĩnh)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAuto(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+
+  useEffect(() => {
+    if (!auto) return;
+    const timer = window.setInterval(() => {
+      if (!document.hidden) setPlan((current) => PLANS[(PLANS.indexOf(current) + 1) % PLANS.length]);
+    }, 3600);
+    return () => window.clearInterval(timer);
+  }, [auto]);
+
+  const lit = d2PlanLayers[plan];
+
+  return (
+    <div className="d2-asset">
+      <div className="d2-asset-side">
+        <p className="d2-small font-semibold text-muted" id="d2-asset-label">
+          {home.assetLabel}
+        </p>
+        <div className="d2-seg" role="group" aria-labelledby="d2-asset-label">
+          {PLANS.map((id) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={plan === id}
+              onClick={() => {
+                setPlan(id);
+                setAuto(false);
+              }}
+            >
+              {plans.items.find((item) => item.id === id)?.name}
+            </button>
+          ))}
+          {auto && (
+            <button type="button" className="d2-seg-pause" onClick={() => setAuto(false)}>
+              {chrome.pause}
+            </button>
+          )}
+        </div>
+        <p className="d2-asset-note" aria-live="polite">
+          {home.planNotes[plan]}
+        </p>
+        <Link href={d2Href(t.lang, `/plans#plan-${plan}`)} className="d2-link d2-small inline-flex items-center gap-2 font-semibold">
+          {home.seePlan}
+          <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+
+      <div className="d2-board" aria-hidden>
+        {LAYERS.map((layer) => {
+          const on = lit.includes(layer);
+          return (
+            <div key={layer} className="d2-layer" data-layer={layer} data-on={on} data-custom={layer === "ai"}>
+              <div className="d2-layer-head">
+                <span>{plan === "amplify" && layer === "site" ? home.landing : home.layers[layer].name}</span>
+                {layer === "ai" && <span className="d2-chip">{chrome.custom}</span>}
+              </div>
+              <LayerMock t={t} layer={layer} landing={plan === "amplify"} />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Bản chữ cho trình đọc màn hình: gói đang chọn gồm những lớp nào */}
+      <p className="sr-only">
+        {lit.map((layer) => `${home.layers[layer].name}: ${home.layers[layer].line}`).join(". ")}. {home.layers.ai.name}: {chrome.custom}.
+      </p>
+    </div>
+  );
+}

@@ -1289,3 +1289,1167 @@
     }
   }
 }
+
+/* ====================================================================== Website nhiều trang (đợt 2) */
+@layer components {
+  .d2-pagehead {
+    padding-top: clamp(2.5rem, 1rem + 5vw, 5.5rem);
+  }
+
+  .d2-statement {
+    font-family: var(--d2-font-display);
+    font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.5rem);
+    font-weight: 500;
+    line-height: 1.22;
+    letter-spacing: -0.022em;
+    text-wrap: pretty;
+  }
+
+  .d2-split-head {
+    display: grid;
+    gap: 1rem 3rem;
+    align-items: end;
+  }
+
+  .d2-two-col {
+    display: grid;
+    gap: 2.5rem 4rem;
+  }
+
+  @media (min-width: 56rem) {
+    .d2-split-head {
+      grid-template-columns: 1.1fr 1fr;
+    }
+
+    .d2-two-col {
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
+  }
+
+  .d2-rows {
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .d2-rows li {
+    padding-block: 0.85rem;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.4;
+  }
+
+  .d2-note {
+    max-width: 30rem;
+    padding: 0.9rem 1.1rem;
+    border-radius: var(--d2-r-inner);
+    background: var(--d2-aqua);
+    font-size: 0.9375rem;
+  }
+
+  /* ---------- Header: trang đang xem + danh sách thả xuống của Dịch vụ ---------- */
+  .d2-nav a[aria-current="page"] {
+    background: var(--d2-ink);
+    color: var(--d2-cloud);
+  }
+
+  .d2-has-sub {
+    position: relative;
+  }
+
+  .d2-nav .d2-sub {
+    position: absolute;
+    top: 100%;
+    left: -0.5rem;
+    z-index: 5;
+    display: none;
+    width: 23rem;
+    padding: 0.5rem;
+    border-radius: var(--d2-r-card);
+    background: var(--d2-white);
+    box-shadow:
+      0 0 0 1px var(--border),
+      0 24px 40px -24px rgb(7 31 30 / 0.4);
+  }
+
+  .d2-nav .d2-has-sub:hover .d2-sub,
+  .d2-nav .d2-has-sub:focus-within .d2-sub {
+    display: block;
+  }
+
+  .d2-nav .d2-sub a {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: var(--d2-r-inner);
+  }
+
+  .d2-sub a span:first-child {
+    font-weight: 600;
+  }
+
+  .d2-sub a span:last-child {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.35;
+    color: var(--fg-muted);
+  }
+
+  .d2-nav .d2-sub a:hover {
+    background: var(--d2-aqua);
+    --fg-muted: #1f3d3b;
+  }
+
+  .d2-menu-sub {
+    padding: 0.4rem 0 0.9rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .d2-menu-sub a {
+    display: block;
+    padding: 0.55rem 0;
+    color: var(--fg-muted);
+  }
+
+  /* ---------- Màn đầu: tài sản bốn lớp ---------- */
+  .d2-hero-row {
+    display: grid;
+    gap: 1.5rem 3rem;
+    margin-top: 1.5rem;
+  }
+
+  .d2-hero-row .d2-hero-actions {
+    margin-top: 0;
+  }
+
+  @media (min-width: 56rem) {
+    .d2-hero-row {
+      grid-template-columns: 1.3fr 1fr;
+      align-items: end;
+    }
+
+    .d2-hero-row .d2-hero-actions {
+      justify-content: flex-end;
+    }
+  }
+
+  .d2-asset {
+    position: relative;
+    display: grid;
+    gap: 1.75rem 2.5rem;
+    margin-top: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
+    padding: clamp(1.25rem, 0.8rem + 2vw, 2.5rem);
+    border-radius: var(--d2-r-slab);
+    background: var(--d2-ink);
+    color: var(--d2-cloud);
+    --fg-muted: #9fb0ae;
+    --fg: var(--d2-cloud);
+    --accent: var(--d2-aqua);
+    --focus-ring: var(--d2-aqua);
+  }
+
+  .d2-asset-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  /* Nút gói dạng thanh phân đoạn */
+  .d2-seg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .d2-seg button {
+    min-height: 2.75rem;
+    padding: 0 1.2rem;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgb(245 247 246 / 0.3);
+    font-family: var(--d2-font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .d2-seg button[aria-pressed="true"] {
+    background: var(--d2-aqua);
+    box-shadow: none;
+    color: var(--d2-ink);
+  }
+
+  .d2-seg button.d2-seg-pause {
+    box-shadow: none;
+    font-family: var(--d2-font-body);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--fg-muted);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .d2-asset-note {
+    max-width: 24rem;
+    min-height: 4.6em;
+    font-family: var(--d2-font-display);
+    font-size: clamp(1.15rem, 1.05rem + 0.5vw, 1.45rem);
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+    text-wrap: pretty;
+  }
+
+  .d2-board {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  @media (min-width: 60rem) {
+    .d2-asset {
+      grid-template-columns: 1fr 1.7fr;
+      align-items: center;
+    }
+
+    /* Bốn lớp xếp chồng lệch nhau như một chồng thẻ */
+    .d2-board {
+      display: block;
+      position: relative;
+      aspect-ratio: 16 / 10.4;
+    }
+
+    .d2-board .d2-layer {
+      position: absolute;
+    }
+
+    .d2-layer[data-layer="site"] {
+      top: 0;
+      left: 0;
+      width: 56%;
+    }
+
+    .d2-layer[data-layer="search"] {
+      top: 9%;
+      right: 0;
+      width: 47%;
+    }
+
+    .d2-layer[data-layer="social"] {
+      bottom: 0;
+      left: 14%;
+      width: 42%;
+    }
+
+    .d2-layer[data-layer="ai"] {
+      right: 3%;
+      bottom: 5%;
+      width: 36%;
+    }
+  }
+
+  .d2-layer {
+    padding: 0.85rem;
+    border-radius: var(--d2-r-card);
+    background: var(--d2-white);
+    color: var(--d2-ink);
+    --fg-muted: var(--d2-muted);
+  }
+
+  .d2-board .d2-layer[data-on="false"] {
+    background: #17302f;
+    color: #8fa3a1;
+  }
+
+  .d2-board .d2-layer[data-on="false"] .d2-lm {
+    opacity: 0.22;
+    filter: grayscale(1);
+  }
+
+  .d2-board .d2-layer[data-on="true"] {
+    z-index: 2;
+    box-shadow: 0 26px 40px -26px rgb(0 0 0 / 0.7);
+  }
+
+  .d2-board .d2-layer[data-custom="true"] {
+    background: var(--d2-ink);
+    box-shadow: inset 0 0 0 1px rgb(132 228 214 / 0.5);
+    color: var(--d2-cloud);
+  }
+
+  .d2-board .d2-layer[data-custom="true"] .d2-lm {
+    opacity: 1;
+    filter: none;
+  }
+
+  .d2-board .d2-layer[data-custom="true"] .d2-chip {
+    background: rgb(132 228 214 / 0.18);
+    color: var(--d2-aqua);
+  }
+
+  .d2-layer-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    margin-bottom: 0.7rem;
+    font-family: var(--d2-font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* Mô hình của từng lớp */
+  .d2-lm {
+    overflow: hidden;
+    border-radius: var(--d2-r-inner);
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+
+  .d2-lm-site {
+    box-shadow: inset 0 0 0 1px rgb(7 31 30 / 0.14);
+  }
+
+  .d2-lm-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.8rem;
+  }
+
+  .d2-bar {
+    display: block;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: rgb(7 31 30 / 0.14);
+  }
+
+  .d2-bar[data-tone="ink"] {
+    background: var(--d2-ink);
+  }
+
+  .d2-lm-query {
+    padding: 0.5rem 0.8rem;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgb(7 31 30 / 0.3);
+    color: var(--d2-muted);
+  }
+
+  .d2-lm-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: var(--d2-r-inner);
+    background: rgb(7 31 30 / 0.06);
+    color: var(--d2-muted);
+  }
+
+  .d2-lm-result[data-you="true"] {
+    background: var(--d2-aqua);
+    color: var(--d2-ink);
+    font-weight: 600;
+  }
+
+  .d2-lm-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .d2-lm-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.3rem;
+    margin-top: 0.6rem;
+  }
+
+  .d2-lm-grid i {
+    aspect-ratio: 1.5;
+    border-radius: 5px;
+    background: rgb(7 31 30 / 0.08);
+  }
+
+  .d2-lm-grid i[data-tone="teal"] {
+    background: var(--d2-teal);
+  }
+
+  .d2-lm-grid i[data-tone="aqua"] {
+    background: var(--d2-aqua);
+  }
+
+  .d2-lm-grid i[data-tone="ink"] {
+    background: var(--d2-ink);
+  }
+
+  .d2-lm-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 1.1rem;
+    overflow: visible;
+  }
+
+  .d2-lm-flow .d2-pill {
+    position: relative;
+  }
+
+  .d2-lm-flow .d2-pill:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    width: 1.1rem;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.5;
+  }
+
+  .d2-board .d2-layer[data-custom="true"] .d2-pill {
+    background: rgb(245 247 246 / 0.14);
+    color: var(--d2-cloud);
+  }
+
+  .d2-board .d2-layer[data-custom="true"] .d2-pill[data-on="true"] {
+    background: var(--d2-aqua);
+    color: var(--d2-ink);
+  }
+
+  /* ---------- Website đứng yên, tài sản lớn lên ---------- */
+  .d2-story {
+    padding-block: var(--d2-section);
+  }
+
+  .d2-story-grid {
+    display: grid;
+    gap: 2.5rem 4rem;
+  }
+
+  .d2-miles {
+    margin-top: clamp(1.75rem, 1.2rem + 2vw, 3rem);
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .d2-miles li {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.9rem;
+    padding-block: 0.95rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .d2-miles li p {
+    margin-top: 0.2rem;
+    font-size: 0.9375rem;
+    color: var(--fg-muted);
+  }
+
+  .d2-mile-no {
+    display: grid;
+    width: 1.75rem;
+    height: 1.75rem;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--d2-ink);
+    color: var(--d2-aqua);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  /* Khi đang ghim: mốc chưa tới / đã qua thì dịu đi, mốc đang tới giữ màu mực */
+  .d2-story[data-live="true"] .d2-miles li[data-active="false"] {
+    color: #5f6f6d;
+    --fg-muted: #5f6f6d;
+  }
+
+  .d2-story[data-live="true"] .d2-miles li[data-active="false"] .d2-mile-no {
+    background: rgb(7 31 30 / 0.12);
+    color: var(--d2-ink);
+  }
+
+  .d2-story[data-live="true"] .d2-miles li[data-done="true"] .d2-mile-no {
+    background: var(--d2-teal);
+    color: var(--d2-ink);
+  }
+
+  .d2-chart {
+    padding: clamp(1rem, 0.6rem + 1.6vw, 2rem);
+    border-radius: var(--d2-r-slab);
+    background: var(--d2-white);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  .d2-chart svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .d2-chart-axis {
+    fill: none;
+    stroke: rgb(7 31 30 / 0.25);
+    stroke-width: 1.5;
+  }
+
+  .d2-chart-flat {
+    fill: none;
+    stroke: #8b9896;
+    stroke-width: 3;
+    stroke-dasharray: 0.012 0.012;
+  }
+
+  .d2-chart-asset {
+    fill: none;
+    stroke: var(--d2-teal);
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: calc(1 - var(--p, 1));
+  }
+
+  .d2-chart-dot circle {
+    fill: var(--d2-white);
+    stroke: rgb(7 31 30 / 0.3);
+    stroke-width: 1.5;
+  }
+
+  .d2-chart-dot text {
+    fill: var(--d2-muted);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .d2-chart-dot[data-on="true"] circle {
+    fill: var(--d2-ink);
+    stroke: var(--d2-ink);
+  }
+
+  .d2-chart-dot[data-on="true"] text {
+    fill: var(--d2-aqua);
+  }
+
+  .d2-chart figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.5rem;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+  }
+
+  .d2-legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+  }
+
+  .d2-legend::before {
+    content: "";
+    width: 1.5rem;
+    height: 0.3rem;
+    border-radius: 999px;
+    background: var(--d2-teal);
+  }
+
+  .d2-legend[data-kind="flat"]::before {
+    height: 0;
+    border-top: 3px dashed #8b9896;
+    border-radius: 0;
+    background: none;
+  }
+
+  .d2-chart-note {
+    margin-left: auto;
+    color: var(--fg-muted);
+  }
+
+  @media (min-width: 64rem) {
+    .d2-story-grid {
+      grid-template-columns: 1fr 1.15fr;
+      align-items: center;
+    }
+
+    /* Ghim trong lúc cuộn (chỉ khi JS đã bật chế độ này) */
+    .d2-story[data-live="true"] {
+      min-height: 280vh;
+      padding-block: 0;
+    }
+
+    .d2-story[data-live="true"] .d2-story-pin {
+      position: sticky;
+      top: var(--d2-header);
+      display: grid;
+      min-height: calc(100svh - var(--d2-header));
+      align-items: center;
+      padding-block: 1.5rem;
+    }
+
+    /* Gọn lại để vừa một màn laptop thấp (~700px) */
+    .d2-story[data-live="true"] .d2-h2 {
+      max-width: none;
+      font-size: clamp(1.6rem, 1rem + 1.5vw, 2.3rem);
+    }
+
+    .d2-story[data-live="true"] .d2-miles {
+      margin-top: 1.25rem;
+    }
+
+    .d2-story[data-live="true"] .d2-miles li {
+      padding-block: 0.6rem;
+    }
+
+    .d2-story[data-live="true"] .d2-miles li p {
+      margin-top: 0;
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+
+    .d2-story[data-live="true"] .d2-chart svg {
+      max-height: calc(100svh - var(--d2-header) - 12rem);
+    }
+  }
+
+  /* ---------- Danh mục dịch vụ (chữ lớn, mỗi dòng một trang) ---------- */
+  .d2-svc-index {
+    margin-top: clamp(1.75rem, 1.2rem + 2vw, 3rem);
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .d2-svc-index a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.4rem 1.5rem;
+    margin-inline: -1rem;
+    padding: 1.2rem 1rem;
+    border-bottom: 1px solid var(--border);
+    border-radius: var(--d2-r-inner);
+  }
+
+  .d2-svc-index a:hover {
+    border-bottom-color: transparent;
+    background: var(--d2-aqua);
+    --fg-muted: #1f3d3b;
+  }
+
+  .d2-svc-name {
+    font-family: var(--d2-font-display);
+    font-size: clamp(1.5rem, 1.1rem + 1.7vw, 2.6rem);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+  }
+
+  .d2-svc-line {
+    grid-column: 1;
+    color: var(--fg-muted);
+  }
+
+  .d2-svc-index .d2-chip {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .d2-svc-index svg {
+    grid-row: 1 / span 3;
+    grid-column: 2;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  @media (min-width: 56rem) {
+    .d2-svc-index a {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 8.5rem auto;
+    }
+
+    .d2-svc-line,
+    .d2-svc-index .d2-chip,
+    .d2-svc-index svg {
+      grid-row: auto;
+      grid-column: auto;
+    }
+  }
+
+  /* ---------- Ba gói thu gọn ---------- */
+  .d2-teasers {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: clamp(1.75rem, 1.2rem + 2vw, 3rem);
+  }
+
+  .d2-teaser {
+    display: flex;
+    min-height: 15rem;
+    flex-direction: column;
+    gap: 1rem;
+    padding: clamp(1.25rem, 1rem + 1.2vw, 2rem);
+    border-radius: var(--d2-r-slab);
+  }
+
+  .d2-teaser[data-plan="own"] {
+    background: var(--d2-white);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  .d2-teaser[data-plan="grow"] {
+    background: var(--d2-aqua);
+  }
+
+  .d2-teaser[data-plan="own"]:hover {
+    box-shadow: inset 0 0 0 1px var(--fg);
+  }
+
+  .d2-teaser-name {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--d2-font-display);
+    font-size: clamp(2.2rem, 1.6rem + 2.2vw, 3.4rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .d2-teaser-name svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .d2-teaser-line {
+    max-width: 24rem;
+    line-height: 1.4;
+  }
+
+  .d2-teaser-layers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: auto;
+  }
+
+  .d2-teaser[data-plan="grow"] .d2-chip {
+    background: rgb(7 31 30 / 0.12);
+  }
+
+  @media (min-width: 56rem) {
+    .d2-teasers {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* ---------- Băng chuyền dự án ---------- */
+  .d2-carousel {
+    margin-top: clamp(1.75rem, 1.2rem + 2vw, 3rem);
+  }
+
+  .d2-carousel-track {
+    display: flex;
+    gap: var(--d2-gutter);
+    overflow-x: auto;
+    padding-inline: max(var(--d2-gutter), calc((100vw - var(--d2-max)) / 2));
+    scroll-padding-inline: max(var(--d2-gutter), calc((100vw - var(--d2-max)) / 2));
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .d2-carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .d2-carousel-track .d2-tile {
+    flex: none;
+    width: min(80vw, 34rem);
+    scroll-snap-align: start;
+  }
+
+  .d2-carousel-nav {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    max-width: calc(var(--d2-max) + var(--d2-gutter) * 2);
+    margin: 1.25rem auto 0;
+    padding-inline: var(--d2-gutter);
+  }
+
+  .d2-carousel-nav button {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    place-items: center;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+  }
+
+  .d2-carousel-nav button:hover {
+    background: var(--d2-ink);
+    color: var(--d2-cloud);
+  }
+
+  .d2-carousel-nav svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  /* ---------- Trang dịch vụ ---------- */
+  .d2-svc-rows {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .d2-svc-row {
+    display: grid;
+    overflow: hidden;
+    border-radius: var(--d2-r-slab);
+    background: var(--d2-white);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  .d2-svc-copy {
+    padding: clamp(1.5rem, 1rem + 2.4vw, 3rem);
+  }
+
+  .d2-svc-stage {
+    display: grid;
+    min-height: 15rem;
+    place-items: center;
+    padding: clamp(1.25rem, 1rem + 2vw, 3rem);
+    border-radius: var(--d2-r-slab);
+    background: var(--d2-cloud);
+  }
+
+  .d2-svc-row .d2-svc-stage {
+    border-radius: 0;
+  }
+
+  .d2-svc-stage[data-stage="aqua"] {
+    background: var(--d2-aqua);
+  }
+
+  .d2-svc-stage[data-stage="ink"] {
+    background: var(--d2-ink);
+  }
+
+  .d2-svc-stage[data-stage="white"] {
+    background: var(--d2-white);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  .d2-svc-row .d2-svc-stage[data-stage="white"],
+  .d2-svc-row .d2-svc-stage[data-stage="cloud"] {
+    background: var(--d2-cloud);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  .d2-svc-stage .d2-layer {
+    width: min(100%, 22rem);
+    box-shadow:
+      0 0 0 1px rgb(7 31 30 / 0.08),
+      0 22px 34px -24px rgb(7 31 30 / 0.5);
+  }
+
+  .d2-svc-head {
+    display: grid;
+    gap: 2rem 3rem;
+  }
+
+  @media (min-width: 56rem) {
+    .d2-svc-row {
+      grid-template-columns: 1fr 1.2fr;
+    }
+
+    .d2-svc-row:nth-child(even) .d2-svc-stage {
+      order: 2;
+    }
+
+    .d2-svc-head {
+      grid-template-columns: 1.2fr 1fr;
+      align-items: center;
+    }
+  }
+
+  /* ---------- Trang dự án ---------- */
+  .d2-facts > div {
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .d2-facts > div:first-child {
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .d2-facts dt {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fg-muted);
+  }
+
+  .d2-facts dd {
+    margin-top: 0.2rem;
+  }
+
+  .d2-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.1rem;
+    margin-top: 0.5rem;
+    font-family: var(--d2-font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .d2-swatches li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .d2-swatches span {
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(7 31 30 / 0.2);
+  }
+
+  .d2-long > div {
+    max-height: 34rem;
+    margin-top: 0.75rem;
+    overflow-y: auto;
+    border-radius: var(--d2-r-card);
+    box-shadow: 0 0 0 1px var(--border);
+  }
+
+  .d2-long img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .d2-next {
+    display: grid;
+    gap: 0.75rem;
+    padding: clamp(1.5rem, 1rem + 2.4vw, 3rem);
+    border-radius: var(--d2-r-slab);
+    color: var(--d2-ink);
+  }
+
+  .d2-next[data-ink="light"] {
+    color: var(--d2-cloud);
+  }
+
+  .d2-next .d2-feature-name {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .d2-next svg {
+    flex: none;
+    width: 0.6em;
+    height: 0.6em;
+  }
+
+  /* ---------- Giới thiệu ---------- */
+  .d2-story-item {
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .d2-promise {
+    padding: clamp(1.75rem, 1rem + 3.4vw, 4.5rem);
+    border-radius: var(--d2-r-slab);
+  }
+
+  .d2-values > div {
+    padding-block: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .d2-values > div:first-child {
+    border-top: 1px solid var(--border-strong);
+  }
+
+  /* ---------- Blog ---------- */
+  .d2-posts {
+    margin-top: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .d2-posts a {
+    display: grid;
+    gap: 0.45rem;
+    padding-block: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .d2-post-title {
+    max-width: 24em;
+    font-family: var(--d2-font-display);
+    font-size: clamp(1.4rem, 1.1rem + 1.2vw, 2.1rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+  }
+
+  .d2-posts a:hover .d2-post-title {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.16em;
+  }
+
+  .d2-posts a > .text-muted {
+    max-width: 42rem;
+  }
+
+  .d2-post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.3rem;
+  }
+
+  .d2-empty {
+    display: grid;
+    gap: 2.5rem 4rem;
+    padding: clamp(1.5rem, 1rem + 2.6vw, 3.5rem);
+    border-radius: var(--d2-r-slab);
+    background: var(--d2-white);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  @media (min-width: 56rem) {
+    .d2-empty {
+      grid-template-columns: 1.4fr 1fr;
+    }
+  }
+
+  .d2-article {
+    max-width: calc(46rem + var(--d2-gutter) * 2);
+    padding-block: clamp(2rem, 1rem + 4vw, 4.5rem) var(--d2-section);
+  }
+
+  .d2-prose {
+    margin-top: 2.5rem;
+    font-size: 1.125rem;
+    line-height: 1.65;
+  }
+
+  .d2-prose > * + * {
+    margin-top: 1.25em;
+  }
+
+  .d2-prose h2 {
+    margin-top: 2.2em;
+    font-family: var(--d2-font-display);
+    font-size: 1.65rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .d2-prose h3 {
+    margin-top: 1.8em;
+    font-family: var(--d2-font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .d2-prose :is(ul, ol) {
+    padding-left: 1.3em;
+  }
+
+  .d2-prose ul {
+    list-style: disc;
+  }
+
+  .d2-prose ol {
+    list-style: decimal;
+  }
+
+  .d2-prose li + li {
+    margin-top: 0.4em;
+  }
+
+  .d2-prose blockquote {
+    padding: 1rem 1.25rem;
+    border-radius: var(--d2-r-inner);
+    background: var(--d2-aqua);
+    font-family: var(--d2-font-display);
+    font-size: 1.25rem;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+
+  .d2-prose code {
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    background: rgb(7 31 30 / 0.08);
+    font-family: var(--d2-font-mono);
+    font-size: 0.9em;
+  }
+
+  .d2-prose pre {
+    overflow-x: auto;
+    padding: 1.1rem 1.25rem;
+    border-radius: var(--d2-r-card);
+    background: var(--d2-ink);
+    color: var(--d2-cloud);
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .d2-prose pre code {
+    padding: 0;
+    background: none;
+  }
+
+  /* ---------- Chuyển động của đợt 2 ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .d2-layer,
+    .d2-layer .d2-lm {
+      transition:
+        background-color 0.5s var(--d2-ease),
+        color 0.5s var(--d2-ease),
+        opacity 0.5s var(--d2-ease),
+        filter 0.5s var(--d2-ease),
+        box-shadow 0.5s var(--d2-ease),
+        transform 0.6s var(--d2-ease);
+    }
+
+    @media (min-width: 60rem) {
+      .d2-board .d2-layer[data-on="true"] {
+        transform: translateY(-8px);
+      }
+    }
+
+    .d2-seg button,
+    .d2-svc-index a,
+    .d2-sub a,
+    .d2-teaser,
+    .d2-carousel-nav button {
+      transition:
+        background-color 0.2s var(--d2-ease),
+        box-shadow 0.2s var(--d2-ease),
+        color 0.2s var(--d2-ease);
+    }
+
+    .d2-miles li,
+    .d2-mile-no,
+    .d2-chart-dot circle,
+    .d2-chart-dot text {
+      transition:
+        color 0.4s ease,
+        background-color 0.4s ease,
+        fill 0.4s ease,
+        stroke 0.4s ease;
+    }
+
+    .d2-carousel-track .d2-shot {
+      transition: transform 0.35s var(--d2-ease);
+    }
+  }
+}

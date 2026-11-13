@@ -17,6 +17,16 @@ Nguồn: hai vòng nghiên cứu tháng 11/2026 trên 24 website (agency growth,
 5. **Chọn font đã kiểm tra bộ dấu của ngôn ngữ đích** (mục 4).
 6. Dựng xong thì chạy danh sách kiểm ở mục 8 trên trình duyệt thật, cả desktop lẫn điện thoại.
 
+### Ba câu hỏi về cấu trúc, trả lời trước khi vẽ
+
+Rút từ lần làm lại website Aegis (bản đầu bị chê "chỉ là một landing page tầm thường"):
+
+- **Một trang cuộn dọc hay website nhiều trang?** Doanh nghiệp có từ ba dịch vụ trở lên, có dự án và có ý định viết bài thì làm nhiều trang: Trang chủ, Dịch vụ (mỗi dịch vụ một trang), Gói hoặc Bảng giá, Dự án (mỗi dự án một trang), Quy trình, Giới thiệu, Blog, Liên hệ. Menu trỏ tới trang thật, không phải bốn điểm neo trên cùng một trang. Trang chủ chỉ kể câu chuyện chính và dẫn đi.
+- **Màn đầu đang nói doanh nghiệp làm gì?** Thứ chiếm nhiều diện tích nhất ở màn đầu sẽ thành định vị trong mắt khách. Đặt một tường ảnh website ở đó thì khách hiểu "bên này làm web", dù tiêu đề nói rộng hơn. Màn đầu phải cho thấy toàn bộ phạm vi dịch vụ.
+- **Đối thủ gần nhất đang nói gì?** Mở trang của họ trước khi viết tiêu đề. Nếu câu định vị trùng nhau thì phải nói phần mình có mà họ không có.
+
+Mỗi trang nên có một hoặc hai điểm tương tác có chủ đích, gắn với nội dung (ví dụ bấm chọn gói để thấy gói đó gồm gì; cuộn để thấy một biểu đồ ý tưởng được vẽ dần). Không có điểm nào thì trang "đúng nhưng nhạt"; rải hiệu ứng khắp nơi thì thành AI slop.
+
 ## 2. Dấu hiệu "AI slop": thấy là sửa
 
 ### Màu và hiệu ứng
