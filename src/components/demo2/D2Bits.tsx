@@ -47,14 +47,14 @@ export function FinalCta({ t }: { t: D2Dict }) {
         {t.final.title}
       </h2>
       <div className="d2-final">
-        <Link href={d2Href(t.lang, "/work")}>
+        <Link href={d2Href(t.lang, "/work")} data-rise="pop">
           <span className="d2-final-title">
             {t.final.work}
             <ArrowRight />
           </span>
           <p className="text-muted">{t.final.workLine}</p>
         </Link>
-        <Link href={d2Contact(t.lang)}>
+        <Link href={d2Contact(t.lang)} data-rise="pop">
           <span className="d2-final-title">
             {t.final.call}
             <ArrowRight />

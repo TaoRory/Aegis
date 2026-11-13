@@ -87,7 +87,9 @@ function D2Footer({ t }: { t: D2Dict }) {
               </ul>
             </div>
           </div>
-          <D1Wordmark className="d2-wordmark" title="Aegis" />
+          <div data-rise="word">
+            <D1Wordmark className="d2-wordmark" title="Aegis" />
+          </div>
           <div className="d2-footer-base">
             <span>{t.footer.rights}</span>
             <span>BUILD / DEPLOY / SCALE</span>
@@ -104,7 +106,7 @@ function PlanLadder({ t }: { t: D2Dict }) {
   return (
     <div className="d2-plans">
       {t.plans.items.map((plan) => (
-        <article key={plan.id} id={`plan-${plan.id}`} className="d2-plan" data-plan={plan.id} data-d2-tone={plan.id === "amplify" ? "dark" : undefined}>
+        <article key={plan.id} id={`plan-${plan.id}`} data-rise className="d2-plan" data-plan={plan.id} data-d2-tone={plan.id === "amplify" ? "dark" : undefined}>
           <div>
             <h2 className="d2-plan-name">{plan.name}</h2>
             <p className="d2-plan-line">{plan.line}</p>
@@ -138,7 +140,7 @@ function Steps({ t }: { t: D2Dict }) {
   return (
     <ol className="d2-steps">
       {t.process.steps.map((step, index) => (
-        <li key={step.title} className="d2-step">
+        <li key={step.title} data-rise className="d2-step">
           <div className="d2-step-text">
             <span className="d2-step-no" aria-hidden>
               {index + 1}
@@ -159,7 +161,7 @@ function Steps({ t }: { t: D2Dict }) {
 /** Ba gói thu gọn (trang chủ): ba bề mặt, mỗi ô dẫn tới gói tương ứng ở trang Plans */
 function PlanTeaser({ t, plan }: { t: D2Dict; plan: D2Plan }) {
   return (
-    <Link href={d2Href(t.lang, `/plans#plan-${plan.id}`)} className="d2-teaser" data-plan={plan.id} data-d2-tone={plan.id === "amplify" ? "dark" : undefined}>
+    <Link href={d2Href(t.lang, `/plans#plan-${plan.id}`)} className="d2-teaser" data-rise="pop" data-plan={plan.id} data-d2-tone={plan.id === "amplify" ? "dark" : undefined}>
       <span className="d2-teaser-name">
         {plan.name}
         <ArrowRight />
@@ -173,6 +175,24 @@ function PlanTeaser({ t, plan }: { t: D2Dict; plan: D2Plan }) {
         ))}
       </span>
     </Link>
+  );
+}
+
+/** Dải chữ chạy cỡ lớn, hơi nghiêng (trang trí: aria-hidden; giảm chuyển động thì đứng yên) */
+function D2Marquee({ words }: { words: string[] }) {
+  const row = (key: string) => (
+    <div key={key} className="d2-marquee-row">
+      {words.map((word, i) => (
+        <span key={word} data-tone={i % 3 === 1 ? "aqua" : i % 3 === 2 ? "line" : undefined}>
+          {word}
+        </span>
+      ))}
+    </div>
+  );
+  return (
+    <div className="d2-marquee" aria-hidden>
+      <div className="d2-marquee-track">{[row("a"), row("b")]}</div>
+    </div>
   );
 }
 
@@ -208,26 +228,31 @@ export function D2Home({ t }: { t: D2Dict }) {
       {/* 2. Website đứng yên, tài sản lớn lên (ghim khi cuộn trên máy tính) */}
       <D2Story t={t} />
 
-      {/* 3. Bốn lớp dịch vụ: danh mục chữ lớn, mỗi dòng dẫn tới trang riêng */}
-      <section aria-labelledby="d2-svc-title" className="d2-wrap d2-section">
-        <div className="d2-split-head">
-          <h2 id="d2-svc-title" className="d2-h2">
-            {home.servicesTitle}
-          </h2>
-          <p className="d2-lead">{home.servicesLead}</p>
+      {/* Dải chữ chạy: bốn lớp + ba gói (trang trí, nội dung đã có ở các phần khác) */}
+      <D2Marquee words={[...t.services.items.map((service) => service.name), ...t.plans.items.map((plan) => plan.name)]} />
+
+      {/* 3. Bốn lớp dịch vụ: tấm tối, danh mục chữ lớn, mỗi dòng dẫn tới trang riêng */}
+      <section aria-labelledby="d2-svc-title" className="d2-wrap d2-section-tight">
+        <div className="d2-darkslab" data-d2-tone="dark" data-rise="pop">
+          <div className="d2-split-head">
+            <h2 id="d2-svc-title" className="d2-h2">
+              {home.servicesTitle}
+            </h2>
+            <p className="d2-lead">{home.servicesLead}</p>
+          </div>
+          <ul className="d2-svc-index">
+            {t.services.items.map((service) => (
+              <li key={service.id}>
+                <Link href={d2Href(t.lang, `/services/${service.id}`)}>
+                  <span className="d2-svc-name">{service.name}</span>
+                  <span className="d2-svc-line">{service.line}</span>
+                  <span className="d2-chip">{service.plans}</span>
+                  <ArrowRight />
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
-        <ul className="d2-svc-index">
-          {t.services.items.map((service) => (
-            <li key={service.id}>
-              <Link href={d2Href(t.lang, `/services/${service.id}`)}>
-                <span className="d2-svc-name">{service.name}</span>
-                <span className="d2-svc-line">{service.line}</span>
-                <span className="d2-chip">{service.plans}</span>
-                <ArrowRight />
-              </Link>
-            </li>
-          ))}
-        </ul>
       </section>
 
       {/* 4. Ba gói, thu gọn */}
@@ -308,7 +333,7 @@ export function D2Services({ t }: { t: D2Dict }) {
       <section className="d2-wrap d2-section-tight" aria-label={services.title}>
         <ul className="d2-svc-rows">
           {services.items.map((service) => (
-            <li key={service.id} className="d2-svc-row">
+            <li key={service.id} data-rise className="d2-svc-row">
               <div className="d2-svc-stage" data-stage={SERVICE_STAGE[service.id]} aria-hidden>
                 <div className="d2-layer" data-on="true" data-static="true">
                   <div className="d2-layer-head">
@@ -436,7 +461,7 @@ export function D2Plans({ t }: { t: D2Dict }) {
         </h2>
         <div className="d2-cases">
           {t.plans.cases.map((item) => (
-            <div key={item.quote} className="d2-case">
+            <div key={item.quote} data-rise className="d2-case">
               <p className="d2-case-quote">{item.quote}</p>
               <div>
                 <p>{item.answer}</p>
@@ -452,7 +477,7 @@ export function D2Plans({ t }: { t: D2Dict }) {
           {t.compare.title}
         </h2>
         <p className="d2-lead mt-4">{t.compare.lead}</p>
-        <div className="d2-compare" tabIndex={0} role="region" aria-labelledby="d2-compare-title">
+        <div className="d2-compare" data-rise tabIndex={0} role="region" aria-labelledby="d2-compare-title">
           <table>
             <thead>
               <tr>
@@ -518,7 +543,7 @@ export function D2Work({ t }: { t: D2Dict }) {
               {column.map((project, r) => {
                 const stage = d2Stages[project.slug];
                 return (
-                  <Link key={project.slug} href={d2Href(t.lang, `/work/${project.slug}`)} className="d2-tile" data-ink={stage.ink} style={{ backgroundColor: stage.bg }}>
+                  <Link key={project.slug} href={d2Href(t.lang, `/work/${project.slug}`)} data-rise="pop" className="d2-tile" data-ink={stage.ink} style={{ backgroundColor: stage.bg }}>
                     <Shot project={project} alt="" sizes="(min-width: 48rem) 30vw, 92vw" priority={r === 0} />
                     <span className="d2-tile-meta">
                       <span>
@@ -629,7 +654,7 @@ export function D2Case({ t, slug }: { t: D2Dict; slug: string }) {
       </section>
 
       <section className="d2-wrap d2-section-tight" aria-label={t.work.next}>
-        <Link href={d2Href(t.lang, `/work/${next.slug}`)} className="d2-next" data-ink={d2Stages[next.slug].ink} style={{ backgroundColor: d2Stages[next.slug].bg }}>
+        <Link href={d2Href(t.lang, `/work/${next.slug}`)} data-rise="pop" className="d2-next" data-ink={d2Stages[next.slug].ink} style={{ backgroundColor: d2Stages[next.slug].bg }}>
           <span className="d2-small font-semibold">{t.work.next}</span>
           <span className="d2-feature-name">
             {next.name}
@@ -676,7 +701,7 @@ export function D2About({ t }: { t: D2Dict }) {
         <p className="d2-statement max-w-[22em]">{about.statement}</p>
         <dl className="d2-two-col mt-12">
           {about.story.map((item) => (
-            <div key={item.label} className="d2-story-item">
+            <div key={item.label} data-rise className="d2-story-item">
               <dt className="d2-h3">{item.label}</dt>
               <dd className="mt-3 text-muted">{item.text}</dd>
             </div>
@@ -685,7 +710,7 @@ export function D2About({ t }: { t: D2Dict }) {
       </section>
 
       <section className="d2-wrap d2-section-tight" aria-labelledby="d2-promise-title">
-        <div className="d2-promise" data-d2-tone="dark">
+        <div className="d2-promise" data-d2-tone="dark" data-rise="pop">
           <h2 id="d2-promise-title" className="d2-small font-semibold text-muted">
             {about.promiseLabel}
           </h2>
@@ -704,7 +729,7 @@ export function D2About({ t }: { t: D2Dict }) {
           </h2>
           <dl className="d2-values">
             {about.values.map((value) => (
-              <div key={value.title}>
+              <div key={value.title} data-rise>
                 <dt className="d2-h3">{value.title}</dt>
                 <dd className="mt-2 text-muted">{value.description}</dd>
               </div>

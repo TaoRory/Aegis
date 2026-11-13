@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { D2Motion } from "@/components/demo2/D2Motion";
 import { d2Sans } from "@/components/demo2/fonts";
 import { ThemeGuard } from "@/components/layout/ThemeGuard";
 
@@ -14,6 +15,7 @@ export default function Demo2Layout({ children }: Readonly<{ children: ReactNode
   return (
     <div className={`d2 ${d2Sans.variable}`} data-no-cover>
       <ThemeGuard />
+      <D2Motion />
       {children}
     </div>
   );

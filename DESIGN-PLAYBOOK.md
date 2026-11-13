@@ -92,6 +92,17 @@ Mỗi trang nên có một hoặc hai điểm tương tác có chủ đích, g�
 - Không có tiếng Việt, đừng dùng cho trang tiếng Việt: Instrument Serif, Instrument Sans, Figtree, DM Sans, Outfit, Sora, Schibsted Grotesk.
 - Luôn kiểm tra lại bộ dấu khi cài font.
 
+### Tương phản: đạt chuẩn chưa chắc đã dễ đọc
+
+Bản đầu của website Aegis đạt WCAG AA ở gần như mọi chữ mà vẫn bị chê "khó đọc", vì mọi thứ nhạt như nhau: nền sáng, thẻ trắng, viền mảnh, chữ phụ xám và nhỏ.
+
+- Chữ phụ nhắm 7:1 trở lên, không dừng ở 4.5:1. Chữ nội dung dày 450–500 thay vì 400.
+- Nhãn nhỏ nhất 14px, đậm 600.
+- Viền thẻ đủ đậm để thấy mép thẻ (khoảng 20% màu mực trên nền sáng).
+- Mỗi trang có ít nhất một hoặc hai tấm nền tối hoặc nền màu đậm để tạo nhịp sáng tối.
+- Không làm mờ chữ bằng opacity trên nền màu.
+- Đưa phép đo tương phản vào bộ kiểm tự động, chạy trên mọi trang.
+
 ### Bo góc ba cấp
 - Tấm chương, nền dự án: 28px (20px trên điện thoại).
 - Thẻ, khung mô hình: 16px; phần tử bên trong: 8px.
@@ -112,6 +123,7 @@ Mỗi trang nên có một hoặc hai điểm tương tác có chủ đích, g�
 - Một điểm nhấn động duy nhất cho cả trang, có nút tạm dừng nếu tự chạy.
 - Ngoài ra chỉ có hover, focus và chuyển tab hoặc accordion (200–300ms, ease-out).
 - Mọi animation nằm trong `@media (prefers-reduced-motion: no-preference)`.
+- Muốn trang "sống" mà không giấu chữ: khối trồi lên bằng transform (dịch xuống 2–3rem, không đổi opacity), khối màu sau từ khóa tự quét vào, mô hình minh họa tự chuyển động, dải chữ chạy, mũi tên và ảnh phản ứng khi rê chuột, chiều sâu 3D theo con trỏ cho một khối chính.
 
 ## 5. Thư viện bố cục: mỗi phần chọn một kiểu khác nhau
 

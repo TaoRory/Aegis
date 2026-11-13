@@ -190,6 +190,58 @@ for (const vp of [viewports[0], viewports[3]]) {
   await context.close();
 }
 
+/* 3b. Tương phản chữ (WCAG AA) trên mọi trang + chuyển động "trồi lên" không giấu chữ */
+{
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  const fails = [];
+  for (const path of ["/demo2", "/demo2/plans", "/demo2/services", "/demo2/services/ai", "/demo2/work/vidi26", "/demo2/work/rethink", "/demo2/process", "/demo2/about", "/demo2/blog", "/demo2/vi"]) {
+    await page.goto(baseUrl + path, { waitUntil: "networkidle" });
+    const rows = await page.evaluate(() => {
+      const parse = (c) => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const [r, g, b, a = "1"] = m[1].split(/[\s,/]+/).filter(Boolean).map(Number); return { r, g, b, a }; };
+      const lum = ({ r, g, b }) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+      const over = (top, bot) => ({ r: top.r * top.a + bot.r * (1 - top.a), g: top.g * top.a + bot.g * (1 - top.a), b: top.b * top.a + bot.b * (1 - top.a), a: 1 });
+      const bgOf = (el) => { const stack = []; for (let n = el; n; n = n.parentElement) { const c = parse(getComputedStyle(n).backgroundColor); if (c && c.a > 0) { stack.push(c); if (c.a === 1) break; } } let bg = { r: 245, g: 247, b: 246, a: 1 }; for (const c of stack.reverse()) bg = over(c, bg); return bg; };
+      const out = [];
+      for (const el of document.querySelectorAll(".d2 *")) {
+        if (![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim().length > 1)) continue;
+        // Bỏ qua: chữ cho trình đọc màn hình, ảnh chụp, phần trang trí aria-hidden (mô hình minh hoạ, dải chữ chạy)
+        if (el.closest(".sr-only, svg, .d2-shot, [aria-hidden='true']")) continue;
+        const cs = getComputedStyle(el);
+        if (!el.getBoundingClientRect().width || cs.visibility === "hidden") continue;
+        const bg = bgOf(el);
+        const fg0 = parse(cs.color);
+        if (!fg0) continue;
+        const fg = over(fg0, bg);
+        const ratio = (Math.max(lum(fg), lum(bg)) + 0.05) / (Math.min(lum(fg), lum(bg)) + 0.05);
+        const size = parseFloat(cs.fontSize);
+        const large = size >= 24 || (size >= 18.66 && Number(cs.fontWeight) >= 700);
+        if (ratio < (large ? 3 : 4.5)) out.push(`${el.textContent.trim().slice(0, 24)} (${ratio.toFixed(2)})`);
+      }
+      return out;
+    });
+    if (rows.length) fails.push(`${path}: ${rows.slice(0, 3).join("; ")}`);
+  }
+  check("[tương phản] mọi chữ đạt WCAG AA trên 10 trang", fails.length === 0, fails.join(" | ").slice(0, 300));
+
+  await page.goto(`${baseUrl}/demo2/plans`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(600);
+  const before = await page.evaluate(() => ({ waiting: document.querySelectorAll("[data-rise]:not([data-in])").length, hiddenText: [...document.querySelectorAll("[data-rise] :is(h2,h3,p,li,td,th)")].filter((el) => Number(getComputedStyle(el).opacity) < 1 || getComputedStyle(el).visibility === "hidden").length }));
+  await page.mouse.move(600, 400);
+  for (let i = 0; i < 80; i++) {
+    await page.mouse.wheel(0, 500);
+    await page.waitForTimeout(40);
+  }
+  await page.waitForTimeout(900);
+  const after = await page.locator("[data-rise]:not([data-in])").count();
+  check("[chuyển động] khối chờ vẫn hiện chữ; cuộn tới thì trồi vào chỗ", before.waiting > 0 && before.hiddenText === 0 && after === 0, `chờ ${before.waiting} → ${after}, chữ ẩn ${before.hiddenText}`);
+
+  await page.goto(`${baseUrl}/demo2`, { waitUntil: "networkidle" });
+  const marquee = await page.evaluate(() => { const row = document.querySelector(".d2-marquee-row"); return row ? getComputedStyle(row).animationName : ""; });
+  check("[chuyển động] dải chữ chạy đang chạy", marquee === "d2-marquee", marquee);
+  await context.close();
+}
+
 /* 4. Không JS và giảm chuyển động */
 for (const [name, options] of [
   ["không JS", { viewport: { width: 1440, height: 900 }, javaScriptEnabled: false }],

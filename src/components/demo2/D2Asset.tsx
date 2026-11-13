@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 import { ArrowRight } from "@/components/demo1/icons";
@@ -37,8 +37,22 @@ export function D2Asset({ t }: { t: D2Dict }) {
 
   const lit = d2PlanLayers[plan];
 
+  // Chiều sâu 3D theo con trỏ (chỉ chuột, không giảm chuyển động): cả chồng lớp nghiêng nhẹ, mỗi lớp nổi ở một độ sâu
+  const boardRef = useRef<HTMLDivElement>(null);
+  const tilt = (event: React.PointerEvent<HTMLDivElement>) => {
+    const board = boardRef.current;
+    if (!board || event.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    board.style.setProperty("--rx", (((event.clientX - rect.left) / rect.width) * 2 - 1).toFixed(3));
+    board.style.setProperty("--ry", (((event.clientY - rect.top) / rect.height) * 2 - 1).toFixed(3));
+  };
+  const untilt = () => {
+    boardRef.current?.style.removeProperty("--rx");
+    boardRef.current?.style.removeProperty("--ry");
+  };
+
   return (
-    <div className="d2-asset">
+    <div className="d2-asset" onPointerMove={tilt} onPointerLeave={untilt}>
       <div className="d2-asset-side">
         <p className="d2-small font-semibold text-muted" id="d2-asset-label">
           {home.assetLabel}
@@ -72,7 +86,7 @@ export function D2Asset({ t }: { t: D2Dict }) {
         </Link>
       </div>
 
-      <div className="d2-board" aria-hidden>
+      <div ref={boardRef} className="d2-board" aria-hidden>
         {LAYERS.map((layer) => {
           const on = lit.includes(layer);
           return (
