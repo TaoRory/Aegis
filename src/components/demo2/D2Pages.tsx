@@ -14,9 +14,9 @@ import { fill } from "@/lib/fill";
 
 import { D2Asset } from "./D2Asset";
 import { Checks, d2Host, d2Previews, FinalCta, LayerMock, PageHead, Shot, StepMock } from "./D2Bits";
-import { D2Carousel } from "./D2Carousel";
 import { D2Handover } from "./D2Handover";
 import { D2Header } from "./D2Header";
+import { D2Ring, type D2RingItem } from "./D2Ring";
 import { D2Story } from "./D2Story";
 
 const systems = systemsJson as Record<string, { colors: { hex: string; role: string }[] }>;
@@ -196,6 +196,26 @@ function D2Marquee({ words }: { words: string[] }) {
   );
 }
 
+/** 7 dự án thật cho vòng xoay: màu sân khấu đo từ chính website, chữ dock theo ngôn ngữ, mở sang trang dự án */
+function ringItems(t: D2Dict): D2RingItem[] {
+  return d2Projects(t.lang).map((project, index) => {
+    const stage = d2Stages[project.slug];
+    return {
+      slug: project.slug,
+      name: project.name,
+      stage: stage.bg,
+      stageInk: stage.ink === "light" ? "#f5f7f6" : "#071f1e",
+      href: d2Href(t.lang, `/work/${project.slug}`),
+      text: {
+        kicker: `${t.work.project} /${String(index + 1).padStart(2, "0")} · ${project.type}`,
+        sub: project.description,
+        note: fill(t.work.live, { host: d2Host(project.url) }),
+        sr: `— ${project.type}. ${project.description}`,
+      },
+    };
+  });
+}
+
 /* ------------------------------------------------------------------ Trang chủ */
 
 export function D2Home({ t }: { t: D2Dict }) {
@@ -272,29 +292,24 @@ export function D2Home({ t }: { t: D2Dict }) {
         </p>
       </section>
 
-      {/* 5. Dự án: băng chuyền ngang */}
-      <section aria-labelledby="d2-work-title" className="d2-section">
-        <div className="d2-wrap d2-split-head">
+      {/* 5. Dự án: vòng xoay 3D (cùng khuôn với thư viện mẫu của trang chính) */}
+      <section aria-labelledby="d2-work-title" className="d2-wrap d2-section">
+        <div className="d2-split-head">
           <h2 id="d2-work-title" className="d2-h2">
             {home.workTitle}
           </h2>
           <p className="d2-lead">{t.work.lead}</p>
         </div>
-        <D2Carousel label={home.workTitle} prev={t.chrome.prev} next={t.chrome.next}>
-          {projects.map((project) => {
-            const stage = d2Stages[project.slug];
-            return (
-              <Link key={project.slug} href={d2Href(t.lang, `/work/${project.slug}`)} className="d2-tile" data-ink={stage.ink} style={{ backgroundColor: stage.bg }}>
-                <Shot project={project} alt="" sizes="(min-width: 48rem) 42vw, 80vw" />
-                <span className="d2-tile-meta">
-                  <span>{project.name}</span>
-                  <span>{project.type}</span>
-                </span>
-              </Link>
-            );
-          })}
-        </D2Carousel>
-        <p className="d2-wrap mt-6">
+        <div className="d2-ring-meta" aria-hidden>
+          <span>
+            {String(projects.length).padStart(2, "0")} {t.work.count}
+          </span>
+          <span>{t.work.drag} ↔</span>
+        </div>
+        <div className="d2-ring" data-rise="pop">
+          <D2Ring items={ringItems(t)} previews={d2Previews} copy={t.ring} />
+        </div>
+        <p className="mt-6">
           <Link href={d2Href(t.lang, "/work")} className="d2-link font-semibold">
             {home.workLink}
           </Link>

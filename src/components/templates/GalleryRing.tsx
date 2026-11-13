@@ -5,11 +5,10 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-import type { TemplatePreview } from "@/components/templates/TemplateCard";
 import { SmartLink } from "@/components/ui/SmartLink";
 import { GalleryEngine, STEP, type GalleryCardState } from "@/components/webgl/gallery-engine";
 import type { SiteDict } from "@/content/site/types";
-import type { DemoTemplate, TemplateGroup } from "@/content/templates";
+import type { PreviewImage } from "@/content/types";
 import { cn } from "@/lib/cn";
 import { optimizedImageUrl } from "@/lib/image-url";
 import { fill } from "@/lib/fill";
@@ -25,7 +24,30 @@ import { MQ } from "@/lib/motion";
  * - DOM là nguồn sự thật: danh sách <a> thật luôn nằm trong DOM (Tab, đọc màn hình, SEO). Canvas chỉ trang trí.
  * - Ba chế độ hiển thị (data-mode): "ssr" (chưa có JS: lưới thẻ tĩnh), "gl" (WebGL2), "css" (vòng 3D bằng CSS khi không có WebGL2,
  *   giảm chuyển động hoặc chất lượng thấp). Mọi chế độ dùng chung một bộ điều khiển.
+ * - Dùng chung cho mẫu giao diện (mặc định) và cho dự án thật (/demo2): truyền `hrefOf`, `describe`, `morph={false}`.
  */
+
+/** Một thẻ trên vòng: đủ cho mẫu giao diện (DemoTemplate) lẫn dự án */
+export interface RingItem {
+  slug: string;
+  name: string;
+  /** Màu sân khấu và màu chữ của thẻ */
+  stage: string;
+  stageInk: string;
+  group?: string;
+  industry?: string;
+  emotion?: string;
+  signature?: string;
+  brand?: string;
+}
+
+/** Chữ trên dock và cho trình đọc màn hình của thẻ đang chọn */
+export interface RingText {
+  kicker: string;
+  sub: string;
+  note: string;
+  sr: string;
+}
 
 type Mode = "ssr" | "gl" | "css";
 type Variant = "page" | "teaser";
@@ -63,40 +85,56 @@ function clearMorphFlag(slug?: string) {
 const isPlainClick = (event: { button: number; metaKey: boolean; ctrlKey: boolean; shiftKey: boolean; altKey: boolean }) =>
   event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
 
-export function GalleryRing({
+export function GalleryRing<T extends RingItem>({
   templates,
   previews,
   copy,
-  groups,
+  groups = [],
   variant = "page",
   className,
+  hrefOf = (t) => `/mau-giao-dien/${t.slug}`,
+  describe,
+  morph: morphOpen = true,
 }: {
-  templates: DemoTemplate[];
-  previews: Record<string, TemplatePreview>;
+  templates: T[];
+  previews: Record<string, { full: PreviewImage }>;
   /** Chữ giao diện của thư viện theo ngôn ngữ */
   copy: SiteDict["gallery"];
-  /** Tên các nhóm lọc theo ngôn ngữ (khớp DemoTemplate.group) */
-  groups: string[];
+  /** Tên các nhóm lọc theo ngôn ngữ (khớp `group` của từng thẻ) */
+  groups?: string[];
   variant?: Variant;
   className?: string;
+  /** Đường dẫn khi mở thẻ (mặc định: trang mẫu giao diện) */
+  hrefOf?: (t: T) => string;
+  /** Chữ của dock cho thẻ đang chọn (mặc định: chữ của mẫu giao diện) */
+  describe?: (t: T, index: number) => RingText;
+  /** Mở thẻ bằng hiệu ứng "phóng thành trang" (chỉ trang mẫu có View Transition tương ứng) */
+  morph?: boolean;
 }) {
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLLIElement | null)[]>([]);
-  const groupRef = useRef<TemplateGroup | "all">("all");
+  const groupRef = useRef<string>("all");
   const api = useRef<{ goTo: (i: number) => void; step: (d: number) => void; open: (i: number) => void } | null>(null);
 
   const [mode, setMode] = useState<Mode>("ssr");
   const [active, setActive] = useState(0);
-  const [group, setGroup] = useState<TemplateGroup | "all">("all");
+  const [group, setGroup] = useState<string>("all");
   const [morph, setMorph] = useState<{ slug: string; left: number; top: number; width: number; height: number; src: string } | null>(null);
 
   const N = templates.length;
-  const hrefOf = (t: DemoTemplate) => `/mau-giao-dien/${t.slug}`;
+  const navType = morphOpen ? "aegis-open" : "aegis-forward";
+  const textOf = (t: T, index: number): RingText =>
+    describe?.(t, index) ?? {
+      kicker: `${copy.style} /${pad2(index + 1)} · ${t.industry ?? ""}`,
+      sub: `${t.emotion ?? ""} · ${t.signature ?? ""}`,
+      note: fill(copy.note, { brand: t.brand ?? "" }),
+      sr: fill(copy.cardSr, { industry: t.industry ?? "", emotion: t.emotion ?? "", brand: t.brand ?? "" }),
+    };
 
-  const chooseGroup = (next: TemplateGroup | "all") => {
+  const chooseGroup = (next: string) => {
     groupRef.current = next;
     setGroup(next);
     // Về thẻ gần nhất còn khớp bộ lọc
@@ -262,7 +300,7 @@ export function GalleryRing({
       const t = templates[i];
       const href = hrefOf(t);
       const preview = previews[t.slug];
-      const rect = engine && !reduced ? engine.rect(i, c.pos, c.cards) : null;
+      const rect = engine && !reduced && morphOpen ? engine.rect(i, c.pos, c.cards) : null;
       c.opening = true;
       try {
         sessionStorage.setItem(INDEX_KEY, String(i));
@@ -467,11 +505,12 @@ export function GalleryRing({
       engine = null;
       canvas.remove();
     };
-    // templates / previews là hằng số của trang
+    // templates / previews / hrefOf / morph là hằng số của trang
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const current = templates[active];
+  const currentText = textOf(current, active);
   const countLabel = `${pad2(active + 1)} / ${pad2(N)}`;
 
   return (
@@ -510,7 +549,7 @@ export function GalleryRing({
               >
                 <SmartLink
                   href={hrefOf(template)}
-                  navType="aegis-open"
+                  navType={navType}
                   tabIndex={hidden ? -1 : undefined}
                   data-cursor="view"
                   data-cursor-label={copy.cursorOpen}
@@ -540,10 +579,7 @@ export function GalleryRing({
                   ) : null}
                   <span className="gallery-card-name">
                     <span className="label">/{pad2(index + 1)}</span> {template.name}
-                    <span className="sr-only">
-                      {" "}
-                      {fill(copy.cardSr, { industry: template.industry, emotion: template.emotion, brand: template.brand })}
-                    </span>
+                    <span className="sr-only"> {textOf(template, index).sr}</span>
                   </span>
                 </SmartLink>
               </li>
@@ -559,16 +595,12 @@ export function GalleryRing({
 
         <div className="gallery-dock">
           <div className="gallery-info">
-            <p className="label text-accent">
-              {copy.style} /{pad2(active + 1)} · {current.industry}
-            </p>
+            <p className="label text-accent">{currentText.kicker}</p>
             <p className="gallery-name" aria-live="polite">
               {current.name}
             </p>
-            <p className="gallery-sub">
-              {current.emotion} · {current.signature}
-            </p>
-            <p className="label gallery-note">{fill(copy.note, { brand: current.brand })}</p>
+            <p className="gallery-sub">{currentText.sub}</p>
+            <p className="label gallery-note">{currentText.note}</p>
           </div>
           <div className="gallery-actions">
             <button type="button" className="gallery-arrow" aria-label={copy.prev} onClick={() => api.current?.step(-1)} data-cursor="link">
@@ -579,7 +611,7 @@ export function GalleryRing({
             </button>
             <SmartLink
               href={hrefOf(current)}
-              navType="aegis-open"
+              navType={navType}
               className="btn btn-box h-12 bg-accent-fill px-5 text-on-accent-fill hover:bg-accent-fill-strong"
               onClick={(event) => {
                 if (mode === "gl" && isPlainClick(event)) {

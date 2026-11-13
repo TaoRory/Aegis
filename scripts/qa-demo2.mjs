@@ -61,15 +61,23 @@ for (const vp of viewports) {
       miles: document.querySelectorAll(".d2-miles li").length,
       services: document.querySelectorAll(".d2-svc-index a").length,
       teasers: document.querySelectorAll(".d2-teaser").length,
-      carousel: document.querySelectorAll(".d2-carousel-track a").length,
+      ring: new Set([...document.querySelectorAll(".d2-ring .gallery-card a")].map((a) => a.getAttribute("href"))).size,
       nav: document.querySelectorAll(".d2-nav > ul > li").length,
       h1: document.querySelectorAll("h1").length,
     }));
-    check(`${tag} 4 lớp · 5 mốc · 4 dịch vụ · 3 gói · 7 dự án · menu 6 trang`, counts.layers === 4 && counts.miles === 5 && counts.services === 4 && counts.teasers === 3 && counts.carousel === 7 && counts.nav === 6 && counts.h1 === 1, JSON.stringify(counts));
+    check(`${tag} 4 lớp · 5 mốc · 4 dịch vụ · 3 gói · 7 dự án · menu 6 trang`, counts.layers === 4 && counts.miles === 5 && counts.services === 4 && counts.teasers === 3 && counts.ring === 7 && counts.nav === 6 && counts.h1 === 1, JSON.stringify(counts));
 
     // Mọi chữ hiện sẵn (không ẩn chờ cuộn)
     const hidden = await page.evaluate(() => [...document.querySelectorAll("main :is(h1,h2,h3,p,li,td,th,summary)")].filter((el) => Number(getComputedStyle(el).opacity) < 1 && !el.closest(".sr-only, .d2-board")).length);
     check(`${tag} mọi chữ hiện sẵn`, hidden === 0, String(hidden));
+
+    // Vòng xoay dự án: nút "sau" đổi dự án trên dock; mỗi thẻ dẫn tới trang dự án của /demo2
+    const before = await page.locator(".d2-ring .gallery-name").textContent();
+    await page.locator(".d2-ring .gallery-arrow").nth(1).click();
+    await page.waitForTimeout(900);
+    const after = await page.locator(".d2-ring .gallery-name").textContent();
+    const ringHrefs = await page.$$eval(".d2-ring .gallery-card a", (els) => els.every((a) => a.getAttribute("href").includes("/work/")));
+    check(`${tag} vòng xoay dự án: nút "sau" đổi dự án, thẻ dẫn tới trang dự án`, before !== after && ringHrefs, `${before} → ${after}`);
 
     if (vp.name === "desktop" || vp.name === "laptop") {
       // Biểu đồ ghim: cả khối nằm gọn trong một màn; cuộn thì mốc đang tới đổi

@@ -2889,3 +2889,38 @@
     }
   }
 }
+
+/* ====================================================================== Vòng xoay dự án (GalleryRing của thư viện mẫu) */
+@layer components {
+  .d2-ring-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: clamp(1.75rem, 1.2rem + 2vw, 3rem);
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid var(--border-strong);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .d2-ring {
+    margin-top: 1.25rem;
+  }
+
+  /* Sân khấu tối của vòng: dùng màu Aegis, chữ và nút theo tông tối */
+  .d2-ring .gallery-stage {
+    --accent: var(--d2-aqua);
+    --accent-fill: var(--d2-aqua);
+    --accent-fill-strong: var(--d2-cloud);
+    --on-accent-fill: var(--d2-ink);
+    --focus-ring: var(--d2-aqua);
+    border-radius: var(--d2-r-slab);
+    background:
+      radial-gradient(ellipse 70% 45% at 50% 92%, rgb(19 181 165 / 0.28), transparent 70%),
+      var(--d2-ink);
+  }
+
+  .d2-ring .gallery-sub {
+    max-width: 34rem;
+  }
+}

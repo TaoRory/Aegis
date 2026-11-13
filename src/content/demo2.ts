@@ -1,5 +1,6 @@
 import { getFactoryDict } from "@/content/factory";
 import { projects } from "@/content/projects";
+import type { SiteDict } from "@/content/site/types";
 
 /**
  * Nội dung bản thiết kế /demo2 (website nhiều trang; tiếng Anh là chính, tiếng Việt là phụ).
@@ -148,7 +149,13 @@ export interface D2Dict {
     next: string;
     similar: string;
     shotAlt: string;
+    count: string;
+    drag: string;
+    project: string;
+    live: string;
   };
+  /** Chữ giao diện của vòng xoay dự án (cùng khuôn với thư viện mẫu của trang chính) */
+  ring: SiteDict["gallery"];
   categories: Record<string, string>;
   compare: { title: string; lead: string; cols: [string, string, string]; rows: { label: string; cells: [string, string, string] }[] };
   faq: { title: string; items: { q: string; a: string }[] };
@@ -391,6 +398,29 @@ const en: D2Dict = {
     next: "Next project",
     similar: "Talk about a similar project",
     shotAlt: "Screenshot of the {name} website",
+    count: "projects · each one live",
+    drag: "Drag to rotate",
+    project: "Project",
+    live: "Live at {host}",
+  },
+  ring: {
+    region: "Delivered projects",
+    stage: "Project carousel. Use the left and right arrow keys to rotate, Enter to open the selected project.",
+    list: "Project list",
+    cursorOpen: "View ↗",
+    cursorDrag: "Drag ↔",
+    cardSr: "",
+    hint: "Drag · ← → · scroll sideways",
+    style: "Project",
+    note: "",
+    prev: "Previous project",
+    next: "Next project",
+    open: "View {name}",
+    filters: "Filter projects",
+    all: "All",
+    tick: "Project {n}: {name}",
+    rule: "Project {count}",
+    notice: "Seven websites Aegis has delivered, each one running at its own address.",
   },
   categories: { business: "Business", education: "Education & organisations", event: "Events" },
   compare: {
@@ -692,6 +722,29 @@ const vi: D2Dict = {
     next: "Dự án tiếp theo",
     similar: "Trao đổi dự án tương tự",
     shotAlt: "Ảnh chụp website {name}",
+    count: "dự án · đều đang chạy",
+    drag: "Kéo để xoay",
+    project: "Dự án",
+    live: "Đang chạy tại {host}",
+  },
+  ring: {
+    region: "Dự án đã bàn giao",
+    stage: "Vòng xem dự án. Dùng phím mũi tên trái phải để xoay, Enter để mở dự án đang chọn.",
+    list: "Danh sách dự án",
+    cursorOpen: "Xem ↗",
+    cursorDrag: "Kéo ↔",
+    cardSr: "",
+    hint: "Kéo · ← → · lăn ngang",
+    style: "Dự án",
+    note: "",
+    prev: "Dự án trước",
+    next: "Dự án sau",
+    open: "Xem {name}",
+    filters: "Lọc dự án",
+    all: "Tất cả",
+    tick: "Dự án {n}: {name}",
+    rule: "Dự án {count}",
+    notice: "Bảy website Aegis đã bàn giao, mỗi website đang chạy ở địa chỉ riêng.",
   },
   categories: { business: "Doanh nghiệp", education: "Giáo dục & tổ chức", event: "Sự kiện" },
   compare: {
