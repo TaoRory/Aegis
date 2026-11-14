@@ -17,10 +17,11 @@ import work from "./work";
  */
 export type { D2LayerId as D3LayerId, D2Lang as D3Lang, D2Plan as D3Plan, D2PlanId as D3PlanId, D2Service as D3Service, D2ServiceId as D3ServiceId } from "@/content/demo2";
 
-export const D3_BASE = "/demo3";
-export const d3Home = (lang: D2Lang) => (lang === "en" ? D3_BASE : `${D3_BASE}/vi`);
-/** Đường dẫn trong /demo3 theo ngôn ngữ; `path` bắt đầu bằng "/" hoặc rỗng (trang chủ) */
-export const d3Href = (lang: D2Lang, path = "") => `${d3Home(lang)}${path}`;
+/** Website chính (trước là bản /demo3): tiếng Anh ở gốc, tiếng Việt ở /vi */
+export const D3_BASE = "";
+export const d3Home = (lang: D2Lang) => (lang === "en" ? "/" : "/vi");
+/** Đường dẫn theo ngôn ngữ; `path` bắt đầu bằng "/" hoặc rỗng (trang chủ) */
+export const d3Href = (lang: D2Lang, path = "") => (lang === "en" ? path || "/" : `/vi${path}`);
 export const d3Contact = (lang: D2Lang) => d3Href(lang, "/contact");
 
 export const d3PlanLayers = d2PlanLayers;

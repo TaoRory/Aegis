@@ -64,12 +64,6 @@ function D3Footer({ t }: { t: D3Dict }) {
                 <li>
                   <D3Link href={d3Contact(t.lang)}>{t.cta}</D3Link>
                 </li>
-                <li>
-                  <D3Link href="/demo1">{t.footer.demo1}</D3Link>
-                </li>
-                <li>
-                  <D3Link href="/">{t.footer.current}</D3Link>
-                </li>
               </ul>
             </div>
           </div>

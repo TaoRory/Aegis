@@ -11,7 +11,8 @@
     "check": "pnpm lint && pnpm typecheck && pnpm build",
     "capture:previews": "node --experimental-strip-types --no-warnings scripts/capture-previews.mjs",
     "og:generate": "node --experimental-strip-types --no-warnings scripts/generate-og.mjs",
-    "qa": "node scripts/qa.mjs",
+    "qa": "node scripts/qa-demo3.mjs",
+    "qa:legacy": "node scripts/qa.mjs",
     "qa:factory": "node scripts/qa-factory.mjs",
     "capture:templates": "node --experimental-strip-types --no-warnings scripts/capture-templates.mjs"
   },

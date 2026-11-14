@@ -13,12 +13,12 @@ const SESSION_KEY = "aegis-d3-intro";
 
 /**
  * Chạy lúc trình duyệt đọc HTML (trước khung hình đầu tiên), chỉ ở lần tải trang thật (điều hướng phía client không chạy script):
- * lần đầu của phiên + không giảm chuyển động (cờ data-motion do script đầu trang đặt) + đang ở trang chủ /demo3 hoặc /demo3/vi
+ * lần đầu của phiên + không giảm chuyển động (cờ data-motion do script đầu trang đặt) + đang ở trang chủ (/ hoặc /vi)
  * thì đặt html[data-d3-intro="playing"]. Cờ phiên ghi ngay tại đây chứ không chờ intro chạy xong, để dù có lỗi gì thì lần tải sau
  * cũng không lặp lại. Vào thẳng một trang con trước thì coi như đã qua lần đầu (intro chỉ đi cùng cảnh mở của trang chủ).
  * Không dùng dấu gạch chéo ngược trong chuỗi này (template literal làm mất).
  */
-const BOOT = `(function(){try{var d=document.documentElement,s=sessionStorage;if(s.getItem('${SESSION_KEY}'))return;s.setItem('${SESSION_KEY}','1');if(d.dataset.motion!=='on')return;var p=location.pathname.split('/').filter(Boolean);if(p[0]==='demo3'&&(p.length===1||(p.length===2&&p[1]==='vi')))d.dataset.d3Intro='playing';}catch(e){}})();`;
+const BOOT = `(function(){try{var d=document.documentElement,s=sessionStorage;if(s.getItem('${SESSION_KEY}'))return;s.setItem('${SESSION_KEY}','1');if(d.dataset.motion!=='on')return;var p=location.pathname.split('/').filter(Boolean);if(p.length===0||(p.length===1&&p[0]==='vi'))d.dataset.d3Intro='playing';}catch(e){}})();`;
 
 /** Intro có đang che trang không (chỉ đúng trước khi nó bắt đầu mở) */
 const introPlaying = () => document.documentElement.dataset.d3Intro === "playing";
@@ -78,7 +78,7 @@ function openTarget() {
 }
 
 /**
- * Intro thương hiệu của /demo3 (chữ ký): logo Möbius tự lắp ráp trên nền Deep Ink, rồi tấm phủ thu lại thành chính tấm "tài sản số"
+ * Intro thương hiệu của website chính (chữ ký): logo Möbius tự lắp ráp trên nền Deep Ink, rồi tấm phủ thu lại thành chính tấm "tài sản số"
  * của màn đầu, như thể màn hình intro trở thành mặt bàn để bốn lớp xếp lên.
  * - Chỉ hiện khi html[data-d3-intro] (script BOOT). Không JS, giảm chuyển động, lần tải sau, điều hướng phía client: không có gì.
  * - Trang vẫn được dựng đầy đủ bên dưới từ đầu; intro chỉ là một lớp phủ trang trí (aria-hidden), không khoá cuộn hay bàn phím.

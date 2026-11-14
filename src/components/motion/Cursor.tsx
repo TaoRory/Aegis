@@ -35,12 +35,15 @@ const SNAP_PAD = 9;
 const BUBBLE_SIZE = 104;
 const GLYPHS = "ABCDEFGHJKLMNPRSTUVXYZ↗↔→";
 
-/** Các khu dùng con trỏ gốc: bản thiết kế tối giản /demo1 (ngôn ngữ khác hẳn trang chính) */
-const NATIVE_CURSOR_ROUTES = ["/demo1", "/demo2", "/demo3"];
+/**
+ * Con trỏ tuỳ biến này thuộc giao diện cũ: chỉ bật ở các khu còn giữ giao diện đó (thư viện mẫu, Factory, Studio /demo).
+ * Website chính (bản demo3 ở gốc) có con trỏ riêng (components/demo3/fx/Cursor), các khu khác dùng con trỏ gốc.
+ */
+const LEGACY_CURSOR_ROUTES = ["/mau-giao-dien", "/factory", "/web/factory", "/en/factory", "/en/web/factory", "/demo"];
 
 export function Cursor() {
   const pathname = usePathname();
-  const nativeRoute = NATIVE_CURSOR_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+  const nativeRoute = !LEGACY_CURSOR_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
   const [enabled, setEnabled] = useState(false);
   const blendRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);

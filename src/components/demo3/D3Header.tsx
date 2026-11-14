@@ -52,7 +52,7 @@ export function D3Header({ t }: { t: D3Dict }) {
   const toggleRef = useRef<HTMLButtonElement>(null);
   const open = menu === "open";
 
-  // Phần đường dẫn sau /demo3 hoặc /demo3/vi → dùng cho công tắc ngôn ngữ và mục đang xem
+  // Phần đường dẫn sau tiền tố ngôn ngữ (/vi) → dùng cho công tắc ngôn ngữ và mục đang xem
   let rest = pathname.slice(D3_BASE.length).replace(/^\/vi(?=\/|$)/, "");
   // Bài blog có slug riêng theo ngôn ngữ: đổi ngôn ngữ thì về danh sách bài
   const switchRest = rest.startsWith("/blog/") ? "/blog" : rest;

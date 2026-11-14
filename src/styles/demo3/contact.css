@@ -1,0 +1,282 @@
+/* Website chính — form "Get a quote" (ContactWizard dùng chung). Chỉ đổi giao diện trong phạm vi .d3, không đụng logic gửi
+   (gửi thật qua src/lib/contact/delivery.ts). Giao diện cũ (ô vuông, nhãn mono viết hoa, gạch mảnh kiểu bản vẽ) đổi sang
+   ngôn ngữ của website chính: viên bo tròn, chữ display, Teal / Aqua, thẻ trắng bo góc. */
+
+@layer components {
+  /* ---------- Thanh tiến độ: vạch dày, bo tròn ---------- */
+  .d3 .wizard-progress {
+    color: var(--fg-muted);
+  }
+
+  .d3 .wizard-progress-bar {
+    height: 6px;
+    border-radius: 999px;
+    background: rgb(7 31 30 / 0.08);
+  }
+
+  .d3 .wizard-progress-bar > span {
+    border-radius: 999px;
+    background: var(--d2-teal);
+  }
+
+  /* ---------- Tiêu đề câu hỏi ---------- */
+  .d3 .wizard-title {
+    font-family: var(--d2-font-display);
+    font-size: clamp(2rem, 1.3rem + 2.6vw, 3.75rem);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+  }
+
+  .d3 .wizard-title:lang(vi) {
+    line-height: 1.16;
+  }
+
+  /* ---------- Câu 1: hạng mục (hàng chữ lớn như danh mục dịch vụ của trang) ---------- */
+  .d3 .wizard-services {
+    border-top-color: var(--border-strong);
+  }
+
+  .d3 .wizard-service-face {
+    position: relative;
+    z-index: 0;
+    margin-inline: -1rem;
+    padding: 1.35rem 1rem;
+    border-radius: var(--d2-r-inner);
+  }
+
+  .d3 .wizard-service-face::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--d2-aqua);
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+
+  .d3 .wizard-service-title {
+    font-family: var(--d2-font-display);
+    font-size: clamp(1.5rem, 1.1rem + 1.7vw, 2.6rem);
+  }
+
+  .d3 .wizard-service:hover .wizard-service-face,
+  .d3 .wizard-service input:checked + .wizard-service-face {
+    border-bottom-color: transparent;
+    color: var(--d2-ink);
+    --fg-muted: #1f3d3b;
+  }
+
+  .d3 .wizard-service:hover .wizard-service-face::before,
+  .d3 .wizard-service input:checked + .wizard-service-face::before {
+    transform: scaleY(1);
+  }
+
+  /* ---------- Lựa chọn của từng câu: viên bo tròn, số trong vòng tròn, chọn rồi thì đổ Teal ---------- */
+  .d3 .wizard-option-face {
+    min-height: 3.5rem;
+    padding: 0.7rem 1.1rem 0.7rem 0.75rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--d2-white);
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.008em;
+  }
+
+  .d3 .wizard-option-key {
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 50%;
+    background: rgb(7 31 30 / 0.07);
+    color: var(--d2-ink);
+    font-size: 0.8125rem;
+  }
+
+  .d3 .wizard-option:hover .wizard-option-face {
+    box-shadow: inset 0 0 0 1.5px var(--d2-ink);
+  }
+
+  .d3 .wizard-option input:checked + .wizard-option-face {
+    background: var(--d2-aqua);
+    box-shadow: inset 0 0 0 1.5px var(--d2-teal-ink);
+  }
+
+  .d3 .wizard-option input:checked + .wizard-option-face .wizard-option-key {
+    background: var(--d2-ink);
+    color: var(--d2-aqua);
+  }
+
+  .d3 .wizard-option input:checked + .wizard-option-face .wizard-option-check {
+    color: var(--d2-ink);
+  }
+
+  .d3 .wizard-option-note {
+    font-weight: 400;
+  }
+
+  /* Câu chọn phong cách (có ảnh): thẻ bo góc thay cho viên */
+  .d3 .wizard-option-style .wizard-option-face {
+    padding: 0.5rem 0.5rem 0.9rem;
+    border-radius: var(--d2-r-card);
+  }
+
+  .d3 .wizard-option-style .wizard-option-thumb {
+    border-radius: calc(var(--d2-r-card) - 0.4rem);
+  }
+
+  .d3 .wizard-option-style .wizard-option-key {
+    background: var(--d2-white);
+  }
+
+  /* ---------- Ô nhập liệu: khung trắng bo góc thay cho gạch chân ---------- */
+  .d3 .field-input {
+    padding: 0.85rem 1.1rem;
+    border: 0;
+    border-radius: var(--d2-r-card);
+    background: var(--d2-white);
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+    font-size: 1.0625rem;
+  }
+
+  .d3 .field-input:hover {
+    box-shadow: inset 0 0 0 1.5px var(--d2-ink);
+  }
+
+  .d3 .field-input:focus {
+    outline: 2px solid var(--d2-teal);
+    outline-offset: 2px;
+    box-shadow: inset 0 0 0 1.5px var(--d2-ink);
+  }
+
+  /* ---------- Điều hướng: nút "Back" là viên viền, phím Enter là ghi chú nhỏ ---------- */
+  .d3 .wizard-nav {
+    border-top-color: var(--border-strong);
+  }
+
+  .d3 .wizard-back,
+  .d3 .wizard-edit {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 1.1rem;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+    color: var(--d2-ink);
+  }
+
+  .d3 .wizard-back:hover,
+  .d3 .wizard-edit:hover {
+    box-shadow: inset 0 0 0 1.5px var(--d2-ink);
+  }
+
+  .d3 .wizard-kbd {
+    color: var(--fg-muted);
+    font-weight: 500;
+  }
+
+  /* ---------- Xem lại phiếu ---------- */
+  .d3 .wizard-review {
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--d2-r-card);
+    background: var(--d2-white);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  .d3 .wizard-review-row {
+    padding: 1rem 1.25rem;
+  }
+
+  .d3 .wizard-review-row:last-child {
+    border-bottom: 0;
+  }
+
+  /* ---------- Phiếu tóm tắt bên phải: thẻ trắng như các thẻ khác của trang ---------- */
+  .d3 .wizard-sheet-inner {
+    border: 0;
+    border-radius: var(--d2-r-card);
+    background: var(--d2-white);
+    box-shadow:
+      inset 0 0 0 1px var(--border),
+      0 20px 40px -28px rgb(7 31 30 / 0.35);
+  }
+
+  .d3 .wizard-sheet-mark {
+    display: none;
+  }
+
+  /* ---------- Nút chính của form (Next / Send): viên mực như nút của trang ---------- */
+  .d3 .wizard-grid .btn-box {
+    border-radius: 999px;
+    font-family: var(--d2-font-body);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.008em;
+    text-transform: none;
+  }
+
+  .d3 .wizard-grid .btn-box::before,
+  .d3 .wizard-grid .btn-box::after {
+    display: none;
+  }
+
+  /* Đã gửi: dấu xác nhận là viên Aqua */
+  .d3 .wizard-stamp {
+    border: 0;
+    border-radius: 999px;
+    background: var(--d2-aqua);
+    color: var(--d2-ink);
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .d3 .wizard-service-face::before {
+      transition: transform 0.45s var(--kit-ease-out);
+    }
+
+    .d3 .wizard-option-face,
+    .d3 .field-input,
+    .d3 .wizard-back,
+    .d3 .wizard-edit {
+      transition:
+        background-color 0.25s var(--d2-ease),
+        box-shadow 0.25s var(--d2-ease),
+        transform 0.3s var(--kit-ease-out);
+    }
+
+    .d3 .wizard-option:active .wizard-option-face {
+      transform: scale(0.98);
+    }
+  }
+}
+
+/* ============================================================================================================
+   Ngoài @layer: tiện ích `label` (mono viết hoa) và các lớp Tailwind của khung thông báo nằm ở tầng utilities,
+   luật trong tầng components không thắng được chúng.
+   ============================================================================================================ */
+/* ---------- Nhãn: bỏ mono viết hoa của giao diện cũ ---------- */
+.d3 :is(.wizard-grid, .wizard-sheet, .wizard-stamp) .label,
+.d3 :is(.wizard-progress, .wizard-back, .wizard-edit, .wizard-kbd, .wizard-sheet-mark).label {
+  font-family: var(--d2-font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  text-transform: none;
+}
+
+/* ---------- Thông báo trạng thái (kênh nhận phiếu chưa nối, lỗi gửi): thẻ nhạt bo góc ---------- */
+.d3 :is(.wizard-grid, .wizard-main) [class*="border-warning"] {
+  padding: 0.9rem 1.1rem;
+  border: 0;
+  border-radius: var(--d2-r-inner);
+  background: rgb(132 228 214 / 0.22);
+  box-shadow: inset 3px 0 0 var(--d2-teal);
+}
+
+.d3 :is(.wizard-grid, .wizard-main) [class*="border-warning"] .label,
+.d3 :is(.wizard-grid, .wizard-main) [class*="text-warning"] {
+  color: var(--d2-teal-ink);
+}

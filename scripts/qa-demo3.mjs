@@ -1,4 +1,4 @@
-// Kiểm tra bản thiết kế /demo3 (website nhiều trang, EN + VI) trên bản build.
+// Kiểm tra website chính (trước là bản /demo3; nhiều trang, EN ở gốc + VI ở /vi) trên bản build.
 // Chạy: pnpm build && npx next start -p 3002 (cửa sổ khác) rồi node scripts/qa-demo3.mjs http://localhost:3002
 import { chromium, devices } from "playwright";
 
@@ -17,8 +17,8 @@ const viewports = [
   { name: "mobile", options: { ...devices["iPhone 13"] } },
 ];
 const langs = [
-  { lang: "en", home: "/demo3", cta: "Get a quote", h1: /one asset you own/i },
-  { lang: "vi", home: "/demo3/vi", cta: "Nhận báo giá", h1: /tài sản của riêng bạn/i },
+  { lang: "en", home: "", cta: "Get a quote", h1: /one asset you own/i },
+  { lang: "vi", home: "/vi", cta: "Nhận báo giá", h1: /tài sản của riêng bạn/i },
 ];
 const subpages = ["/services", "/services/web", "/services/growth", "/services/social", "/services/ai", "/plans", "/work", "/work/vidi26", "/process", "/about", "/blog", "/contact"];
 
@@ -31,7 +31,7 @@ for (const vp of viewports) {
     const errors = [];
     page.on("pageerror", (e) => errors.push(String(e)));
     page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
-    const response = await page.goto(baseUrl + pg.home, { waitUntil: "networkidle" });
+    const response = await page.goto(baseUrl + (pg.home || "/"), { waitUntil: "networkidle" });
     check(`${tag} trang chủ trả 200`, response?.status() === 200, String(response?.status()));
 
     // Màn đầu: câu chào hàng nói đủ website + marketing + AI, nút lời mời hiện ngay
@@ -71,7 +71,7 @@ for (const vp of viewports) {
     const hidden = await page.evaluate(() => [...document.querySelectorAll("main :is(h1,h2,h3,p,li,td,th,summary)")].filter((el) => Number(getComputedStyle(el).opacity) < 1 && !el.closest(".sr-only, .d2-board")).length);
     check(`${tag} mọi chữ hiện sẵn`, hidden === 0, String(hidden));
 
-    // Vòng xoay dự án: nút "sau" đổi dự án trên dock; mỗi thẻ dẫn tới trang dự án của /demo3
+    // Vòng xoay dự án: nút "sau" đổi dự án trên dock; mỗi thẻ dẫn tới trang dự án
     const before = await page.locator(".d2-ring .gallery-name").textContent();
     await page.locator(".d2-ring .gallery-arrow").nth(1).click();
     await page.waitForTimeout(900);
@@ -139,8 +139,8 @@ for (const vp of [viewports[0], viewports[3]]) {
         text: document.querySelector("main").innerText,
         current: document.querySelector('.d2-nav a[aria-current="page"]')?.textContent ?? "",
       }));
-      const ok = response?.status() === 200 && info.h1 === 1 && info.overflow <= 0 && /noindex/.test(info.robots) && info.lang === pg.lang && !/[$₫€]|\bVND\b|\d\s?%/.test(info.text);
-      check(`[${vp.name}] ${path}: 200 · 1 h1 · không tràn · noindex · đúng ngôn ngữ · không giá/số liệu`, ok, `status=${response?.status()} h1=${info.h1} overflow=${info.overflow}`);
+      const ok = response?.status() === 200 && info.h1 === 1 && info.overflow <= 0 && !/noindex/.test(info.robots) && info.lang === pg.lang && !/[$₫€]|\bVND\b|\d\s?%/.test(info.text);
+      check(`[${vp.name}] ${path}: 200 · 1 h1 · không tràn · được lập chỉ mục · đúng ngôn ngữ · không giá/số liệu`, ok, `status=${response?.status()} h1=${info.h1} overflow=${info.overflow} robots=${info.robots}`);
       if (vp.name === "desktop" && sub !== "/contact") check(`[desktop] ${path}: menu đánh dấu trang đang xem`, info.current.length > 0, info.current);
     }
   }
@@ -152,17 +152,17 @@ for (const vp of [viewports[0], viewports[3]]) {
 {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
-  await page.goto(`${baseUrl}/demo3/plans`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/plans`, { waitUntil: "networkidle" });
   const plans = await page.evaluate(() => ({ plans: document.querySelectorAll(".d2-plan").length, cases: document.querySelectorAll(".d2-case").length, rows: document.querySelectorAll(".d2-compare tbody tr").length, faq: document.querySelectorAll(".d2-faq details").length }));
   check("[plans] 3 gói · 3 tình huống · bảng so sánh 5 dòng · 6 câu hỏi", plans.plans === 3 && plans.cases === 3 && plans.rows === 5 && plans.faq === 6, JSON.stringify(plans));
 
-  await page.goto(`${baseUrl}/demo3/process`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/process`, { waitUntil: "networkidle" });
   const proc = await page.evaluate(() => ({ steps: document.querySelectorAll(".d3-proc-card").length, own: document.querySelectorAll(".d2-manifest li").length }));
   check("[process] 5 bước · 5 món bàn giao", proc.steps === 5 && proc.own === 5, JSON.stringify(proc));
 
-  await page.goto(`${baseUrl}/demo3/work`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/work`, { waitUntil: "networkidle" });
   const cases = await page.$$eval(".d2-wall a", (els) => [...new Set(els.map((a) => a.getAttribute("href")))]);
-  check("[work] 7 dự án, mỗi dự án một trang riêng", cases.length === 7 && cases.every((href) => href.startsWith("/demo3/work/")), String(cases.length));
+  check("[work] 7 dự án, mỗi dự án một trang riêng", cases.length === 7 && cases.every((href) => href.startsWith("/work/")), String(cases.length));
   for (const href of cases) {
     const r = await page.goto(baseUrl + href, { waitUntil: "load" });
     const live = await page.locator("main a[target='_blank']").first().getAttribute("href");
@@ -171,30 +171,30 @@ for (const vp of [viewports[0], viewports[3]]) {
   }
 
   // Blog: chưa có bài thì báo rõ; bài giữ chỗ và bài mẫu không lộ ra
-  await page.goto(`${baseUrl}/demo3/blog`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/blog`, { waitUntil: "networkidle" });
   const posts = await page.locator(".d2-posts a").count();
   const empty = await page.locator(".d2-empty").count();
   check("[blog] có bài thì liệt kê, chưa có thì báo rõ", (posts > 0) !== (empty > 0), `bài=${posts}, khung trống=${empty}`);
   // Với cacheComponents, địa chỉ lạ dựng lúc chạy giữ mã 200: phải là trang "không tìm thấy" có noindex, không lộ bài nháp / bài mẫu
-  for (const path of ["/demo3/blog/_template", "/demo3/blog/khong-co-bai-nay", "/demo3/work/khong-co", "/demo3/services/khong-co"]) {
+  for (const path of ["/blog/_template", "/blog/khong-co-bai-nay", "/work/khong-co", "/services/khong-co"]) {
     await page.goto(baseUrl + path, { waitUntil: "networkidle" });
     const nf = await page.evaluate(() => ({ nf: !!document.querySelector("[data-d2-404]"), article: !!document.querySelector(".d2-article, .d2-feature, .d2-svc-head"), robots: document.querySelector('meta[name="robots"]')?.content ?? "" }));
     check(`[404] ${path}: trang "không tìm thấy", noindex, không lộ nội dung`, nf.nf && !nf.article && /noindex/.test(nf.robots), JSON.stringify(nf));
   }
 
   // Công tắc ngôn ngữ giữ nguyên trang đang xem
-  await page.goto(`${baseUrl}/demo3/services/growth`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/services/growth`, { waitUntil: "networkidle" });
   await page.locator(".d2-top .d2-lang a", { hasText: "VI" }).first().click();
-  await page.waitForURL(/\/demo3\/vi\/services\/growth$/);
+  await page.waitForURL(/\/vi\/services\/growth$/);
   check("[ngôn ngữ] đổi sang VI vẫn ở đúng trang", true);
 
   // Trang liên hệ: form thật
-  for (const [path, lang] of [["/demo3/contact", "en"], ["/demo3/vi/contact", "vi"]]) {
+  for (const [path, lang] of [["/contact", "en"], ["/vi/contact", "vi"]]) {
     await page.goto(baseUrl + path, { waitUntil: "networkidle" });
     const form = await page.locator("main form, main [role='radiogroup'], main fieldset").count();
     check(`[liên hệ ${lang}] có form`, form > 0, `form=${form}`);
   }
-  const missing = await context.request.get(`${baseUrl}/demo3/khong-ton-tai`);
+  const missing = await context.request.get(`${baseUrl}/khong-ton-tai`);
   check("[404] trang không tồn tại trả 404", missing.status() === 404, String(missing.status()));
   await context.close();
 }
@@ -204,7 +204,7 @@ for (const vp of [viewports[0], viewports[3]]) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   const fails = [];
-  for (const path of ["/demo3", "/demo3/plans", "/demo3/services", "/demo3/services/ai", "/demo3/work/vidi26", "/demo3/work/rethink", "/demo3/process", "/demo3/about", "/demo3/blog", "/demo3/vi"]) {
+  for (const path of ["/", "/plans", "/services", "/services/ai", "/work/vidi26", "/work/rethink", "/process", "/about", "/blog", "/vi"]) {
     await page.goto(baseUrl + path, { waitUntil: "networkidle" });
     const rows = await page.evaluate(() => {
       const parse = (c) => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const [r, g, b, a = "1"] = m[1].split(/[\s,/]+/).filter(Boolean).map(Number); return { r, g, b, a }; };
@@ -233,7 +233,7 @@ for (const vp of [viewports[0], viewports[3]]) {
   }
   check("[tương phản] mọi chữ đạt WCAG AA trên 10 trang", fails.length === 0, fails.join(" | ").slice(0, 300));
 
-  await page.goto(`${baseUrl}/demo3/plans`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/plans`, { waitUntil: "networkidle" });
   await page.waitForTimeout(600);
   const before = await page.evaluate(() => ({ waiting: document.querySelectorAll("[data-rise]:not([data-in])").length, hiddenText: [...document.querySelectorAll("[data-rise] :is(h2,h3,p,li,td,th)")].filter((el) => Number(getComputedStyle(el).opacity) < 1 || getComputedStyle(el).visibility === "hidden").length }));
   await page.mouse.move(600, 400);
@@ -255,7 +255,7 @@ for (const [name, options] of [
 ]) {
   const context = await browser.newContext(options);
   const page = await context.newPage();
-  await page.goto(`${baseUrl}/demo3`, { waitUntil: "load" });
+  await page.goto(`${baseUrl}/`, { waitUntil: "load" });
   await page.waitForTimeout(500);
   const state = await page.evaluate(() => ({
     headings: [...document.querySelectorAll("main :is(h1,h2,h3)")].every((el) => getComputedStyle(el).opacity === "1"),
@@ -290,7 +290,7 @@ for (const [name, options] of [
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   watch(page);
-  await page.goto(`${baseUrl}/demo3/plans`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/plans`, { waitUntil: "networkidle" });
   await page.waitForTimeout(800);
   const rest = await pillState(page);
   check("[header] viên chỉ mục nằm dưới trang đang xem", rest.on === "true" && rest.lit === "Plans", JSON.stringify(rest));
@@ -314,7 +314,7 @@ for (const [name, options] of [
   check("[header] rời chuột: viên về lại trang đang xem", back.lit === "Plans" && back.left === rest.left, JSON.stringify(back));
 
   await page.click('.d2-nav a[data-path="/work"]:visible');
-  await page.waitForURL("**/demo3/work");
+  await page.waitForURL("**/work");
   await page.waitForTimeout(1400);
   const moved = await pillState(page);
   const head = await page.evaluate(() => {
@@ -324,7 +324,7 @@ for (const [name, options] of [
   check("[chuyển trang] bấm link: sang trang mới, viên theo sang, tiêu đề hiện", moved.lit === "Work" && head.split === "ready" && head.visible === "visible", JSON.stringify({ moved, head }));
 
   await page.click('a.d3-tile[href$="/work/vidi26"]:visible');
-  await page.waitForURL("**/demo3/work/vidi26");
+  await page.waitForURL("**/work/vidi26");
   await page.waitForTimeout(1500);
   check("[chuyển trang] ô dự án mở trang chi tiết", ((await page.locator("h1:visible").textContent()) ?? "").includes("VIDI26"));
 
@@ -340,13 +340,13 @@ for (const [name, options] of [
   check("[nút] rê chuột: chữ cuộn, mũi tên đi qua", still(roll.second) && still(roll.arrowIn) && !still(roll.first) && !still(roll.arrowOut), JSON.stringify(roll));
 
   await page.goBack();
-  await page.waitForURL("**/demo3/work");
+  await page.waitForURL("**/work");
   await page.waitForTimeout(1200);
   const restored = await pillState(page);
   check("[chuyển trang] Back: trang cũ hiện lại, viên đứng đúng mục", (await page.locator("h1:visible").count()) === 1 && restored.on === "true" && restored.lit === "Work", JSON.stringify(restored));
 
   await page.click(".d2-logo:visible");
-  await page.waitForURL(/\/demo3$/);
+  await page.waitForURL(/^https?:\/\/[^/]+\/?$/);
   await page.waitForTimeout(1200);
   const home = await pillState(page);
   check("[header] trang chủ: không có mục đang xem nên viên tắt", home.on !== "true", JSON.stringify(home));
@@ -357,7 +357,7 @@ for (const [name, options] of [
   const mobile = await phone.newPage();
   watch(mobile);
   const locked = () => mobile.evaluate(() => /hidden|clip/.test(getComputedStyle(document.documentElement).overflow));
-  await mobile.goto(`${baseUrl}/demo3`, { waitUntil: "networkidle" });
+  await mobile.goto(`${baseUrl}/`, { waitUntil: "networkidle" });
   await mobile.waitForTimeout(2600);
   await mobile.locator(".d2-menu-toggle:visible").tap();
   await mobile.waitForTimeout(900);
@@ -373,7 +373,7 @@ for (const [name, options] of [
   await mobile.locator(".d2-menu-toggle:visible").tap();
   await mobile.waitForTimeout(700);
   await mobile.locator('#d2-menu a.d2-menu-link[href$="/process"]:visible').tap();
-  await mobile.waitForURL("**/demo3/process");
+  await mobile.waitForURL("**/process");
   await mobile.waitForTimeout(1200);
   check("[menu điện thoại] bấm link: sang trang mới, menu đóng, mở khoá cuộn", (await mobile.locator("#d2-menu:visible").count()) === 0 && !(await locked()));
   await phone.close();
@@ -396,7 +396,7 @@ for (const [name, options] of [
     });
     const p = await desk.newPage();
     watch(p);
-    await p.goto(`${baseUrl}/demo3`, { waitUntil: "networkidle" });
+    await p.goto(`${baseUrl}/`, { waitUntil: "networkidle" });
     await p.waitForTimeout(2500);
     const top = await p.evaluate(() => [...document.querySelectorAll(".d3-expand")].find((el) => el.getClientRects().length > 0).getBoundingClientRect().top + window.scrollY);
     await p.evaluate((y) => window.scrollTo(0, y - 60), top);
@@ -426,7 +426,7 @@ for (const [name, options] of [
     await p.evaluate(() => window.scrollTo(0, 0));
     await p.waitForTimeout(500);
     await p.click('.d2-nav a[data-path="/process"]:visible');
-    await p.waitForURL("**/demo3/process");
+    await p.waitForURL("**/process");
     await p.waitForTimeout(1500);
     const vt = await p.evaluate(() => window.__vt);
     check("[đợt 5] bấm link: view transition chạy đủ hai nửa tấm màn", vt.length === 1 && /d3-page-out/.test(vt[0]) && /d3-page-in/.test(vt[0]), JSON.stringify(vt));
@@ -438,7 +438,7 @@ for (const [name, options] of [
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const p = await ctx.newPage();
     watch(p);
-    for (const path of ["/demo3/about", "/demo3/vi/about"]) {
+    for (const path of ["/about", "/vi/about"]) {
       await p.goto(`${baseUrl}${path}`, { waitUntil: "networkidle" });
       await p.locator(".d3-team").scrollIntoViewIfNeeded();
       await p.waitForTimeout(900);
@@ -460,7 +460,7 @@ for (const [name, options] of [
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const p = await ctx.newPage();
     watch(p);
-    await p.goto(`${baseUrl}/demo3`, { waitUntil: "networkidle" });
+    await p.goto(`${baseUrl}/`, { waitUntil: "networkidle" });
     await p.waitForTimeout(1500);
     const range = await p.evaluate(() => { const el = document.querySelector(".d2-story"); return { top: el.getBoundingClientRect().top + scrollY, len: el.offsetHeight - innerHeight }; });
     await p.evaluate((y) => scrollTo(0, y), range.top + range.len * 0.3);
@@ -478,6 +478,38 @@ for (const [name, options] of [
       moving: [...document.querySelectorAll(".d3-fx-particles circle")].filter((el) => Number(getComputedStyle(el).opacity) > 0.05).length,
     }));
     check("[tài sản lớn lên] đổi sang lối \"Chỉ marketing\": mốc + cảnh mạng lưới, cuộn hết thì đủ nút, đủ khán giả, hạt đang chạy", tower.path === "marketing" && tower.scene === "network" && tower.pressed === 1 && tower.first === "Strategy." && tower.hidden === 0 && tower.audience === 54 && tower.moving > 0, JSON.stringify(tower));
+    await ctx.close();
+  }
+
+  // Website chính ở gốc: địa chỉ cũ (/demo3, trang chính cũ) chuyển vĩnh viễn sang trang tương ứng; trang chính được lập chỉ mục
+  {
+    const ctx = await browser.newContext();
+    const moved = [
+      ["/demo3", "/"],
+      ["/demo3/plans", "/plans"],
+      ["/demo3/vi/work/vidi26", "/vi/work/vidi26"],
+      ["/en", "/"],
+      ["/en/contact", "/contact"],
+      ["/lien-he", "/vi/contact"],
+      ["/web", "/vi/services/web"],
+      ["/marketing", "/vi/services/social"],
+      ["/mau-giao-dien", "/vi/work"],
+    ];
+    const wrong = [];
+    for (const [from, to] of moved) {
+      const res = await ctx.request.get(baseUrl + from, { maxRedirects: 0 });
+      const location = res.headers()["location"] ?? "";
+      if (res.status() !== 308 || new URL(location, baseUrl).pathname !== to) wrong.push(`${from} → ${res.status()} ${location}`);
+    }
+    check("[website chính] địa chỉ cũ chuyển 308 sang trang tương ứng", wrong.length === 0, wrong.join(" | "));
+    const p = await ctx.newPage();
+    const robots = [];
+    for (const path of ["/", "/vi", "/plans", "/vi/contact"]) {
+      await p.goto(baseUrl + path, { waitUntil: "domcontentloaded" });
+      const meta = await p.evaluate(() => ({ robots: document.querySelector('meta[name="robots"]')?.getAttribute("content") ?? "", canonical: document.querySelector('link[rel="canonical"]')?.getAttribute("href") ?? "" }));
+      if (/noindex/.test(meta.robots) || !meta.canonical.endsWith(path === "/" ? "/" : path)) robots.push(`${path}: ${JSON.stringify(meta)}`);
+    }
+    check("[website chính] trang được lập chỉ mục, canonical đúng địa chỉ", robots.length === 0, robots.join(" | "));
     await ctx.close();
   }
 

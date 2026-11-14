@@ -1,27 +1,28 @@
 import type { MetadataRoute } from "next";
 
-import { contactHref, homeHref, serviceHref, templatesHref } from "@/config/routes";
-import { locales, type Locale } from "@/config/space";
 import { siteConfig } from "@/config/site";
-import { serviceIds } from "@/config/space";
+import { d3Href, d3Projects, getD3 } from "@/content/demo3";
+import { d3Posts } from "@/lib/demo3-blog";
 
 /**
- * Sitemap chỉ có nội dung khi biết tên miền (siteConfig.url). Mỗi trang có một mục cho từng ngôn ngữ, kèm hreflang của cả bộ
- * (vi, en, x-default → vi) như Google khuyến nghị.
+ * Sitemap của website chính (bản demo3: tiếng Anh ở gốc, tiếng Việt ở /vi). Chỉ có nội dung khi biết tên miền (siteConfig.url).
+ * Trang có bản song song cùng địa chỉ: một mục cho mỗi ngôn ngữ, kèm hreflang en / vi / x-default (→ en).
+ * Bài blog mỗi ngôn ngữ một slug riêng nên chỉ có mục của chính nó. Các bản demo cũ, thư viện mẫu và Factory không đưa vào.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteConfig.url;
   if (!base) return [];
   const abs = (path: string) => `${base}${path === "/" ? "" : path}`;
-  const page = (path: (lang: Locale) => string, changeFrequency: "monthly" | "yearly", priority: number): MetadataRoute.Sitemap => {
-    const languages = { ...Object.fromEntries(locales.map((l) => [l, abs(path(l))])), "x-default": abs(path("vi")) };
-    return locales.map((lang) => ({ url: abs(path(lang)), changeFrequency, priority, alternates: { languages } }));
+  const pair = (path: string, changeFrequency: "weekly" | "monthly" | "yearly", priority: number): MetadataRoute.Sitemap => {
+    const languages = { en: abs(d3Href("en", path)), vi: abs(d3Href("vi", path)), "x-default": abs(d3Href("en", path)) };
+    return (["en", "vi"] as const).map((lang) => ({ url: abs(d3Href(lang, path)), changeFrequency, priority, alternates: { languages } }));
   };
-  // Trang mẫu demo và Factory đặt noindex nên không đưa vào sitemap
+  const t = getD3("en");
   return [
-    ...page(homeHref, "monthly", 1),
-    ...serviceIds.flatMap((id) => page((l) => serviceHref(l, id), "monthly", id === "web" ? 0.8 : 0.7)),
-    ...page(templatesHref, "monthly", 0.6),
-    ...page((l) => contactHref(l), "yearly", 0.6),
+    ...pair("", "monthly", 1),
+    ...["/services", "/plans", "/work", "/process", "/about", "/blog", "/contact"].flatMap((path) => pair(path, "monthly", 0.8)),
+    ...t.services.items.flatMap((service) => pair(`/services/${service.id}`, "monthly", 0.7)),
+    ...d3Projects("en").flatMap((project) => pair(`/work/${project.slug}`, "yearly", 0.6)),
+    ...(["en", "vi"] as const).flatMap((lang) => d3Posts(lang).map((post) => ({ url: abs(d3Href(lang, `/blog/${post.slug}`)), changeFrequency: "yearly" as const, priority: 0.5 }))),
   ];
 }

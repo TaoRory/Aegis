@@ -28,9 +28,23 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // Slug tiếng Anh gõ ở gốc → bản /en tương ứng (bản tiếng Việt dùng /lien-he, /mau-giao-dien)
-      { source: "/contact", destination: "/en/contact", permanent: true },
-      { source: "/templates", destination: "/en/templates", permanent: true },
+      // Website chính nay là bản demo3 (tiếng Anh ở gốc, tiếng Việt ở /vi). Địa chỉ của trang chính cũ → trang tương ứng của bản mới
+      { source: "/demo3", destination: "/", permanent: true },
+      { source: "/demo3/:path*", destination: "/:path*", permanent: true },
+      { source: "/en", destination: "/", permanent: true },
+      { source: "/en/contact", destination: "/contact", permanent: true },
+      { source: "/en/web", destination: "/services/web", permanent: true },
+      { source: "/en/ai", destination: "/services/ai", permanent: true },
+      { source: "/en/marketing", destination: "/services/social", permanent: true },
+      { source: "/en/software", destination: "/services", permanent: true },
+      { source: "/en/templates", destination: "/work", permanent: true },
+      { source: "/templates", destination: "/work", permanent: true },
+      { source: "/lien-he", destination: "/vi/contact", permanent: true },
+      { source: "/web", destination: "/vi/services/web", permanent: true },
+      { source: "/ai", destination: "/vi/services/ai", permanent: true },
+      { source: "/marketing", destination: "/vi/services/social", permanent: true },
+      { source: "/software", destination: "/vi/services", permanent: true },
+      { source: "/mau-giao-dien", destination: "/vi/work", permanent: true },
       // Địa chỉ nội bộ không công khai: /vi/factory/... về /factory/...
       { source: "/vi/factory", destination: "/factory", permanent: true },
       { source: "/vi/factory/:path*", destination: "/factory/:path*", permanent: true },
