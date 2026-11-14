@@ -1,4 +1,423 @@
-/* /demo3 — work: kiểu riêng của bản nâng cấp, viết trong phạm vi .d3 (class nền .d2-* nằm ở src/styles/demo2.css). */
+/* /demo3 — work (+ blog, contact): kiểu riêng của bản nâng cấp, viết trong phạm vi .d3 (class nền .d2-* nằm ở src/styles/demo2.css).
+ *
+ * Hai luật xuyên suốt (giống motion-kit.css):
+ * 1. Trạng thái chờ animation chỉ viết dưới [data-motion="on"]: không JS / giảm chuyển động thì mọi thứ đứng đúng chỗ, hiện đủ.
+ * 2. Mọi transition / animation nằm trong @media (prefers-reduced-motion: no-preference); hiệu ứng theo con trỏ thêm (hover: hover) and (pointer: fine).
+ * Chỉ animate transform, opacity (riêng ảnh trang trí), clip-path và biến CSS.
+ */
 
 @layer components {
+  /* ====================================================================== Khung ảnh chụp (WorkShot) */
+  /* Vùng ảnh có tỉ lệ cố định (aspect-ratio đặt inline theo ảnh bìa) và là container kích thước:
+     lớp ảnh toàn trang bên trong dùng được đơn vị cqh để trượt đúng "chiều cao ảnh trừ chiều cao khung". */
+  .d3 .d3-shot-view {
+    position: relative;
+    overflow: hidden;
+    container-type: size;
+  }
+
+  /* Ảnh toàn trang nằm đè lên ảnh bìa, chỉ hiện khi rê chuột (ảnh trang trí, alt rỗng: được phép đổi opacity) */
+  .d3 .d3-peek {
+    position: absolute;
+    inset: 0 0 auto;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ====================================================================== Tường dự án */
+  /* Điện thoại: một cột dọc đơn giản theo đúng thứ tự dự án (order đặt inline), không trượt ngang, không parallax */
+  @media (max-width: 47.99rem) {
+    .d3 .d2-wall {
+      flex-direction: column;
+      margin-inline: 0;
+      padding-inline: 0;
+      overflow: visible;
+      scroll-snap-type: none;
+    }
+
+    .d3 .d2-wall .d2-tile {
+      width: auto;
+      scroll-snap-align: none;
+    }
+  }
+
+  /* Giảm chuyển động: không có gì nhúc nhích, nên rê chuột / focus báo bằng gạch chân tên dự án */
+  @media (prefers-reduced-motion: reduce) {
+    .d3 a.d3-tile:is(:hover, :focus-visible) .d2-tile-meta > span:first-child,
+    .d3 a.d3-next:is(:hover, :focus-visible) .d3-next-name {
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 0.18em;
+    }
+  }
+
+  /* Cảm ứng: :hover "dính" sau khi chạm, nên bỏ kiểu nghiêng lúc rê của bản /demo2 */
+  @media not ((hover: hover) and (pointer: fine)) {
+    .d3 a.d2-tile:hover .d2-shot {
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .d3 .d3-tile .d3-shot {
+      transition: transform 0.45s var(--kit-ease-out);
+    }
+
+    /* Phản hồi lúc bấm / chạm: khung ảnh lún nhẹ */
+    .d3 a.d2-tile.d3-tile:active .d2-shot {
+      transform: scale(0.985);
+      transition-duration: 0.15s;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .d3 .d3-tile {
+      perspective: 56rem;
+    }
+
+    /* Nhấc lên + nghiêng về phía con trỏ (--rx, --ry trong khoảng −1…1 do WorkTile ghi; focus bằng bàn phím thì chỉ nhấc) */
+    .d3 a.d3-tile:is(:hover, :focus-visible) .d3-shot {
+      transform: translate3d(0, -0.4rem, 0) rotateX(calc(var(--ry, 0) * -4deg)) rotateY(calc(var(--rx, 0) * 5deg)) scale(1.025);
+    }
+
+    /* Rời chuột: ảnh toàn trang mờ đi nhanh và quay về đầu trang */
+    .d3 .d3-peek {
+      transition:
+        opacity 0.3s ease-out,
+        transform 0.7s var(--kit-ease-out);
+    }
+
+    /* Rê chuột (khi ảnh đã tải xong): hiện lên rồi lướt tới cuối trang. Thời lượng theo độ dài trang (--peek-dur, tối đa 4,4s) */
+    .d3 a.d3-tile:is(:hover, :focus-visible) [data-peek="ready"] .d3-peek {
+      opacity: 1;
+      transform: translateY(calc(-100% + 100cqh));
+      transition:
+        opacity 0.3s ease-out 0.12s,
+        transform var(--peek-dur, 3s) var(--kit-ease-in-out) 0.45s;
+    }
+  }
+
+  /* ====================================================================== Trang chi tiết: sân khấu mở đầu */
+  @media (prefers-reduced-motion: no-preference) {
+    /* Ảnh chụp "mở ra" từ thanh trình duyệt xuống và lắng về chỗ. Điểm đầu vẫn thấy thanh trình duyệt + phần trên của ảnh:
+       ảnh là phần tử lớn nhất màn đầu nên không được bắt đầu ở trạng thái ẩn hẳn. backwards: xong thì không để lại clip-path. */
+    [data-motion="on"] .d3 .d3-case-stage .d3-shot {
+      animation: d3-case-open 1.3s var(--kit-ease-out) 0.1s backwards;
+    }
+
+    [data-motion="on"] .d3 .d3-case-stage .d3-shot-view > img {
+      transform-origin: 50% 0;
+      animation: d3-case-settle 1.7s var(--kit-ease-out) 0.1s backwards;
+    }
+
+    /* Mô tả và nút: trồi lên ngay sau tên dự án (chỉ transform, chữ luôn hiện) */
+    [data-motion="on"] .d3 .d3-case-intro > p {
+      animation: d3-work-rise 1s var(--kit-ease-out) 0.12s backwards;
+    }
+
+    [data-motion="on"] .d3 .d3-case-intro > a {
+      animation: d3-work-rise 1s var(--kit-ease-out) 0.2s backwards;
+    }
+  }
+
+  /* ---------- Dữ kiện: chấm màu bật lần lượt sau khi dòng bảng màu trồi lên ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .d3 .d2-swatches span {
+      transition: transform 0.7s var(--kit-ease-out) calc(0.3s + var(--i, 0) * 70ms);
+    }
+
+    [data-motion="on"] .d3 .d2-facts [data-rise]:not([data-in]) .d2-swatches span {
+      transform: scale(0.2);
+    }
+  }
+
+  /* ---------- Ảnh toàn trang: cửa sổ trình duyệt tự cuộn (WorkLongFrame) ---------- */
+  .d3 .d3-long figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+  }
+
+  .d3 .d3-long-hint {
+    font-weight: 500;
+  }
+
+  .d3 .d3-long-window {
+    margin-top: 0.75rem;
+    overflow: hidden;
+    border-radius: var(--d2-r-card);
+    background: var(--d2-white);
+    box-shadow: 0 0 0 1px var(--border);
+  }
+
+  .d3 .d3-long-bar {
+    position: relative;
+    height: 2.25rem;
+    gap: 0.35rem;
+    padding-inline: 0.85rem;
+  }
+
+  /* Thanh địa chỉ: tên miền thật của dự án */
+  .d3 .d3-long-url {
+    min-width: 0;
+    margin-left: 0.6rem;
+    padding: 0.2rem 0.8rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--d2-white);
+    color: var(--d2-muted);
+    font-family: var(--d2-font-mono);
+    font-size: 0.75rem;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Vạch tiến độ: đã xem tới đâu của trang (--long-p do WorkLongFrame ghi khi cuộn; không JS thì không hiện) */
+  .d3 .d3-long-progress {
+    position: absolute;
+    inset: auto 0 0;
+    height: 2px;
+    background: var(--d2-teal-ink);
+    transform: scaleX(var(--long-p, 0));
+    transform-origin: 0 50%;
+  }
+
+  /* Điện thoại: khung thấp hơn màn hình để ngón tay luôn còn chỗ cuộn trang ở ngoài khung */
+  .d3 .d3-long-scroll {
+    max-height: min(34rem, 68svh);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--d2-ink) 42%, transparent) transparent;
+  }
+
+  /* Viền focus nằm trong khung (bên ngoài bị cửa sổ cắt) */
+  .d3 .d3-long-scroll:focus-visible {
+    outline-offset: -3px;
+  }
+
+  .d3 .d3-long-scroll img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ---------- Dự án kế tiếp: cánh cửa sang dự án sau ---------- */
+  .d3 .d3-next {
+    position: relative;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    padding-bottom: 0;
+    overflow: hidden;
+  }
+
+  .d3 .d3-next-text {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .d3 .d3-next .d2-feature-name {
+    justify-content: flex-start;
+    gap: 0.4em;
+  }
+
+  .d3 .d3-next-name {
+    min-width: 0;
+  }
+
+  /* Hai mũi tên chồng nhau trong một ô bị cắt: rê chuột thì một cái chạy ra bên phải, cái kia vào từ bên trái */
+  .d3 .d3-next-arrow {
+    display: inline-grid;
+    flex: none;
+    overflow: hidden;
+  }
+
+  .d3 .d3-next-arrow svg {
+    grid-area: 1 / 1;
+  }
+
+  .d3 .d3-next-arrow svg:last-child {
+    transform: translateX(-130%);
+  }
+
+  /* Ảnh dự án sau ló lên từ mép dưới: khung cao hơn ô chứa, phần thừa bị ô "Dự án kế tiếp" cắt */
+  .d3 .d3-next-door {
+    height: clamp(7.5rem, 4rem + 16vw, 11rem);
+  }
+
+  @media (min-width: 48rem) {
+    .d3 .d3-next {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+      align-items: center;
+      gap: 3rem;
+      padding-top: 0;
+    }
+
+    .d3 .d3-next-text {
+      padding-block: 2.5rem;
+    }
+
+    .d3 .d3-next-door {
+      align-self: end;
+      height: 12.5rem;
+      margin-top: 2.25rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .d3 .d3-next-name,
+    .d3 .d3-next-arrow,
+    .d3 .d3-next-arrow svg,
+    .d3 .d3-next-door .d3-shot {
+      transition: transform 0.6s var(--kit-ease-out);
+    }
+
+    /* Các luật dưới đây thay cho cú đẩy 10px mọi svg lúc rê của bản /demo2: mũi tên ở đây có chuyển động riêng */
+    .d3 .d3-next:is(:hover, :focus-visible) .d3-next-name {
+      transform: translateX(0.6rem);
+    }
+
+    .d3 .d3-next:is(:hover, :focus-visible) .d3-next-arrow {
+      transform: translateX(1.1rem);
+    }
+
+    .d3 .d3-next:is(:hover, :focus-visible) .d3-next-arrow svg:first-child {
+      transform: translateX(130%);
+    }
+
+    .d3 .d3-next:is(:hover, :focus-visible) .d3-next-arrow svg:last-child {
+      transform: translateX(0);
+    }
+
+    .d3 .d3-next:is(:hover, :focus-visible) .d3-next-door .d3-shot {
+      transform: translateY(-1.5rem);
+    }
+  }
+
+  /* ====================================================================== Blog */
+  /* Chưa có bài: các chủ đề trồi lên từ trong thẻ (cắt ở mép thẻ để không thò ra ngoài lúc chờ) */
+  .d3 .d2-empty {
+    overflow: clip;
+  }
+
+  /* Con trỏ soạn thảo sau câu "đang được viết": nhấp nháy bốn nhịp rồi đứng yên (không lặp vô hạn) */
+  .d3 .d3-caret {
+    display: inline-block;
+    width: 0.075em;
+    height: 0.84em;
+    margin-left: 0.1em;
+    border-radius: 1px;
+    background: var(--d2-teal-ink);
+    vertical-align: -0.07em;
+  }
+
+  /* Danh sách bài: vạch mực vẽ dọc mép dưới + mũi tên, thay cho gạch chân của bản /demo2 */
+  .d3 .d2-posts a {
+    position: relative;
+  }
+
+  .d3 .d2-posts a::after {
+    position: absolute;
+    inset: auto 0 -1px;
+    height: 2px;
+    background: var(--fg);
+    content: "";
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+
+  .d3 .d2-posts a:is(:hover, :focus-visible)::after {
+    transform: scaleX(1);
+  }
+
+  .d3 .d2-posts a:hover .d2-post-title {
+    text-decoration: none;
+  }
+
+  .d3 .d3-post-go {
+    display: none;
+  }
+
+  @media (min-width: 48rem) {
+    .d3 .d2-posts a {
+      padding-right: 4.5rem;
+    }
+
+    .d3 .d3-post-go {
+      position: absolute;
+      top: 50%;
+      right: 0.5rem;
+      display: block;
+      transform: translate(-0.75rem, -50%);
+    }
+
+    .d3 .d3-post-go svg {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    .d3 .d2-posts a:is(:hover, :focus-visible) .d3-post-go {
+      transform: translate(0, -50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    [data-motion="on"] .d3 .d3-caret {
+      animation: d3-caret 1.05s steps(1, end) 0.7s 4;
+    }
+
+    .d3 .d2-posts a::after,
+    .d3 .d2-post-title,
+    .d3 .d3-post-go {
+      transition: transform 0.6s var(--kit-ease-out);
+    }
+
+    .d3 .d2-posts a:is(:hover, :focus-visible) .d2-post-title {
+      transform: translateX(0.75rem);
+    }
+  }
+
+  /* ====================================================================== Liên hệ: phần đầu trang */
+  .d3 .d3-contact-head {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* Câu dẫn trồi lên ngay sau tiêu đề (chỉ transform, chữ luôn hiện) */
+    [data-motion="on"] .d3 .d3-contact-head .d2-lead {
+      animation: d3-work-rise 1s var(--kit-ease-out) 0.18s backwards;
+    }
+  }
+
+  @keyframes d3-case-open {
+    from {
+      clip-path: inset(0 0 60% 0 round 12px 12px 8px 8px);
+      transform: translateY(2.5rem);
+    }
+
+    to {
+      clip-path: inset(0 0 0 0 round 12px 12px 8px 8px);
+    }
+  }
+
+  @keyframes d3-case-settle {
+    from {
+      transform: scale(1.14);
+    }
+  }
+
+  @keyframes d3-work-rise {
+    from {
+      transform: translateY(1.5rem);
+    }
+  }
+
+  @keyframes d3-caret {
+    50% {
+      opacity: 0;
+    }
+  }
 }

@@ -111,6 +111,7 @@ for (const vp of viewports) {
       await page.locator(".d2-menu-toggle").tap();
       const links = await page.locator("#d2-menu a.d2-menu-link").count();
       await page.keyboard.press("Escape");
+      await page.waitForTimeout(600); // menu đóng có chuyển động (0,32 giây) rồi mới gỡ khỏi DOM
       check(`${tag} menu mở được (6 trang), Esc đóng`, links === 6 && (await page.locator("#d2-menu").count()) === 0, String(links));
     }
 
@@ -156,7 +157,7 @@ for (const vp of [viewports[0], viewports[3]]) {
   check("[plans] 3 gói · 3 tình huống · bảng so sánh 5 dòng · 6 câu hỏi", plans.plans === 3 && plans.cases === 3 && plans.rows === 5 && plans.faq === 6, JSON.stringify(plans));
 
   await page.goto(`${baseUrl}/demo3/process`, { waitUntil: "networkidle" });
-  const proc = await page.evaluate(() => ({ steps: document.querySelectorAll(".d2-step").length, own: document.querySelectorAll(".d2-manifest li").length }));
+  const proc = await page.evaluate(() => ({ steps: document.querySelectorAll(".d3-proc-card").length, own: document.querySelectorAll(".d2-manifest li").length }));
   check("[process] 5 bước · 5 món bàn giao", proc.steps === 5 && proc.own === 5, JSON.stringify(proc));
 
   await page.goto(`${baseUrl}/demo3/work`, { waitUntil: "networkidle" });
@@ -245,8 +246,14 @@ for (const vp of [viewports[0], viewports[3]]) {
   check("[chuyển động] khối chờ vẫn hiện chữ; cuộn tới thì trồi vào chỗ", before.waiting > 0 && before.hiddenText === 0 && after === 0, `chờ ${before.waiting} → ${after}, chữ ẩn ${before.hiddenText}`);
 
   await page.goto(`${baseUrl}/demo3`, { waitUntil: "networkidle" });
-  const marquee = await page.evaluate(() => { const row = document.querySelector(".d2-marquee-row"); return row ? getComputedStyle(row).animationName : ""; });
-  check("[chuyển động] dải chữ chạy đang chạy", marquee === "d2-marquee", marquee);
+  // Dải chữ chạy bằng GSAP ticker (theo tốc độ cuộn): đo vị trí hai lần, phải khác nhau
+  const trackX = () => page.evaluate(() => document.querySelector(".d3-marquee .kit-marquee-track")?.getBoundingClientRect().x ?? null);
+  await page.locator(".d3-marquee").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+  const marqueeA = await trackX();
+  await page.waitForTimeout(500);
+  const marqueeB = await trackX();
+  check("[chuyển động] dải chữ chạy đang chạy", marqueeA !== null && marqueeA !== marqueeB, `${marqueeA} → ${marqueeB}`);
   await context.close();
 }
 
@@ -265,10 +272,121 @@ for (const [name, options] of [
     miles: document.querySelectorAll('.d2-miles li[data-active="true"]').length,
     dash: getComputedStyle(document.querySelector(".d2-chart-asset")).strokeDashoffset,
     lit: document.querySelectorAll('.d2-board .d2-layer[data-on="true"]').length,
-    pause: document.querySelectorAll(".d2-seg-pause").length,
+    // Nút Tạm dừng luôn có trong HTML (giữ chiều cao hàng nút), CSS chỉ cho hiện khi trang bật chuyển động
+    pause: [...document.querySelectorAll(".d2-seg-pause")].filter((el) => el.getClientRects().length > 0).length,
   }));
   check(`[${name}] biểu đồ vẽ sẵn, 5 mốc hiện đủ, tài sản đứng ở gói Grow, không tự chạy`, state.headings && state.live !== "true" && state.miles === 5 && parseFloat(state.dash) === 0 && state.lit === 3 && state.pause === 0, JSON.stringify(state));
   await context.close();
+}
+
+/* 5. Header, nút, menu điện thoại và chuyển trang. Next giữ trang cũ ở trạng thái ẩn trong DOM nên mọi bộ chọn đều lấy phần tử ĐANG HIỆN. */
+{
+  const errors = [];
+  const watch = (page) => {
+    page.on("pageerror", (e) => errors.push(String(e)));
+    page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  };
+  const still = (value) => value === "none" || value === "matrix(1, 0, 0, 1, 0, 0)";
+  const pillState = (page) =>
+    page.evaluate(() => {
+      const shown = (list) => [...list].find((el) => el.getClientRects().length > 0) ?? null;
+      const pill = shown(document.querySelectorAll(".d3-nav-pill"));
+      const lit = shown(document.querySelectorAll('.d2-nav a[data-lit="true"]'));
+      return { on: pill?.getAttribute("data-on") ?? null, left: pill ? getComputedStyle(pill).getPropertyValue("--pl") : null, lit: lit?.textContent ?? null };
+    });
+
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  watch(page);
+  await page.goto(`${baseUrl}/demo3/plans`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(800);
+  const rest = await pillState(page);
+  check("[header] viên chỉ mục nằm dưới trang đang xem", rest.on === "true" && rest.lit === "Plans", JSON.stringify(rest));
+
+  await page.hover('.d2-nav a[data-path="/work"]:visible');
+  await page.waitForTimeout(700);
+  const hovered = await pillState(page);
+  check("[header] rê chuột: viên trượt sang mục đang rê", hovered.lit === "Work" && hovered.left !== rest.left, JSON.stringify(hovered));
+
+  await page.hover('.d2-nav a[data-path="/services"]:visible');
+  await page.waitForTimeout(800);
+  const sub = await page.evaluate(() => {
+    const el = [...document.querySelectorAll(".d2-nav .d2-sub")].find((node) => node.getClientRects().length > 0);
+    return { pointer: getComputedStyle(el).pointerEvents, top: el.querySelector("a").getBoundingClientRect().top };
+  });
+  check("[header] danh sách Dịch vụ mở khi rê chuột", sub.pointer === "auto" && sub.top > 40, JSON.stringify(sub));
+
+  await page.mouse.move(700, 620);
+  await page.waitForTimeout(700);
+  const back = await pillState(page);
+  check("[header] rời chuột: viên về lại trang đang xem", back.lit === "Plans" && back.left === rest.left, JSON.stringify(back));
+
+  await page.click('.d2-nav a[data-path="/work"]:visible');
+  await page.waitForURL("**/demo3/work");
+  await page.waitForTimeout(1400);
+  const moved = await pillState(page);
+  const head = await page.evaluate(() => {
+    const el = [...document.querySelectorAll("h1")].find((node) => node.getClientRects().length > 0);
+    return { text: el?.textContent, split: el?.getAttribute("data-split"), visible: el ? getComputedStyle(el).visibility : null };
+  });
+  check("[chuyển trang] bấm link: sang trang mới, viên theo sang, tiêu đề hiện", moved.lit === "Work" && head.split === "ready" && head.visible === "visible", JSON.stringify({ moved, head }));
+
+  await page.click('a.d3-tile[href$="/work/vidi26"]:visible');
+  await page.waitForURL("**/demo3/work/vidi26");
+  await page.waitForTimeout(1500);
+  check("[chuyển trang] ô dự án mở trang chi tiết", ((await page.locator("h1:visible").textContent()) ?? "").includes("VIDI26"));
+
+  const button = page.locator(".d3-case-intro .d3-btn:visible");
+  await button.hover();
+  await page.waitForTimeout(700);
+  const roll = await button.evaluate((el) => {
+    const [a, b] = el.querySelectorAll(".kit-roll > span");
+    const [x, y] = el.querySelectorAll(".d3-arrow-swap > svg");
+    const transform = (node) => getComputedStyle(node).transform;
+    return { first: transform(a), second: transform(b), arrowOut: transform(x), arrowIn: transform(y) };
+  });
+  check("[nút] rê chuột: chữ cuộn, mũi tên đi qua", still(roll.second) && still(roll.arrowIn) && !still(roll.first) && !still(roll.arrowOut), JSON.stringify(roll));
+
+  await page.goBack();
+  await page.waitForURL("**/demo3/work");
+  await page.waitForTimeout(1200);
+  const restored = await pillState(page);
+  check("[chuyển trang] Back: trang cũ hiện lại, viên đứng đúng mục", (await page.locator("h1:visible").count()) === 1 && restored.on === "true" && restored.lit === "Work", JSON.stringify(restored));
+
+  await page.click(".d2-logo:visible");
+  await page.waitForURL(/\/demo3$/);
+  await page.waitForTimeout(1200);
+  const home = await pillState(page);
+  check("[header] trang chủ: không có mục đang xem nên viên tắt", home.on !== "true", JSON.stringify(home));
+  await context.close();
+
+  // Điện thoại: menu phủ kín, khoá cuộn, Esc trả focus, bấm link thì đổi trang và mở khoá
+  const phone = await browser.newContext({ ...devices["iPhone 13"] });
+  const mobile = await phone.newPage();
+  watch(mobile);
+  const locked = () => mobile.evaluate(() => /hidden|clip/.test(getComputedStyle(document.documentElement).overflow));
+  await mobile.goto(`${baseUrl}/demo3`, { waitUntil: "networkidle" });
+  await mobile.waitForTimeout(2600);
+  await mobile.locator(".d2-menu-toggle:visible").tap();
+  await mobile.waitForTimeout(900);
+  const menu = await mobile.evaluate(() => {
+    const el = [...document.querySelectorAll("#d2-menu")].find((node) => node.getClientRects().length > 0);
+    const rect = el.getBoundingClientRect();
+    return { bottom: Math.round(rect.bottom), screen: window.innerHeight, overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+  });
+  check("[menu điện thoại] phủ kín dưới header, khoá cuộn trang, không tràn ngang", menu.bottom >= menu.screen - 1 && menu.overflowX <= 0 && (await locked()), JSON.stringify(menu));
+  await mobile.keyboard.press("Escape");
+  await mobile.waitForTimeout(600);
+  check("[menu điện thoại] Esc: đóng, trả focus về nút Menu, mở khoá cuộn", (await mobile.locator("#d2-menu:visible").count()) === 0 && (await mobile.evaluate(() => document.activeElement?.className)) === "d2-menu-toggle" && !(await locked()));
+  await mobile.locator(".d2-menu-toggle:visible").tap();
+  await mobile.waitForTimeout(700);
+  await mobile.locator('#d2-menu a.d2-menu-link[href$="/process"]:visible').tap();
+  await mobile.waitForURL("**/demo3/process");
+  await mobile.waitForTimeout(1200);
+  check("[menu điện thoại] bấm link: sang trang mới, menu đóng, mở khoá cuộn", (await mobile.locator("#d2-menu:visible").count()) === 0 && !(await locked()));
+  await phone.close();
+
+  check("[đợt 2] không lỗi console khi rê, bấm và đổi trang", errors.length === 0, errors.slice(0, 3).join(" | "));
 }
 
 await browser.close();

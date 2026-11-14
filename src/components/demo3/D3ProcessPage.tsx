@@ -4,43 +4,41 @@ import { PageHead, StepMock } from "./D3Bits";
 import { FinalCta } from "./D3Final";
 import { D3Handover } from "./D3Handover";
 import { D3Shell } from "./D3Shell";
-import { Rise } from "./fx/Rise";
+import { SplitReveal } from "./fx/SplitReveal";
+import { ProcessScene, type ProcessSceneStep } from "./ProcessScene";
 
-function Steps({ t }: { t: D3Dict }) {
-  return (
-    <ol className="d2-steps">
-      {t.process.steps.map((step, index) => (
-        <Rise as="li" key={step.title} className="d2-step">
-          <div className="d2-step-text">
-            <span className="d2-step-no" aria-hidden>
-              {index + 1}
-            </span>
-            <h2 className="d2-h3">{step.title}</h2>
-            <p>{step.text}</p>
-            <span className="d2-chip">{step.plans}</span>
-          </div>
-          <div className="d2-step-stage" aria-hidden>
-            <StepMock t={t} kind={step.mock} />
-          </div>
-        </Rise>
-      ))}
-    </ol>
-  );
+/**
+ * Dữ liệu cho cảnh cuộn: chữ của từng bước + mô hình minh hoạ dựng sẵn ở server (cảnh là Client Component, chỉ nhận phần nó cần).
+ * "Bước này thuộc gói nào" suy ra từ chính chuỗi `step.plans` của nội dung (có nhắc tên gói thì chỉ các gói đó, không nhắc tên nào
+ * thì là mọi gói), để thanh ray không bao giờ nói khác với chip trên thẻ.
+ */
+function sceneSteps(t: D3Dict, planNames: string[]): ProcessSceneStep[] {
+  return t.process.steps.map((step, index) => {
+    const named = planNames.map((name) => step.plans.includes(name));
+    return {
+      title: step.title,
+      text: step.text,
+      plans: step.plans,
+      stop: t.x.process.stops[index] ?? "",
+      kind: step.mock,
+      included: named.some(Boolean) ? named : planNames.map(() => true),
+      mock: <StepMock t={t} kind={step.mock} />,
+    };
+  });
 }
 
 export function D3Process({ t }: { t: D3Dict }) {
+  const planNames = t.plans.items.map((plan) => plan.name);
   return (
     <D3Shell t={t}>
       <PageHead title={t.process.title} lead={t.process.lead} />
-      <section className="d2-wrap" aria-label={t.process.title}>
-        <Steps t={t} />
-      </section>
+      <ProcessScene label={t.process.title} steps={sceneSteps(t, planNames)} plans={planNames} labels={t.x.process} />
       <section aria-labelledby="d2-own-title" className="d2-wrap d2-section">
         <div className="d2-split">
           <div>
-            <h2 id="d2-own-title" className="d2-h2">
+            <SplitReveal as="h2" id="d2-own-title" className="d2-h2 d3-lines">
               {t.own.title}
-            </h2>
+            </SplitReveal>
             <p className="d2-lead mt-4">{t.own.lead}</p>
           </div>
           <D3Handover t={t} />

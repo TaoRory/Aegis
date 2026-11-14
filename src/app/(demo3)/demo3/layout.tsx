@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { d2Sans } from "@/components/demo2/fonts";
+import { D3Intro } from "@/components/demo3/D3Intro";
 import { ThemeGuard } from "@/components/layout/ThemeGuard";
 
 import "@/styles/demo2.css";
@@ -26,6 +27,8 @@ export default function Demo3Layout({ children }: Readonly<{ children: ReactNode
   return (
     <div className={`d2 d3 ${d2Sans.variable}`} data-no-cover>
       <ThemeGuard />
+      {/* Intro thương hiệu: chỉ lần đầu của phiên, ở trang chủ; đặt trước nội dung để script của nó chạy trước khung hình đầu tiên */}
+      <D3Intro />
       {children}
     </div>
   );

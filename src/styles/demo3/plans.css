@@ -1,4 +1,417 @@
 /* /demo3 — plans: kiểu riêng của bản nâng cấp, viết trong phạm vi .d3 (class nền .d2-* nằm ở src/styles/demo2.css). */
 
 @layer components {
+  /* ====================================================================== Ba gói: thẻ xếp chồng khi cuộn (PlansStack.tsx) */
+  .d3 .d3-plans-stack {
+    /* Điểm dính của thẻ đầu (ngay dưới header) và mỗi thẻ sau lệch xuống thêm một bậc để lộ mép thẻ bên dưới */
+    --stack-top: calc(var(--d2-header) + 1.25rem);
+    --stack-step: 0.75rem;
+    --stack-gap: 0.75rem;
+    /* Mỗi thẻ nằm trên làm thẻ dưới thu nhỏ thêm ngần này. Điện thoại: rất nhẹ, vì thẻ gần bằng bề rộng màn hình */
+    --stack-shrink: 0.025;
+    margin-top: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
+  }
+
+  /* Mỏ neo #plan-…: không dính, luôn ở vị trí thật của thẻ; scroll-margin = điểm dính của chính thẻ đó nên thẻ dừng vừa khít */
+  .d3 .d3-plans-stack > .d3-plans-anchor {
+    display: block;
+    height: 0;
+    scroll-margin-top: calc(var(--stack-top) + var(--i, 0) * var(--stack-step));
+  }
+
+  .d3 .d3-plans-stack > .d3-plans-anchor:not(:first-child) {
+    margin-top: var(--stack-gap);
+  }
+
+  @media (min-width: 64rem) {
+    .d3 .d3-plans-stack {
+      --stack-step: 1rem;
+      --stack-shrink: 0.045;
+    }
+  }
+
+  /* Chữ trong nút của thẻ được phép xuống dòng (điện thoại): hai lớp chữ cuộn phải cùng canh trái */
+  .d3 .d2-plan-card .d2-btn .kit-roll {
+    text-align: left;
+  }
+
+  /* Thứ tự từng dòng trong danh sách "Bao gồm" để dấu tick vẽ so le */
+  .d3 .d2-plan .d2-checks li:nth-child(2) {
+    --n: 1;
+  }
+
+  .d3 .d2-plan .d2-checks li:nth-child(3) {
+    --n: 2;
+  }
+
+  .d3 .d2-plan .d2-checks li:nth-child(4) {
+    --n: 3;
+  }
+
+  .d3 .d2-plan .d2-checks li:nth-child(5) {
+    --n: 4;
+  }
+
+  .d3 .d2-plan .d2-checks li:nth-child(6) {
+    --n: 5;
+  }
+
+  .d3 .d2-plan .d2-checks li:nth-child(n + 7) {
+    --n: 6;
+  }
+
+  /* ====================================================================== "Trường hợp nào giống bạn?": đường kẻ tự vẽ + viên dẫn về gói */
+  /* Đường kẻ chuyển từ border sang phần tử giả để vẽ được bằng transform (không animate bề rộng) */
+  .d3 .d2-cases {
+    border-top-color: transparent;
+  }
+
+  .d3 .d2-case {
+    position: relative;
+    border-bottom-color: transparent;
+  }
+
+  .d3 .d2-case::after,
+  .d3 .d2-case:first-child::before {
+    position: absolute;
+    right: 0;
+    left: 0;
+    height: 1px;
+    background: var(--border);
+    content: "";
+    transform-origin: 0 50%;
+  }
+
+  .d3 .d2-case::after {
+    bottom: 0;
+  }
+
+  .d3 .d2-case:first-child::before {
+    top: -1px;
+    background: var(--border-strong);
+  }
+
+  .d3 .d3-plans-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.9rem;
+  }
+
+  /* Viên mang đúng bề mặt của tấm gói nó dẫn tới: trắng viền tóc (Own) · Aqua (Grow) · mực (Amplify) */
+  .d3 .d3-plans-pill {
+    display: inline-flex;
+    min-height: 2.25rem;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0 0.6rem 0 0.9rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .d3 .d3-plans-pill[data-plan="own"] {
+    background: var(--d2-white);
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+  }
+
+  .d3 .d3-plans-pill[data-plan="grow"] {
+    background: var(--d2-aqua);
+  }
+
+  .d3 .d3-plans-pill[data-plan="amplify"] {
+    background: var(--d2-ink);
+    color: var(--d2-cloud);
+  }
+
+  /* Mũi tên chỉ lên: các thẻ gói nằm phía trên phần này */
+  .d3 .d3-plans-pill svg {
+    flex: none;
+    width: 0.85rem;
+    height: 0.85rem;
+    transform: rotate(-90deg);
+  }
+
+  @media (pointer: coarse) {
+    .d3 .d3-plans-pill {
+      min-height: 2.75rem;
+      padding-inline: 1.1rem 0.8rem;
+    }
+  }
+
+  /* ====================================================================== Bảng so sánh (PlansCompare.tsx) */
+  /* Bề rộng cột nhãn; ba cột còn lại chia đều phần còn lại (table-layout: fixed) nên khối Aqua biết chính xác cột Aegis ở đâu */
+  .d3 .d2-compare {
+    --label-w: 28%;
+  }
+
+  .d3 .d3-plans-sheet {
+    position: relative;
+    min-width: 46rem;
+    isolation: isolate;
+  }
+
+  .d3 .d2-compare table {
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  .d3 .d2-compare thead td {
+    width: var(--label-w);
+  }
+
+  .d3 .d2-compare tbody th {
+    width: auto;
+  }
+
+  /* Nền cột Aegis: MỘT khối liền nằm sau chữ (thay cho nền tô từng ô) để vẽ được bằng clip-path */
+  .d3 .d2-compare .d2-col-us {
+    background: none;
+  }
+
+  .d3 .d3-plans-sheet::before {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: calc((100% - var(--label-w)) / 3);
+    border-radius: var(--d2-r-card);
+    background: var(--d2-aqua);
+    content: "";
+  }
+
+  .d3 .d3-plans-hint {
+    display: none;
+  }
+
+  /* Bảng rộng hơn màn hình: cột nhãn dính bên trái để lúc vuốt ngang vẫn biết đang đọc dòng nào */
+  @media (max-width: 49.99rem) {
+    .d3 .d2-compare {
+      --label-w: 9.25rem;
+      margin-top: 0.9rem;
+      scroll-padding-left: var(--label-w);
+    }
+
+    .d3 .d3-plans-sheet {
+      min-width: 39rem;
+    }
+
+    .d3 .d2-compare th,
+    .d3 .d2-compare td {
+      padding: 0.9rem 0.85rem;
+      font-size: 0.9375rem;
+    }
+
+    .d3 .d2-compare thead th {
+      font-size: 1.05rem;
+    }
+
+    .d3 .d2-compare thead td,
+    .d3 .d2-compare tbody th {
+      position: sticky;
+      z-index: 1;
+      left: 0;
+      padding-left: 0;
+      background: var(--bg);
+      box-shadow: 1px 0 0 var(--border);
+      scroll-snap-align: none;
+    }
+
+    .d3 .d3-plans-hint {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 1.75rem;
+      color: var(--fg-muted);
+      font-weight: 600;
+    }
+
+    .d3 .d3-plans-hint::after {
+      content: "\2192";
+    }
+  }
+
+  /* ====================================================================== Câu hỏi (PlansFaq.tsx) */
+  .d3 .d2-faq summary {
+    gap: 1.25rem;
+    padding-block: 1rem;
+  }
+
+  /* Dấu cộng trong vòng tròn: mở ra thì vòng tròn tô mực, dấu cộng xoay thành dấu đóng */
+  .d3 .d3-plans-faq-icon {
+    display: grid;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    place-items: center;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+  }
+
+  .d3 .d2-faq details[open]:not([data-closing]) .d3-plans-faq-icon {
+    background: var(--d2-ink);
+    box-shadow: none;
+    color: var(--d2-cloud);
+  }
+
+  /* Đang co lại (vẫn còn [open] để nội dung kịp co): dấu cộng quay về ngay từ đầu */
+  .d3 .d2-faq details[data-closing] summary svg {
+    transform: none;
+  }
+
+  /* Chiều cao do GSAP điều khiển lúc mở / đóng; phần chữ thừa phải bị cắt */
+  .d3 .d3-plans-faq-body {
+    overflow: hidden;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .d3 .d2-faq summary:hover {
+      color: var(--d2-teal-ink);
+    }
+
+    .d3 .d2-faq summary:hover .d3-plans-faq-icon {
+      background: var(--d2-aqua);
+      box-shadow: none;
+      color: var(--d2-ink);
+    }
+
+    /* Dò theo dòng trong bảng: dòng đang rê chuột sẫm lên một chút, kể cả ô nằm trên khối Aqua */
+    .d3 .d2-compare tbody tr:hover > * {
+      background-color: color-mix(in srgb, var(--d2-ink) 5%, transparent);
+    }
+  }
+
+  /* ====================================================================== Chuyển động */
+  @media (prefers-reduced-motion: no-preference) {
+    /* ---------- Thẻ xếp chồng ---------- */
+    /* Khoảng thở giữa các thẻ đặt theo cờ có từ trước lúc vẽ (không chờ component) để trang không xê dịch khi JS vào */
+    [data-motion="on"] .d3 .d3-plans-stack {
+      --stack-gap: clamp(1.25rem, 6vh, 3.5rem);
+    }
+
+    /*
+     * Chỉ dính khi component đã đo xong chiều cao thẻ (data-live).
+     * top = điểm dính bình thường, HOẶC lùi lên sao cho đáy thẻ chạm đáy màn hình nếu thẻ cao hơn màn hình (điện thoại):
+     * người xem cuộn hết thẻ rồi thẻ mới đứng lại, không dòng nào bị thẻ sau che trước khi kịp đọc.
+     */
+    [data-motion="on"] .d3 .d3-plans-stack[data-live] > .d3-plans-slot {
+      position: sticky;
+      top: min(calc(var(--stack-top) + var(--i, 0) * var(--stack-step)), calc(100svh - var(--card-h, 0px) - 1rem));
+      transform: scale(calc(1 - var(--stack-d, 0) * var(--stack-shrink)));
+      /* Thẻ cao dính bằng đáy nên thu về phía đáy; máy tính dính bằng đỉnh nên thu về phía đỉnh (bên dưới) */
+      transform-origin: 50% 100%;
+    }
+
+    @media (min-width: 64rem) {
+      /*
+       * Giữ chồng ba thẻ đứng yên thêm một nhịp sau khi Amplify vào chỗ (không có thì chồng thẻ rời đi ngay lúc vừa xếp xong).
+       * Phải là một khối thật trong vùng nội dung (padding không tính: thẻ dính chỉ được giữ trong vùng nội dung của khối cha).
+       * Lề âm trả lại đúng khoảng cách cũ tới phần sau: đoạn giữ nằm chồng lên khoảng đệm trống phía trên của phần đó.
+       */
+      [data-motion="on"] .d3 .d3-plans-stack {
+        margin-bottom: -4.5rem;
+      }
+
+      [data-motion="on"] .d3 .d3-plans-stack::after {
+        display: block;
+        height: 4.5rem;
+        content: "";
+      }
+
+      [data-motion="on"] .d3 .d3-plans-stack[data-live] > .d3-plans-slot {
+        filter: brightness(calc(1 - var(--stack-d, 0) * 0.06));
+        transform-origin: 50% 0;
+      }
+
+      /* Thẻ đầu nằm trong màn hình đầu: tick vẽ ngay lúc tải, sau khi thẻ trồi lên */
+      [data-motion="on"] .d3 .d3-plans-slot:first-of-type .d2-checks svg {
+        animation: d3-plans-tick 0.6s var(--kit-ease-out) calc(0.5s + var(--n, 0) * 70ms) both;
+      }
+    }
+
+    /* Thẻ còn ở dưới màn hình: tick chờ, rồi vẽ so le khi danh sách tới (chữ của danh sách luôn hiện) */
+    [data-motion="on"] .d3 .d3-plans-slot[data-ticks="armed"] .d2-checks svg {
+      clip-path: inset(0 100% 0 0);
+    }
+
+    [data-motion="on"] .d3 .d3-plans-slot[data-ticks="drawn"] .d2-checks svg {
+      animation: d3-plans-tick 0.6s var(--kit-ease-out) calc(0.1s + var(--n, 0) * 70ms) both;
+    }
+
+    /* ---------- Đường kẻ của các tình huống ---------- */
+    .d3 .d2-case::after,
+    .d3 .d2-case:first-child::before {
+      transition: transform 1.1s var(--kit-ease-out) calc(0.12s + var(--rise-i, 0) * 80ms);
+    }
+
+    [data-motion="on"] .d3 .d2-case:not([data-in])::after,
+    [data-motion="on"] .d3 .d2-case:first-child:not([data-in])::before {
+      transform: scaleX(0);
+    }
+
+    .d3 .d3-plans-pill {
+      transition:
+        background-color 0.2s var(--d2-ease),
+        box-shadow 0.2s var(--d2-ease);
+    }
+
+    .d3 .d3-plans-pill svg {
+      transition: transform 0.25s var(--d2-ease);
+    }
+
+    /* ---------- Cột Aegis ---------- */
+    .d3 .d3-plans-sheet::before {
+      clip-path: inset(0 round var(--d2-r-card));
+      transition: clip-path 1.2s var(--kit-ease-out);
+    }
+
+    [data-motion="on"] .d3 .d3-plans-sheet[data-drawn="false"]::before {
+      clip-path: inset(0 0 100% 0 round var(--d2-r-card));
+    }
+
+    .d3 .d2-compare tbody tr > * {
+      transition: background-color 0.2s var(--d2-ease);
+    }
+
+    /* ---------- Câu hỏi ---------- */
+    .d3 .d2-faq summary,
+    .d3 .d3-plans-faq-icon {
+      transition:
+        color 0.2s var(--d2-ease),
+        background-color 0.25s var(--d2-ease),
+        box-shadow 0.25s var(--d2-ease);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+    .d3 .d3-plans-pill:hover svg {
+      transform: rotate(-90deg) translateX(3px);
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .d3 .d3-plans-pill[data-plan="own"]:hover {
+      box-shadow: inset 0 0 0 1px var(--fg);
+    }
+
+    .d3 .d3-plans-pill[data-plan="grow"]:hover {
+      background: var(--d2-teal);
+    }
+
+    .d3 .d3-plans-pill[data-plan="amplify"]:hover {
+      background: var(--d2-ink-2);
+    }
+  }
+
+  @keyframes d3-plans-tick {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+
+    to {
+      clip-path: inset(0);
+    }
+  }
 }

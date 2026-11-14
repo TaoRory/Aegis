@@ -1,4 +1,339 @@
 /* /demo3 — services: kiểu riêng của bản nâng cấp, viết trong phạm vi .d3 (class nền .d2-* nằm ở src/styles/demo2.css). */
 
 @layer components {
+  /* ---------- Sân khấu có chiều sâu (ServicesStage): thẻ mô hình + hai tấm lớp xếp bậc phía sau ---------- */
+  /*
+   * Ba biến điều khiển cả chồng, không biến nào làm đổi bố cục:
+   *   --fan   độ xoè của hai tấm sau (0 = nấp sau thẻ, 1 = xoè, lớn hơn 1 khi rê chuột)
+   *   --lift  độ nhô của thẻ về phía người xem
+   *   --sy    vị trí sân khấu trong màn hình (−1 dưới … 1 trên), do JS ghi khi cuộn trên máy tính
+   */
+  .d3 .d3-stage {
+    --fan: 1;
+    --lift: 2rem;
+    /* Bậc xếp của hai tấm sau: nhỏ lại trên màn hình hẹp để cả chồng nằm gọn trong sân khấu */
+    --step: clamp(0.7rem, 0.45rem + 1.1vw, 1.3rem);
+    place-items: stretch;
+    padding: 0;
+  }
+
+  .d3 .d3-stage[data-stage="teal"] {
+    background: var(--d2-teal);
+  }
+
+  .d3 .d3-stage-tilt {
+    display: grid;
+    min-height: inherit;
+    place-items: center;
+    padding: clamp(2rem, 1.2rem + 2.6vw, 3.75rem) clamp(1.5rem, 1rem + 2.2vw, 3.25rem);
+  }
+
+  /* Chừa chỗ cho hai tấm sau (xoè về phía phải - dưới), kể cả khi xoè thêm lúc rê chuột */
+  .d3 .d3-stage-tilt > .kit-tilt-inner {
+    width: min(100% - var(--step) * 3, 22rem);
+  }
+
+  /* Cuộn đổi góc nhìn của cả chồng: tấm ở xa lệch nhiều hơn tấm ở gần nhờ phối cảnh (parallax không cần tween riêng) */
+  .d3 .d3-stage-stack {
+    position: relative;
+    transform: translate3d(calc(var(--step) * -0.6), calc(var(--step) * -0.6 + var(--sy, 0) * -0.6rem), 0) rotateX(calc(var(--sy, 0) * -5deg));
+    transform-style: preserve-3d;
+  }
+
+  .d3 .d3-stage-card {
+    transform: translateZ(var(--lift));
+  }
+
+  .d3 .d3-stage .d2-layer {
+    width: 100%;
+  }
+
+  .d3 .d3-stage-plate {
+    --shift: calc(var(--fan) * var(--k) * var(--step));
+    position: absolute;
+    inset: 0;
+    border-radius: var(--d2-r-card);
+    background: color-mix(in srgb, var(--d2-white) 55%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--d2-ink) 18%, transparent);
+    transform: translate3d(var(--shift), var(--shift), calc(var(--k) * -2.5rem));
+  }
+
+  .d3 .d3-stage-plate[data-plate="1"] {
+    --k: 1;
+  }
+
+  .d3 .d3-stage-plate[data-plate="2"] {
+    --k: 2;
+  }
+
+  .d3 .d3-stage[data-stage="ink"] .d3-stage-plate {
+    background: color-mix(in srgb, var(--d2-cloud) 9%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--d2-aqua) 50%, transparent);
+  }
+
+  /* Mô hình trong sân khấu không lặp vô hạn như bản /demo2: đứng ở trạng thái hoàn chỉnh, chỉ chạy một lượt khi có cờ data-play */
+  .d3 .d3-stage .d2-lm .d2-lm-result,
+  .d3 .d3-stage .d2-lm .d2-lm-grid i,
+  .d3 .d3-stage .d2-lm.d2-lm-flow .d2-pill,
+  .d3 .d3-stage .d2-lm.d2-lm-site .d2-bar {
+    animation: none;
+  }
+
+  /*
+   * Tiêu đề SplitReveal nhiều dòng: mặt nạ từng dòng có padding 0,16em + margin âm 0,16em để bù nhau (motion-kit.css),
+   * nhưng hai margin âm liền kề gộp làm một, nên mỗi dòng bị đẩy xuống thêm 0,16em và tiêu đề đổi chiều cao lúc tách dòng.
+   * Dòng thứ hai trở đi kéo lên đủ cả phần padding của dòng trước: khoảng cách dòng giữ đúng như trước khi tách.
+   * !important vì motion-kit.css nằm ngoài @layer (kiểu trong layer không thắng được); gỡ khi kit sửa tận gốc.
+   */
+  .d3 .d3-lines .split-line-mask + .split-line-mask {
+    margin-top: -0.32em !important;
+  }
+
+  /* ---------- Màn đầu trang chi tiết ---------- */
+  .d3 .d3-svc-hero .d3-stage {
+    min-height: clamp(16rem, 13rem + 17vw, 30rem);
+  }
+
+  /* Sân khấu Cloud trùng màu nền trang: ở màn đầu đổi sang tấm trắng có viền để vẫn là một "sân khấu" */
+  .d3 .d3-svc-hero .d3-stage[data-stage="cloud"] {
+    background: var(--d2-white);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  .d3 .d3-svc-hero .d3-stage[data-stage="cloud"] .d3-stage-plate {
+    background: color-mix(in srgb, var(--d2-cloud) 80%, transparent);
+  }
+
+  .d3 .d3-svc-hero .d3-stage-tilt > .kit-tilt-inner {
+    width: min(100% - var(--step) * 3, 24rem);
+  }
+
+  @media (min-width: 56rem) {
+    .d3 .d3-svc-hero {
+      grid-template-columns: 1.1fr 1fr;
+    }
+  }
+
+  /* ---------- Danh mục "dịch vụ khác": tên cuộn, mũi tên chạy xuyên, nền Aqua quét từ trái ---------- */
+  /* Tên cuộn: hai bản chồng lên nhau trong một ô; mặt nạ nới ra để không cắt dấu tiếng Việt và nét thò xuống */
+  .d3 .d3-roll {
+    display: grid;
+    margin-block: -0.16em;
+    padding-block: 0.16em;
+    clip-path: inset(0);
+  }
+
+  .d3 .d3-roll > * {
+    grid-area: 1 / 1;
+  }
+
+  .d3 .d3-roll > :last-child {
+    transform: translateY(130%);
+  }
+
+  /* Mũi tên: hai bản trong một khung cắt, bản thứ hai chờ ngoài mép trái */
+  .d3 .d3-arrow-pass {
+    display: grid;
+    grid-row: 1 / span 3;
+    grid-column: 2;
+    width: 1.5rem;
+    height: 1.5rem;
+    clip-path: inset(0);
+  }
+
+  .d3 .d3-svc-others .d3-arrow-pass svg {
+    grid-area: 1 / 1;
+  }
+
+  .d3 .d3-svc-others .d3-arrow-pass svg:last-child {
+    transform: translateX(-130%);
+  }
+
+  @media (min-width: 56rem) {
+    .d3 .d3-arrow-pass {
+      grid-row: auto;
+      grid-column: auto;
+    }
+  }
+
+  /* ---------- Chuyển động ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    /* Chồng lớp: chờ sân khấu vào màn hình rồi mới xoè (hai tấm sau là trang trí; thẻ mô hình luôn hiện) */
+    [data-motion="on"] .d3 [data-rise]:not([data-in]) .d3-stage {
+      --fan: 0;
+    }
+
+    .d3 .d3-stage-plate {
+      transition: transform 1s var(--kit-ease-out) calc(0.2s + var(--k) * 0.08s);
+    }
+
+    .d3 .d3-stage-card {
+      transition: transform 0.6s var(--kit-ease-out);
+    }
+
+    /* Mô hình chạy một lượt (cờ data-play do ServicesStage đặt khi vào màn hình hoặc rê chuột vào hàng) */
+    .d3 .d3-stage[data-play] .d2-lm .d2-lm-result[data-you="true"] {
+      animation: d3-rank-up 0.9s var(--kit-ease-out) 0.25s both;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm .d2-lm-result[data-you="true"] + .d2-lm-result {
+      animation: d3-rank-down 0.9s var(--kit-ease-out) 0.25s both;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm .d2-lm-grid i[data-tone] {
+      animation: d3-post 0.6s var(--kit-ease-out) both;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm .d2-lm-grid i:nth-child(3) {
+      animation-delay: 0.1s;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm .d2-lm-grid i:nth-child(4) {
+      animation-delay: 0.2s;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm .d2-lm-grid i:nth-child(5) {
+      animation-delay: 0.3s;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm .d2-lm-grid i:nth-child(8) {
+      animation-delay: 0.4s;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm .d2-lm-grid i:nth-child(9) {
+      animation-delay: 0.5s;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm.d2-lm-flow .d2-pill {
+      animation: d3-node 0.55s var(--kit-ease-in-out) both;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm.d2-lm-flow .d2-pill:nth-child(2) {
+      animation-delay: 0.35s;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm.d2-lm-flow .d2-pill:nth-child(3) {
+      animation-delay: 0.7s;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm.d2-lm-site .d2-bar {
+      transform-origin: left;
+      animation: d3-type 0.7s var(--kit-ease-out) both;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm.d2-lm-site .d2-bar:nth-child(2) {
+      animation-delay: 0.1s;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm.d2-lm-site .d2-bar:nth-child(3) {
+      animation-delay: 0.2s;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm.d2-lm-site .d2-bar:nth-child(4) {
+      animation-delay: 0.3s;
+    }
+
+    .d3 .d3-stage[data-play] .d2-lm.d2-lm-site .d2-bar:nth-child(5) {
+      animation-delay: 0.4s;
+    }
+
+    /* Dấu tick của "Chúng tôi làm gì" bật lên ngay sau khi hàng của nó về chỗ */
+    .d3 .d3-checks svg {
+      transition: transform 0.6s var(--kit-ease-out) calc(0.3s + var(--rise-i, 0) * 80ms);
+    }
+
+    [data-motion="on"] .d3 .d3-checks [data-rise]:not([data-in]) svg {
+      transform: scale(0);
+    }
+
+    .d3 .d3-roll > *,
+    .d3 .d3-svc-others .d3-arrow-pass svg {
+      transition: transform 0.55s var(--kit-ease-out);
+    }
+
+    /* Nền Aqua quét vào từ trái thay cho đổi màu tức thì của bản gốc */
+    .d3 .d3-svc-others a {
+      position: relative;
+      isolation: isolate;
+    }
+
+    .d3 .d3-svc-others a::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: var(--d2-aqua);
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      transition: transform 0.5s var(--kit-ease-out);
+    }
+
+    .d3 .d3-svc-others a:hover {
+      background: transparent;
+    }
+
+    .d3 .d3-svc-others a:is(:hover, :focus-visible)::before {
+      transform: scaleX(1);
+    }
+  }
+
+  /* Phản hồi theo con trỏ: chỉ thiết bị có chuột */
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+    .d3 [data-stage-host]:hover .d3-stage {
+      --fan: 1.45;
+      --lift: 3.25rem;
+    }
+
+    .d3 .d3-svc-row:hover .d2-btn svg {
+      transform: translateX(4px);
+    }
+
+    .d3 .d3-svc-others a:hover .d3-roll > :first-child {
+      transform: translateY(-130%);
+    }
+
+    .d3 .d3-svc-others a:hover .d3-roll > :last-child {
+      transform: translateY(0);
+    }
+
+    .d3 .d3-svc-others a:hover .d3-arrow-pass svg:first-child {
+      transform: translateX(130%);
+    }
+
+    .d3 .d3-svc-others a:hover .d3-arrow-pass svg:last-child {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes d3-rank-up {
+    from {
+      transform: translateY(calc(100% + 0.35rem));
+    }
+  }
+
+  @keyframes d3-rank-down {
+    from {
+      transform: translateY(calc(-100% - 0.35rem));
+    }
+  }
+
+  @keyframes d3-post {
+    from {
+      transform: scale(0.55);
+      opacity: 0.25;
+    }
+  }
+
+  @keyframes d3-node {
+    45% {
+      transform: scale(1.12);
+    }
+  }
+
+  @keyframes d3-type {
+    from {
+      transform: scaleX(0);
+    }
+  }
 }

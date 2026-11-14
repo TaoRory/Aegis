@@ -6,6 +6,8 @@ import previewsJson from "@/content/project-previews.json";
 import type { Project, ProjectPreviews } from "@/content/types";
 
 import { Check } from "./D3Icons";
+import { Rise } from "./fx/Rise";
+import { SplitReveal } from "./fx/SplitReveal";
 
 export const d3Previews = previewsJson as ProjectPreviews;
 export const d3Host = (url: string) => new URL(url).host.replace(/^www\./, "");
@@ -26,12 +28,21 @@ export function Shot({ project, alt, sizes, priority }: { project: Project; alt:
   );
 }
 
-/** Đầu trang con: tiêu đề lớn căn trái + câu dẫn (không nhãn nhỏ phía trên) */
+/**
+ * Đầu trang con: tiêu đề lớn căn trái + câu dẫn (không nhãn nhỏ phía trên).
+ * Tiêu đề hiện theo từng dòng ngay khi trang tải; câu dẫn trồi lên sau một nhịp. `key` theo chữ: đổi ngôn ngữ thì dựng lại (SplitReveal cần chữ tĩnh).
+ */
 export function PageHead({ title, lead, children }: { title: string; lead?: string; children?: ReactNode }) {
   return (
     <header className="d2-wrap d2-pagehead">
-      <h1 className="d2-display max-w-[16em]">{title}</h1>
-      {lead && <p className="d2-lead mt-6">{lead}</p>}
+      <SplitReveal key={title} as="h1" trigger="load" className="d2-display d3-lines max-w-[16em]">
+        {title}
+      </SplitReveal>
+      {lead && (
+        <Rise as="p" index={2} className="d2-lead mt-6">
+          {lead}
+        </Rise>
+      )}
       {children}
     </header>
   );

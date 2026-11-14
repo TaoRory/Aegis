@@ -5,6 +5,9 @@ import { D3Service, d3Meta } from "@/components/demo3";
 import { getD3 } from "@/content/demo3";
 
 const t = getD3("vi");
+// Trang dựng sẵn từ generateStaticParams: cho phép route đọc params trực tiếp (không cần khung Suspense).
+export const instant = false;
+
 type Params = Promise<{ id: string }>;
 
 export function generateStaticParams() {

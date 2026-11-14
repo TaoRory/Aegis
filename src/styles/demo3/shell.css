@@ -1,4 +1,417 @@
 /* /demo3 — shell: kiểu riêng của bản nâng cấp, viết trong phạm vi .d3 (class nền .d2-* nằm ở src/styles/demo2.css). */
 
 @layer components {
+  /* ---------- Nút tạm dừng / chạy tiếp cho thứ tự chuyển động quá 5 giây (dải chữ chạy, nền động) ---------- */
+  /* Chỉ hiện khi trang đang bật chuyển động: không JS / giảm chuyển động thì không có gì để dừng */
+  .d3 .d3-motion-toggle {
+    display: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    place-items: center;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 45%, transparent);
+    cursor: pointer;
+  }
+
+  [data-motion="on"] .d3 .d3-motion-toggle {
+    display: grid;
+  }
+
+  .d3 .d3-motion-toggle svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .d3 .d3-motion-toggle:hover {
+    background: var(--d2-aqua);
+    color: var(--d2-ink);
+  }
+
+  /* ---------- Mũi tên "đi qua" (ArrowSwap): hai mũi tên chồng một ô, khung cắt phần tràn ---------- */
+  .d3 .d3-arrow-swap {
+    display: inline-grid;
+    flex: none;
+    overflow: hidden;
+  }
+
+  .d3 .d3-arrow-swap > svg {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+  }
+
+  /* Mũi tên thứ hai chờ ngoài mép trái (khuất). Không có chuột / giảm chuyển động: nó ở yên đó, chỉ thấy một mũi tên */
+  .d3 .d3-arrow-swap > svg:last-child {
+    transform: translateX(-130%);
+  }
+
+  /* Rê chuột khi giảm chuyển động hoặc trên cảm ứng: mũi tên đứng yên (bỏ cú dịch 8–10px của bản /demo2).
+     Quy tắc "đi qua" ở cuối file cùng độ ưu tiên và viết sau nên thắng khi có chuột. */
+  .d3 a:hover .d3-arrow-swap > svg:first-child {
+    transform: none;
+  }
+
+  /* ---------- Lời mời cuối trang: một tấm tối lồng trong lề trang, nền "bó sợi" phía sau ---------- */
+  .d3 .d3-final {
+    padding: calc(var(--d2-section) * 0.6) 0.75rem 0.75rem;
+  }
+
+  /* isolation: lớp nền (z-index âm) nằm trên màu nền của tấm nhưng dưới mọi nội dung */
+  .d3 .d3-final-slab {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--d2-r-slab);
+  }
+
+  /* Lớp nền phủ kín tấm, không tham gia bố cục: tải bản WebGL hay không cũng không xô lệch gì */
+  /* Mặt nạ làm dịu bó sợi ở nơi tiêu đề nằm, để nét sáng nhất sau chữ vẫn giữ tương phản trên 4,5:1.
+     Điện thoại: tiêu đề chiếm trọn bề ngang ở phần trên → dịu cả dải trên. Máy tính: tiêu đề hai dòng ở nửa trái → chỉ dịu góc trên trái,
+     nửa phải và nửa dưới giữ nguyên độ sáng (hai lớp mặt nạ cộng lại). */
+  .d3 .d3-final-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.2) 0%, rgb(0 0 0 / 0.2) 30%, rgb(0 0 0) 52%);
+  }
+
+  @media (min-width: 64rem) {
+    .d3 .d3-final-bg {
+      mask-image:
+        linear-gradient(to right, rgb(0 0 0 / 0.2) 0%, rgb(0 0 0 / 0.2) 56%, rgb(0 0 0) 76%), linear-gradient(to bottom, transparent 0%, transparent 46%, rgb(0 0 0) 66%);
+    }
+  }
+
+  .d3 .d3-final-still,
+  .d3 .d3-final-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Bản WebGL vẽ xong khung đầu (data-live) thì đổi chỗ với bản tĩnh */
+  .d3 .d3-final-canvas {
+    opacity: 0;
+  }
+
+  .d3 .d3-final-slab[data-live="true"] .d3-final-canvas {
+    opacity: 1;
+  }
+
+  .d3 .d3-final-slab[data-live="true"] .d3-final-still {
+    opacity: 0;
+  }
+
+  .d3 .d3-final-inner {
+    padding-block: clamp(3rem, 1.6rem + 5.6vw, 6.5rem) clamp(1.25rem, 0.5rem + 3.4vw, 4.5rem);
+  }
+
+  /* Tiêu đề gói trong hai dòng ở nửa trái, nhường nửa phải cho bó sợi */
+  .d3 .d3-final-inner .d2-display {
+    max-width: 9em;
+  }
+
+  /* Ô "xem dự án": mực trong mờ, thấy bó sợi chạy phía sau; ô "nhận báo giá" là ô chính: teal đặc, chữ mực (6,7:1) */
+  .d3 .d3-final-slab .d2-final a:first-child {
+    background: color-mix(in srgb, var(--d2-ink-2) 80%, transparent);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  .d3 .d3-final-slab .d2-final a:first-child:is(:hover, :focus-visible) {
+    box-shadow: inset 0 0 0 1px var(--d2-aqua);
+  }
+
+  .d3 .d3-final-slab .d2-final a:last-child {
+    color: var(--d2-ink);
+  }
+
+  .d3 .d2-final-title .d3-arrow-swap {
+    width: 0.6em;
+    height: 0.6em;
+    margin-top: 0.15em;
+  }
+
+  .d3 .d3-final-toggle {
+    position: absolute;
+    right: clamp(0.75rem, 0.4rem + 1vw, 1.25rem);
+    top: clamp(0.75rem, 0.4rem + 1vw, 1.25rem);
+    color: var(--fg-muted);
+  }
+
+  /* ---------- Chân trang: logo Möbius cạnh tagline ---------- */
+  .d3 .d3-foot-brand {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .d3 .d3-foot-mark {
+    flex: none;
+    width: auto;
+    height: clamp(3.25rem, 2.7rem + 1.4vw, 4.25rem);
+    margin-top: -0.2rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .d3 .d3-motion-toggle {
+      transition:
+        background-color 0.2s ease-out,
+        color 0.2s ease-out;
+    }
+
+    .d3 .d3-final-still,
+    .d3 .d3-final-canvas {
+      transition: opacity 0.8s ease-out;
+    }
+
+    .d3 .d3-arrow-swap > svg {
+      transition: transform 0.5s var(--kit-ease-out);
+    }
+  }
+
+  /* Mũi tên đi qua: chỉ khi có chuột hoặc focus bàn phím, và không giảm chuyển động */
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) {
+    .d3 a:hover .d3-arrow-swap > svg:first-child {
+      transform: translateX(130%);
+    }
+
+    .d3 a:hover .d3-arrow-swap[data-dir="out"] > svg:first-child {
+      transform: translate(130%, -130%);
+    }
+
+    .d3 a:hover .d3-arrow-swap > svg:last-child {
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .d3 a:focus-visible .d3-arrow-swap > svg:first-child {
+      transform: translateX(130%);
+    }
+
+    .d3 a:focus-visible .d3-arrow-swap[data-dir="out"] > svg:first-child {
+      transform: translate(130%, -130%);
+    }
+
+    .d3 a:focus-visible .d3-arrow-swap > svg:last-child {
+      transform: none;
+    }
+  }
+}
+
+/* ============================================================================================================
+   Đợt 2: nút, viên chỉ mục trên header, danh sách thả xuống, menu điện thoại
+   ============================================================================================================ */
+@layer components {
+  /* ---------- Nút (D3Btn): mũi tên đi qua nằm gọn trong một ô 1rem ---------- */
+  .d3 .d2-btn .d3-arrow-swap {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* Mũi tên chéo (liên kết ra website ngoài): mũi tên thứ hai chờ ở góc dưới trái */
+  .d3 .d3-arrow-swap[data-dir="out"] > svg:last-child {
+    transform: translate(-130%, 130%);
+  }
+
+  /*
+   * ---------- Viên chỉ mục ----------
+   * Một bản sao tối của cả thanh điều hướng (nền tối, chữ sáng, aria-hidden) nằm đè lên thanh thật và chỉ lộ ra qua một
+   * "cửa sổ" hình viên (clip-path). Cửa sổ trượt tới đâu, chữ đảo màu tới đó; chữ thật bên dưới luôn là chữ tối trên nền sáng.
+   * Bản sao phải xếp chữ y hệt thanh thật: cùng flex, cùng khoảng cách, cùng padding và cỡ chữ với .d2-nav a (demo2.css).
+   */
+  .d3 .d2-nav {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .d3 .d3-nav-pill {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    gap: 0.25rem;
+    background: var(--d2-ink);
+    color: var(--d2-cloud);
+    clip-path: inset(0 var(--pr) 0 var(--pl) round 999px);
+    pointer-events: none;
+  }
+
+  .d3 .d3-nav-pill > span {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .d3 .d3-nav-pill[data-on="false"] {
+    opacity: 0;
+  }
+
+  /* Khi viên đã sẵn sàng (có JS): mục đang xem và mục đang rê thôi tự tô nền, viên lo việc đó */
+  .d3 .d2-nav[data-ind="on"] > ul > li > a,
+  .d3 .d2-nav[data-ind="on"] > ul > li > a:hover {
+    background: transparent;
+    color: var(--fg);
+  }
+
+  /* ---------- Menu điện thoại: tấm phủ kín phần màn hình dưới header ---------- */
+  @media (max-width: 59.99rem) {
+    .d3 .d2-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      left: 0;
+      height: calc(100dvh - var(--d2-header));
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      background: var(--d2-cloud);
+      padding-block: 0.25rem 2.5rem;
+    }
+  }
+
+  /* Trang phía sau không cuộn khi menu mở (Lenis đã dừng; dòng này lo trường hợp giảm chuyển động, không có Lenis) */
+  html[data-d3-menu="open"] {
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* Nút lún nhẹ khi nhấn. Viết lại cả danh sách transition vì /demo2 chỉ khai báo màu */
+    .d3 .d3-btn {
+      transition:
+        background-color 0.2s var(--d2-ease),
+        box-shadow 0.2s var(--d2-ease),
+        color 0.2s var(--d2-ease),
+        transform 0.3s var(--kit-ease-out);
+    }
+
+    .d3 .d3-btn:active {
+      transform: scale(0.96);
+    }
+
+    .d3 .d3-nav-pill[data-slide="true"] {
+      transition:
+        clip-path 0.55s var(--kit-ease-out),
+        opacity 0.25s ease-out;
+    }
+
+    /* Danh sách Dịch vụ: luôn nằm trong DOM, đóng bằng clip-path (không ẩn bằng opacity / visibility), mở từ trên xuống */
+    [data-motion="on"] .d3 .d2-nav .d2-sub {
+      display: block;
+      clip-path: inset(0 0 100% 0 round var(--d2-r-card));
+      pointer-events: none;
+      transition: clip-path 0.3s cubic-bezier(0.4, 0, 1, 1);
+    }
+
+    [data-motion="on"] .d3 .d2-nav .d2-has-sub:hover .d2-sub,
+    [data-motion="on"] .d3 .d2-nav .d2-has-sub:focus-within .d2-sub {
+      clip-path: inset(-1rem -2rem -3rem -2rem round var(--d2-r-card));
+      pointer-events: auto;
+      transition: clip-path 0.5s var(--kit-ease-out);
+    }
+
+    [data-motion="on"] .d3 .d2-nav .d2-sub > li {
+      transform: translateY(0.75rem);
+      transition: transform 0.2s ease-in;
+    }
+
+    [data-motion="on"] .d3 .d2-nav .d2-has-sub:hover .d2-sub > li,
+    [data-motion="on"] .d3 .d2-nav .d2-has-sub:focus-within .d2-sub > li {
+      transform: none;
+      transition: transform 0.55s var(--kit-ease-out) calc(var(--i, 0) * 45ms);
+    }
+
+    /* Menu điện thoại: tấm mở từ trên xuống, từng dòng trồi lên so le (chỉ dịch chuyển, chữ không ẩn) */
+    [data-motion="on"] .d3 .d2-menu {
+      animation: d3-menu-in 0.55s var(--kit-ease-out) both;
+    }
+
+    [data-motion="on"] .d3 .d2-menu[data-state="closing"] {
+      animation: d3-menu-out 0.32s cubic-bezier(0.4, 0, 1, 1) both;
+    }
+
+    [data-motion="on"] .d3 .d2-menu[data-state="open"] .d3-menu-item {
+      animation: d3-menu-item 0.7s var(--kit-ease-out) calc(var(--i, 0) * 45ms + 60ms) both;
+    }
+  }
+
+  @keyframes d3-menu-in {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+
+    to {
+      clip-path: inset(0);
+    }
+  }
+
+  @keyframes d3-menu-out {
+    from {
+      clip-path: inset(0);
+    }
+
+    to {
+      clip-path: inset(0 0 100% 0);
+    }
+  }
+
+  @keyframes d3-menu-item {
+    from {
+      transform: translateY(2rem);
+    }
+  }
+}
+
+/* ============================================================================================================
+   Chuyển trang trong /demo3 (View Transitions). Viết ngoài @layer vì các quy tắc ::view-transition của trang chính
+   (effects.css) cũng nằm ngoài layer; quy tắc trong layer không thắng được chúng.
+   - Header mang tên riêng nên không trôi theo trang: bản chụp cũ bị bỏ, bản mới hiện ngay (viên chỉ mục tự trượt trong bản mới).
+   - Trang cũ lùi lên và mờ đi nhanh; trang mới trồi lên. Loại "d3-nav" do D3Link đặt.
+   - Ảnh dự án bay từ ô sang đầu trang chi tiết: lớp .aegis-morph của trang chính (WorkShot).
+   Nút Back / Forward của trình duyệt: mờ chéo ngắn mặc định của trang chính. Giảm chuyển động: đổi trang tức thì.
+   ============================================================================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  .d3 .d2-top {
+    view-transition-name: d3-top;
+  }
+
+  ::view-transition-group(d3-top) {
+    z-index: 10;
+  }
+
+  ::view-transition-old(d3-top) {
+    animation: none;
+    opacity: 0;
+  }
+
+  ::view-transition-new(d3-top) {
+    animation: none;
+  }
+
+  :root:active-view-transition-type(d3-nav)::view-transition-old(root) {
+    mix-blend-mode: normal;
+    animation: 0.3s cubic-bezier(0.4, 0, 1, 1) both d3-page-out;
+  }
+
+  :root:active-view-transition-type(d3-nav)::view-transition-new(root) {
+    mix-blend-mode: normal;
+    animation: 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.14s both d3-page-in;
+  }
+}
+
+@keyframes d3-page-out {
+  to {
+    opacity: 0;
+    transform: translateY(-1.25rem);
+  }
+}
+
+@keyframes d3-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(3rem);
+  }
 }

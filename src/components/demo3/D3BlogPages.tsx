@@ -1,12 +1,17 @@
-import { ArrowRight } from "@/components/demo1/icons";
 import { d3Href, type D3Dict } from "@/content/demo3";
 import { d3Date, d3Post, d3Posts, type Block, type Inline } from "@/lib/demo3-blog";
 
 import { PageHead } from "./D3Bits";
 import { FinalCta } from "./D3Final";
+import { D3Btn } from "./D3Btn";
 import { D3Link } from "./D3Link";
 import { D3Shell } from "./D3Shell";
+import { Rise } from "./fx/Rise";
 
+/**
+ * Danh sách bài viết (dùng ở trang Blog và trang chủ). Mỗi hàng là một link:
+ * rê chuột thì tiêu đề dịch sang, mũi tên chạy vào và một vạch mực vẽ dọc mép dưới (work.css), thay cho gạch chân mặc định.
+ */
 export function PostList({ t, posts }: { t: D3Dict; posts: ReturnType<typeof d3Posts> }) {
   return (
     <ul className="d2-posts">
@@ -32,8 +37,15 @@ export function PostList({ t, posts }: { t: D3Dict; posts: ReturnType<typeof d3P
   );
 }
 
+/**
+ * Trang Blog. Chưa có bài thì nói thật là chưa có (không dựng bài giả):
+ * một con trỏ soạn thảo nhấp nháy vài nhịp sau câu "đang được viết" rồi đứng yên, các chủ đề sẽ viết trồi lên lần lượt.
+ */
 export function D3Blog({ t }: { t: D3Dict }) {
   const posts = d3Posts(t.lang);
+  // Tách từ cuối để con trỏ luôn dính vào chữ, không rớt một mình xuống dòng
+  const words = t.blog.empty.split(" ");
+  const lastWord = words.pop();
   return (
     <D3Shell t={t}>
       <PageHead title={t.blog.title} lead={t.blog.lead} />
@@ -43,23 +55,30 @@ export function D3Blog({ t }: { t: D3Dict }) {
         ) : (
           <div className="d2-empty">
             <div>
-              <h2 className="d2-h2">{t.blog.empty}</h2>
+              <h2 className="d2-h2">
+                {words.join(" ")}{" "}
+                <span className="whitespace-nowrap">
+                  {lastWord}
+                  <span className="d3-caret" aria-hidden />
+                </span>
+              </h2>
               <p className="mt-4 max-w-[30rem] text-muted">{t.blog.emptyLine}</p>
               <div className="d2-hero-actions">
-                <D3Link href={d3Href(t.lang, "/work")} className="d2-btn d2-btn-ink">
+                <D3Btn href={d3Href(t.lang, "/work")} tone="ink">
                   {t.final.work}
-                  <ArrowRight />
-                </D3Link>
-                <D3Link href={d3Href(t.lang, "/plans")} className="d2-btn d2-btn-line">
+                </D3Btn>
+                <D3Btn href={d3Href(t.lang, "/plans")} tone="line">
                   {t.home.secondary}
-                </D3Link>
+                </D3Btn>
               </div>
             </div>
             <div>
               <h3 className="d2-small font-semibold text-muted">{t.blog.topicsLabel}</h3>
               <ul className="d2-rows mt-2">
-                {t.blog.topics.map((topic) => (
-                  <li key={topic}>{topic}</li>
+                {t.blog.topics.map((topic, i) => (
+                  <Rise as="li" key={topic} index={i}>
+                    {topic}
+                  </Rise>
                 ))}
               </ul>
             </div>

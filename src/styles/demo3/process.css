@@ -1,4 +1,421 @@
 /* /demo3 — process: kiểu riêng của bản nâng cấp, viết trong phạm vi .d3 (class nền .d2-* nằm ở src/styles/demo2.css). */
 
+/*
+ * Cảnh cuộn của trang Quy trình (src/components/demo3/ProcessScene.tsx).
+ * Ba chế độ trên cùng một HTML:
+ *   1. Mặc định (điện thoại, giảm chuyển động, không JS): thanh ray là bảng tĩnh "bước × gói", năm thẻ xếp dọc, mọi chữ hiện sẵn.
+ *   2. Máy tính có chuyển động: thẻ xếp thành hàng ngang ngay từ CSS (dưới html[data-motion="on"]) để lúc JS gắn vào không xô lệch
+ *      bố cục; khi JS chưa chạy, hàng thẻ vẫn kéo ngang được bằng cuộn gốc.
+ *   3. JS đã gắn (.d3-proc[data-live="true"]): cảnh cao thêm đúng quãng chạy, phần trong dính dưới header, hàng thẻ do GSAP kéo.
+ * Điều kiện @media của chế độ 2 phải trùng MQ.desktopMotion trong src/lib/motion.ts.
+ */
+
 @layer components {
+  /* ---------- Khung chung ---------- */
+  .d3 .d3-proc {
+    --proc-gap: 1rem;
+    --proc-label: 4.75rem; /* cột tên gói của thanh ray */
+    --proc-inset: 0.4rem;
+    /* Mép trái/phải của hàng thẻ trùng với .d2-wrap. % ở đây là bề rộng vùng nhìn (không tính thanh cuộn như vw) */
+    --proc-edge: max(var(--d2-gutter), calc((100% - var(--d2-max)) / 2));
+    margin-top: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
+  }
+
+  .d3 .d3-proc-pin {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  /* ---------- Thanh ray: bảng "bước × gói" ---------- */
+  .d3 .d3-proc-rail {
+    position: relative;
+    display: grid;
+    padding: var(--proc-inset);
+    border: 1px solid var(--border);
+    border-radius: var(--d2-r-card);
+    background: var(--d2-white);
+    font-size: 0.875rem;
+    line-height: 1.2;
+  }
+
+  .d3 .d3-proc-row {
+    position: relative; /* nằm trên khối Aqua */
+    display: grid;
+    grid-template-columns: var(--proc-label) repeat(var(--proc-n, 5), minmax(0, 1fr));
+    align-items: center;
+  }
+
+  .d3 .d3-proc-row > :first-child {
+    padding-left: 0.6rem;
+  }
+
+  .d3 .d3-proc-corner {
+    color: var(--fg-muted);
+  }
+
+  .d3 .d3-proc-stops {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .d3 .d3-proc-stops a {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border-radius: 0.6rem;
+    font-weight: 600;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .d3 .d3-proc-stops a:hover .d3-proc-stop-name {
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.22em;
+    }
+  }
+
+  .d3 .d3-proc-stops b {
+    font-family: var(--d2-font-display);
+    font-size: 1.125rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Điện thoại: cột hẹp, chỉ giữ số bước; tên bước vẫn còn cho trình đọc màn hình (tên đầy đủ nằm ngay ở thẻ bên dưới) */
+  @media (max-width: 47.99rem) {
+    .d3 .d3-proc-stop-name {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .d3 .d3-proc-stops [role="columnheader"] {
+      position: relative;
+    }
+  }
+
+  .d3 .d3-proc-lane [role="rowheader"] {
+    font-weight: 600;
+  }
+
+  /* Tên gói: khối Aqua quét vào phía sau khi gói đó có bước đang đứng (chữ ký "khối Aqua sau từ khoá" của Aegis) */
+  .d3 .d3-proc-plan {
+    position: relative;
+    display: inline-block;
+    isolation: isolate; /* giữ khối Aqua (z-index: -1) nằm ngay sau chữ, không chui xuống dưới nền thanh ray */
+    padding: 0.1rem 0.4rem;
+    margin-left: -0.4rem;
+  }
+
+  .d3 .d3-proc-plan::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 0.35rem;
+    background: var(--d2-aqua);
+    content: "";
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+
+  .d3 .d3-proc-lane[data-on="true"] .d3-proc-plan::before {
+    transform: none;
+  }
+
+  .d3 .d3-proc-lane[data-on="false"] .d3-proc-plan {
+    color: var(--fg-muted);
+  }
+
+  .d3 .d3-proc-lane [role="cell"] {
+    position: relative;
+    display: grid;
+    height: 1.6rem;
+    place-items: center;
+  }
+
+  /* Có trong gói: chấm đặc. Không có: một gạch mảnh */
+  .d3 .d3-proc-lane i {
+    position: relative;
+    z-index: 1;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--d2-ink);
+  }
+
+  .d3 .d3-proc-lane [data-has="false"] i {
+    width: 0.6rem;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--border-strong);
+  }
+
+  /* Hai bước liền nhau cùng thuộc một gói thì nối bằng một đường mảnh: nhìn ra ngay gói nào đi tới đâu */
+  .d3 .d3-proc-lane [data-link]::before {
+    position: absolute;
+    top: calc(50% - 0.5px);
+    left: 50%;
+    width: 100%;
+    height: 1px;
+    background: var(--border-strong);
+    content: "";
+  }
+
+  .d3 .d3-proc-lane [data-active][data-has="true"] i {
+    transform: scale(1.7);
+  }
+
+  /* Khối Aqua đánh dấu cột của bước đang đứng; chỉ hiện khi đang ghim và đi theo --proc-u (0 → số bước − 1) */
+  .d3 .d3-proc-band {
+    position: absolute;
+    inset-block: var(--proc-inset);
+    left: calc(var(--proc-inset) + var(--proc-label));
+    display: none;
+    width: calc((100% - var(--proc-inset) * 2 - var(--proc-label)) / var(--proc-n, 5));
+    border-radius: 0.7rem;
+    background: var(--d2-aqua);
+    transform: translateX(calc(var(--proc-u, 0) * 100%));
+  }
+
+  .d3 .d3-proc[data-live="true"] .d3-proc-band {
+    display: block;
+    will-change: transform;
+  }
+
+  /* ---------- Thẻ bước ---------- */
+  .d3 .d3-proc-track {
+    display: grid;
+    gap: var(--proc-gap);
+    padding-inline: var(--proc-edge);
+  }
+
+  .d3 .d3-proc-card {
+    display: grid;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--d2-r-slab);
+    background: var(--d2-white);
+  }
+
+  @media (min-width: 48rem) {
+    .d3 .d3-proc-card {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    }
+  }
+
+  .d3 .d3-proc-title {
+    font-family: var(--d2-font-display);
+    font-size: clamp(1.7rem, 1.2rem + 1.6vw, 2.6rem);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.024em;
+    text-wrap: balance;
+  }
+
+  /* Dấu tiếng Việt chồng cần dòng thoáng hơn */
+  .d3 :lang(vi) .d3-proc-title {
+    line-height: 1.2;
+  }
+
+  /* Nền sân khấu theo nhịp của /demo2: sáng · Aqua · sáng · Aqua · mực (bước "tiếp tục lớn lên") */
+  .d3 .d3-proc-card:nth-child(even) .d3-proc-stage {
+    background: var(--d2-aqua);
+  }
+
+  .d3 .d3-proc-card:last-child .d3-proc-stage {
+    background: var(--d2-ink);
+  }
+
+  /* ---------- Chế độ 2 và 3: hàng ngang trên máy tính ---------- */
+  @media (min-width: 64rem) and (min-height: 40rem) and (prefers-reduced-motion: no-preference) {
+    html[data-motion="on"] .d3 .d3-proc {
+      --proc-gap: 1.5rem;
+      --proc-card: min(72vw, 64rem);
+      --proc-pace: 0.7; /* mỗi px cuộn dọc đi ~1,4px ngang: năm bước gói trong khoảng ba màn hình */
+    }
+
+    html[data-motion="on"] .d3 .d3-proc[data-live="true"] {
+      height: calc(100svh - var(--d2-header) + var(--proc-travel, 0px) * var(--proc-pace));
+    }
+
+    /* Thanh ray + một thẻ phải vừa một màn (kể cả 1280×720 và 1024×640): hàng thẻ co theo chiều cao còn lại */
+    html[data-motion="on"] .d3 .d3-proc-pin {
+      position: sticky;
+      top: var(--d2-header);
+      height: calc(100svh - var(--d2-header));
+      grid-template-rows: auto minmax(0, 34rem);
+      align-content: center;
+      gap: clamp(0.75rem, 2svh, 1.25rem);
+      padding-block: clamp(0.75rem, 2.2svh, 1.5rem);
+    }
+
+    html[data-motion="on"] .d3 .d3-proc-view {
+      display: grid;
+      /* Cột bằng đúng bề rộng vùng nhìn: nếu để auto, cột nở theo hàng thẻ và % của --proc-edge tính theo bề rộng đó (mép lệch hẳn) */
+      grid-template-columns: minmax(0, 1fr);
+      min-height: 0;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+    }
+
+    html[data-motion="on"] .d3 .d3-proc-view::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Đang ghim: tắt hẳn cuộn ngang gốc. clip (không phải hidden) để tìm trong trang / focus không tự đẩy scrollLeft làm lệch transform */
+    html[data-motion="on"] .d3 .d3-proc[data-live="true"] .d3-proc-view {
+      overflow: hidden;
+      overflow: clip;
+      scroll-snap-type: none;
+    }
+
+    html[data-motion="on"] .d3 .d3-proc-track {
+      display: flex;
+      width: max-content;
+      min-height: 0;
+    }
+
+    html[data-motion="on"] .d3 .d3-proc[data-live="true"] .d3-proc-track {
+      will-change: transform;
+    }
+
+    /* Thẻ trong hàng ngang không "trồi lên" như ở danh sách dọc: nó vào màn hình từ mép phải, theo đường ray */
+    html[data-motion="on"] .d3 .d3-proc .d3-proc-track > .d3-proc-card {
+      flex: none;
+      width: var(--proc-card);
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+      transform: none;
+      scroll-snap-align: center;
+    }
+
+    /* Thẻ đang đứng đủ cỡ, các thẻ còn lại lùi nhẹ: mắt biết ngay đang ở chặng nào */
+    html[data-motion="on"] .d3 .d3-proc[data-live="true"] .d3-proc-track > .d3-proc-card:not([data-state="active"]) {
+      transform: scale(0.94);
+    }
+
+    html[data-motion="on"] .d3 .d3-proc-text {
+      gap: clamp(0.6rem, 1.8svh, 1rem);
+      padding: clamp(1.25rem, 4.5svh, 2.75rem) clamp(1.5rem, 1rem + 2vw, 2.75rem);
+    }
+
+    /* Mỗi chặng một thẻ lớn: số bước và tiêu đề to hơn bản xếp dọc, nhưng co theo chiều cao màn hình để luôn vừa một màn */
+    html[data-motion="on"] .d3 .d3-proc-text .d2-step-no {
+      font-size: clamp(3rem, 11svh, 6.5rem);
+    }
+
+    html[data-motion="on"] .d3 .d3-proc-title {
+      font-size: clamp(1.7rem, min(1rem + 2.6vw, 5.5svh), 3.25rem);
+    }
+
+    html[data-motion="on"] .d3 .d3-proc-text p {
+      font-size: clamp(1rem, 2.4svh, 1.1875rem);
+    }
+
+    html[data-motion="on"] .d3 .d3-proc-stage {
+      min-height: 0;
+      padding-block: clamp(1rem, 3svh, 2.5rem);
+    }
+  }
+
+  /* Màn rộng và cao: sân khấu dư chỗ, mô hình phóng nhẹ cho cân với thẻ (scale riêng, không đụng transform của hiệu ứng) */
+  @media (min-width: 80rem) and (min-height: 48rem) and (prefers-reduced-motion: no-preference) {
+    html[data-motion="on"] .d3 .d3-proc .d2-mock {
+      scale: 1.15;
+    }
+  }
+
+  /* ---------- Chuyển động ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .d3 .d3-proc-plan::before,
+    .d3 .d3-proc-lane i {
+      transition: transform 0.4s var(--kit-ease-out);
+    }
+
+    .d3 .d3-proc-card {
+      transition: transform 0.8s var(--kit-ease-out);
+    }
+
+    /* Danh sách dọc: thẻ trồi lên khi ló vào màn hình. Chỉ dịch chuyển, opacity vẫn là 1, nên chữ luôn đọc được */
+    html[data-motion="on"] .d3 .d3-proc-card:not([data-entered]) {
+      transform: translateY(3rem);
+    }
+
+    /*
+     * Mô hình minh hoạ: /demo2 cho dấu tick, ô lịch, nhãn "đang làm" lặp vô hạn. Ở đây mỗi mô hình chỉ chạy MỘT lần khi tới lượt
+     * (thẻ có data-play) rồi đứng yên ở trạng thái hoàn chỉnh: trạng thái của từng dòng lần lượt được chốt.
+     * Trạng thái chờ chỉ có dưới html[data-motion="on"]; mô hình là hình trang trí (aria-hidden), chữ nội dung của thẻ không bị ẩn.
+     */
+    .d3 .d3-proc .d2-mock :is(.d2-tick, .d2-pill),
+    .d3 .d3-proc .d2-cal i[data-on] {
+      animation: none;
+    }
+
+    .d3 .d3-proc .d2-mock > :nth-child(3) {
+      --proc-i: 1;
+    }
+
+    .d3 .d3-proc .d2-mock > :nth-child(4) {
+      --proc-i: 2;
+    }
+
+    .d3 .d3-proc .d2-mock > :nth-child(5) {
+      --proc-i: 3;
+    }
+
+    .d3 .d3-proc .d2-mock > :nth-child(6) {
+      --proc-i: 4;
+    }
+
+    /* Lịch tháng: lấp theo ngày, từ thứ Hai tới thứ Sáu */
+    .d3 .d3-proc .d2-cal i:nth-of-type(5n + 2) {
+      --proc-i: 1;
+    }
+
+    .d3 .d3-proc .d2-cal i:nth-of-type(5n + 3) {
+      --proc-i: 2;
+    }
+
+    .d3 .d3-proc .d2-cal i:nth-of-type(5n + 4) {
+      --proc-i: 3;
+    }
+
+    .d3 .d3-proc .d2-cal i:nth-of-type(5n) {
+      --proc-i: 4;
+    }
+
+    .d3 .d3-proc .d2-mock :is(.d2-tick, .d2-pill[data-on="true"], .d2-pill[data-soft="true"], .d2-mock-field > :last-child),
+    .d3 .d3-proc .d2-cal i[data-on] {
+      transition:
+        transform 0.55s var(--kit-ease-out),
+        opacity 0.25s ease-out,
+        clip-path 0.7s var(--kit-ease-out);
+      transition-delay: calc(0.25s + var(--proc-i, 0) * 0.12s);
+    }
+
+    .d3 .d3-proc .d2-mock-field > :last-child {
+      clip-path: inset(0);
+    }
+
+    /* Chờ: dòng và nhãn vẫn hiện, chỉ phần "kết quả" (trạng thái, dấu tick, giá trị, ô lịch) chưa có. Quay về chờ thì tắt ngay, không so le */
+    html[data-motion="on"] .d3 .d3-proc-card:not([data-play]) .d2-mock :is(.d2-tick, .d2-pill[data-on="true"], .d2-pill[data-soft="true"]),
+    html[data-motion="on"] .d3 .d3-proc-card:not([data-play]) .d2-cal i[data-on] {
+      opacity: 0;
+      transform: scale(0.5);
+      transition-duration: 0.2s;
+      transition-delay: 0s;
+    }
+
+    html[data-motion="on"] .d3 .d3-proc-card:not([data-play]) .d2-mock-field > :last-child {
+      clip-path: inset(0 100% 0 0);
+      transition-duration: 0.2s;
+      transition-delay: 0s;
+    }
+  }
 }

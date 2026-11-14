@@ -5,8 +5,13 @@ import type { D2Lang } from "@/content/demo2";
  * Hai ngôn ngữ phải cùng một khuôn. Không bịa số liệu, khách hàng, lời chứng thực, giá.
  */
 const copy = {
-  en: {},
-  vi: {},
+  en: {
+    /** Gợi ý cạnh nhãn "Full page": khung ảnh toàn trang tự cuộn được */
+    scrollHint: "Scroll inside the frame",
+  },
+  vi: {
+    scrollHint: "Cuộn trong khung để xem cả trang",
+  },
 } satisfies Record<D2Lang, Record<string, unknown>>;
 
 export default copy;

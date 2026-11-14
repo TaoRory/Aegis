@@ -6,6 +6,9 @@ import { getD3 } from "@/content/demo3";
 import { d3Post, d3Posts } from "@/lib/demo3-blog";
 
 const t = getD3("en");
+// Trang dựng sẵn từ generateStaticParams: cho phép route đọc params trực tiếp (không cần khung Suspense).
+export const instant = false;
+
 type Params = Promise<{ slug: string }>;
 
 /** Chưa có bài nào thì trả một tham số giữ chỗ (trang đó là 404): cacheComponents yêu cầu ít nhất một tham số */

@@ -1,4 +1,213 @@
 /* /demo3 — hero: kiểu riêng của bản nâng cấp, viết trong phạm vi .d3 (class nền .d2-* nằm ở src/styles/demo2.css). */
 
+/*
+ * Mặt nạ dòng của SplitText (motion-kit.css: đệm 0.16em rồi kéo lại bằng lề âm 0.16em để không cắt dấu tiếng Việt).
+ * Hai lề âm kề nhau gộp làm một chứ không cộng lại, nên tiêu đề từ hai dòng trở lên bị giãn thêm 0.16em ở mỗi khe sau khi tách
+ * (mọi thứ bên dưới nhảy xuống so với lúc chưa tách). Dòng thứ hai trở đi kéo đủ 0.32em để khoảng cách dòng giữ nguyên.
+ * Luật này đứng NGOÀI @layer vì motion-kit.css không nằm trong layer nào: luật trong layer luôn thua luật ngoài layer.
+ */
+.d3 .d3-hero [data-hero="title"] .split-line-mask + .split-line-mask {
+  margin-top: -0.32em;
+}
+
 @layer components {
+  /* ---------- Màn đầu ---------- */
+  /* Lúc bay vào và lúc tách lớp, các lớp phóng to ra ngoài tấm nền; cắt theo chiều ngang để trang không bao giờ có thanh cuộn ngang */
+  .d3 .d3-hero {
+    overflow-x: clip;
+  }
+
+  /* Vỏ của từng nút: phải là khối thì mới dịch chuyển được trong cảnh mở */
+  .d3 .d3-hero-cta {
+    display: inline-flex;
+  }
+
+  /*
+   * Tài sản bốn lớp: mỗi lớp nằm trong một "ô" (.d3-slot) giữ vị trí, mặt thẻ (.d2-layer) nằm bên trong.
+   * Điện thoại / máy tính bảng: lưới hai cột như bản gốc (.d3-stack không tạo hộp, các ô là phần tử lưới).
+   */
+  .d3 .d3-stack {
+    display: contents;
+  }
+
+  .d3 .d3-slot {
+    display: grid;
+    min-width: 0;
+  }
+
+  @media (min-width: 60rem) {
+    /* Bốn lớp xếp chồng lệch nhau như một chồng thẻ; cùng số đo với bản /demo2, chỉ chuyển từ mặt thẻ sang ô */
+    .d3 .d3-stack {
+      position: absolute;
+      inset: 0;
+      display: block;
+      /* Khi màn đầu trôi đi (--d3-ex: 0 → 1, do HeroStage ghi lên .d2-board) cả chồng nghiêng mép trên về phía người xem:
+         lớp càng gần càng tụt xuống so với tấm nền, nên các lớp tách khỏi nhau thay vì đè lên nhau, và ở lại màn hình lâu hơn */
+      transform: rotateX(calc(var(--d3-ex, 0) * -20deg));
+      transform-style: preserve-3d;
+    }
+
+    .d3 .d3-slot {
+      position: absolute;
+      /* Thuộc tính translate / rotate riêng, không dùng transform: transform của ô để dành cho cảnh mở (GSAP) */
+      translate: calc(var(--d3-ex, 0) * var(--ex-x, 0px)) calc(var(--d3-ex, 0) * var(--ex-y, 0px)) calc(var(--z, 0px) + var(--d3-ex, 0) * var(--ex-z, 0px));
+      rotate: z calc(var(--d3-ex, 0) * var(--ex-r, 0deg));
+    }
+
+    .d3 .d3-slot[data-on="true"] {
+      z-index: 2;
+    }
+
+    /* Mỗi lớp một quãng riêng (--ex-*: quãng ở mức tách hết cỡ): lớp nền lùi lại, lớp càng ở trên càng tiến về phía người xem */
+    .d3 .d3-slot[data-layer="site"] {
+      top: 0;
+      left: 0;
+      width: 56%;
+      --ex-x: -14px;
+      --ex-y: 24px;
+      --ex-z: -60px;
+      --ex-r: -1.5deg;
+    }
+
+    .d3 .d3-slot[data-layer="search"] {
+      top: 9%;
+      right: 0;
+      width: 47%;
+      --z: 36px;
+      --ex-x: -4px;
+      --ex-y: 0px;
+      --ex-z: 60px;
+      --ex-r: 1.5deg;
+    }
+
+    .d3 .d3-slot[data-layer="social"] {
+      bottom: 0;
+      left: 14%;
+      width: 42%;
+      --z: 72px;
+      --ex-x: -22px;
+      --ex-y: 0px;
+      --ex-z: 230px;
+      --ex-r: 2.5deg;
+    }
+
+    .d3 .d3-slot[data-layer="ai"] {
+      right: 3%;
+      bottom: 5%;
+      width: 36%;
+      --z: 52px;
+      --ex-x: 0px;
+      --ex-y: 0px;
+      --ex-z: 150px;
+      --ex-r: -2deg;
+    }
+
+    /* Mặt thẻ lấp đầy ô; chiều sâu đã chuyển lên ô nên ở đây chỉ còn phần nhấc nhẹ khi lớp được bật */
+    .d3 .d2-board .d2-layer[data-layer] {
+      position: relative;
+      inset: auto;
+      width: auto;
+      transform: translateY(var(--lift, 0px));
+    }
+  }
+
+  /* Không JS / giảm chuyển động: không có gì tự chạy nên không có nút Tạm dừng */
+  .d3 .d2-seg button.d2-seg-pause {
+    display: none;
+  }
+
+  /* Không có JS thì không thể có nút dừng, nên các vòng lặp vô hạn trong bốn lớp (xếp hạng, lịch đăng bài, luồng agent) đứng yên */
+  html:not([data-motion="on"]) .d3 .d2-board :is(.d2-layer, .d2-layer *) {
+    animation: none;
+  }
+
+  /* ---------- Intro thương hiệu (D3Intro): mặc định không tồn tại; chỉ hiện khi script đầu layout đặt html[data-d3-intro] ---------- */
+  .d3 .d3-intro {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html[data-d3-intro] .d3 .d3-intro {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: grid;
+      place-items: center;
+      background: var(--d2-ink);
+    }
+
+    /* Dự phòng: JS không chạy tới D3Intro (không đặt data-live) thì tấm phủ tự biến mất sau 3 giây, trang bên dưới đã đầy đủ */
+    html[data-d3-intro="playing"] .d3 .d3-intro:not([data-live]) {
+      animation: d3-intro-failsafe 0.4s 3s forwards;
+    }
+
+    .d3 .d3-intro-mark {
+      width: clamp(6.5rem, 4rem + 8vw, 10rem);
+      height: auto;
+    }
+
+    /* ---------- Trạng thái chờ của cảnh mở (trước khi HeroStage đặt data-live); JS lỗi thì tự về chỗ sau 3 giây ---------- */
+    /* Đoạn dẫn và nút: chỉ lệch xuống, chữ vẫn hiện */
+    [data-motion="on"] .d3 .d3-hero:not([data-live]) [data-hero="rise"] {
+      transform: translateY(1.75rem);
+      animation: d3-hero-settle 0.6s var(--kit-ease-out) 3s forwards;
+    }
+
+    /* Bốn lớp là hình minh hoạ (aria-hidden), có bản chữ riêng cho trình đọc màn hình */
+    [data-motion="on"] .d3 .d3-hero:not([data-live]) .d3-slot {
+      opacity: 0;
+      animation: d3-hero-settle 0.6s var(--kit-ease-out) 3s forwards;
+    }
+
+    /* Khối Aqua sau từ khoá: timeline của màn đầu quét vào qua biến --d3-mark (0 → 1) thay cho animation CSS của bản gốc;
+       không có JS thì biến không được đặt và khối hiện đủ */
+    [data-motion="on"] .d3 .d3-hero .d2-mark {
+      background-size: calc(var(--d3-mark, 1) * 100%) 100%;
+      animation: none;
+    }
+
+    /* ---------- Bốn lớp: bỏ animation thả vào của bản gốc (cảnh mở do GSAP dựng), giữ phần trôi nhẹ của lớp đang bật ---------- */
+    [data-motion="on"] .d3 .d2-board .d2-layer {
+      animation: none;
+    }
+
+    [data-motion="on"] .d3 .d2-board .d2-layer[data-on="true"] {
+      animation: d2-float 6s ease-in-out 2.6s infinite;
+    }
+
+    [data-motion="on"] .d3 .d2-board .d2-layer[data-layer="search"][data-on="true"] {
+      animation-duration: 7.2s;
+      animation-delay: 3s;
+    }
+
+    [data-motion="on"] .d3 .d2-board .d2-layer[data-layer="social"][data-on="true"] {
+      animation-duration: 5.4s;
+      animation-delay: 3.3s;
+    }
+
+    /* Nút Tạm dừng có sẵn trong HTML từ máy chủ nhưng chỉ chiếm chỗ khi có chuyển động (cờ đặt trước khung hình đầu tiên):
+       nếu để React thêm nút sau khi hydrate thì hàng nút gói trên điện thoại gãy thành hai dòng và đẩy cả bốn lớp xuống */
+    [data-motion="on"] .d3 .d2-seg button.d2-seg-pause {
+      display: inline-block;
+    }
+
+    /* Nút Tạm dừng: mọi vòng lặp trong khối đứng yên (lớp trôi, bảng xếp hạng, lịch đăng bài, luồng agent) */
+    .d3 .d2-asset[data-still] .d2-board :is(.d2-layer, .d2-layer *) {
+      animation-play-state: paused;
+    }
+  }
+
+  @keyframes d3-hero-settle {
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+
+  @keyframes d3-intro-failsafe {
+    to {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
 }

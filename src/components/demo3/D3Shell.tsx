@@ -1,16 +1,20 @@
 import type { ReactNode } from "react";
 
-import { D1Wordmark } from "@/components/demo1/D1Wordmark";
+import { AegisMark } from "@/components/brand/AegisLogo";
+import { PageTransition } from "@/components/motion/PageTransition";
 import { d3Contact, d3Href, type D3Dict } from "@/content/demo3";
 
 import { D3Header } from "./D3Header";
 import { D3Link } from "./D3Link";
-import { Rise } from "./fx/Rise";
+import { FooterStage } from "./FooterStage";
+import { FooterWordmark } from "./FooterWordmark";
 
 /** Vỏ chung của mọi trang /demo3: liên kết bỏ qua, header, nội dung, footer; `lang` đặt trên vỏ để chữ theo đúng ngôn ngữ */
 export function D3Shell({ t, children }: { t: D3Dict; children: ReactNode }) {
   return (
     <div lang={t.lang} className="contents">
+      {/* Điểm kích hoạt chuyển trang (View Transitions): nằm trong từng trang nên được gỡ / gắn lại mỗi lần đổi route */}
+      <PageTransition />
       <a href="#d2-main" className="d2-skip">
         {t.chrome.skip}
       </a>
@@ -23,13 +27,18 @@ export function D3Shell({ t, children }: { t: D3Dict; children: ReactNode }) {
   );
 }
 
+/** Chân trang: tấm tối; chữ ký chuyển động (logo Möbius tự lắp ráp cạnh tagline, chữ AEGIS trồi lên) do FooterStage điều khiển */
 function D3Footer({ t }: { t: D3Dict }) {
   return (
     <footer className="d2-footer">
-      <div className="d2-footer-slab" data-d2-tone="dark">
+      <FooterStage className="d2-footer-slab">
         <div className="d2-wrap">
           <div className="d2-footer-grid">
-            <p className="d2-h3 max-w-[18rem]">{t.footer.tagline}</p>
+            <div className="d3-foot-brand">
+              {/* `pieces`: bảy mảnh rời để lắp ráp; không JS thì các mảnh đứng sẵn đúng chỗ, trông như logo tĩnh */}
+              <AegisMark pieces small className="d3-foot-mark" />
+              <p className="d2-h3 max-w-[18rem]">{t.footer.tagline}</p>
+            </div>
             <div>
               <h3>{t.footer.services}</h3>
               <ul>
@@ -65,15 +74,13 @@ function D3Footer({ t }: { t: D3Dict }) {
               </ul>
             </div>
           </div>
-          <Rise kind="wipe">
-            <D1Wordmark className="d2-wordmark" title="Aegis" />
-          </Rise>
+          <FooterWordmark className="d2-wordmark" title="Aegis" />
           <div className="d2-footer-base">
             <span>{t.footer.rights}</span>
             <span>BUILD / DEPLOY / SCALE</span>
           </div>
         </div>
-      </div>
+      </FooterStage>
     </footer>
   );
 }

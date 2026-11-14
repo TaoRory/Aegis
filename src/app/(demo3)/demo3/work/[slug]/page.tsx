@@ -6,6 +6,9 @@ import { d3Projects, getD3 } from "@/content/demo3";
 
 const t = getD3("en");
 const projects = d3Projects("en");
+// Trang dựng sẵn từ generateStaticParams: cho phép route đọc params trực tiếp (không cần khung Suspense).
+export const instant = false;
+
 type Params = Promise<{ slug: string }>;
 
 export function generateStaticParams() {

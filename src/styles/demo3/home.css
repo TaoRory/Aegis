@@ -1,4 +1,293 @@
 /* /demo3 — home: kiểu riêng của bản nâng cấp, viết trong phạm vi .d3 (class nền .d2-* nằm ở src/styles/demo2.css). */
 
 @layer components {
+  /* ---------- Dải chữ chạy theo tốc độ cuộn (HomeMarquee): dải tối hơi nghiêng, chữ đặc / Aqua / chỉ viền ---------- */
+  /* Khung ngoài cắt phần dải thò ra hai bên (dải rộng 108% để khi nghiêng không hở góc): trang không tràn ngang */
+  .d3 .d3-marquee {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(2rem, 1.2rem + 3vw, 4rem);
+  }
+
+  .d3 .d3-marquee-band {
+    width: 108%;
+    margin-left: -4%;
+    padding-block: clamp(0.7rem, 0.4rem + 1vw, 1.3rem);
+    background: var(--d2-ink);
+    transform: rotate(-1.6deg);
+  }
+
+  .d3 .d3-marquee-band .kit-marquee-row {
+    align-items: center;
+  }
+
+  .d3 .d3-marquee-band span {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--d2-font-display);
+    font-size: clamp(2rem, 1.2rem + 3.6vw, 4.5rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.035em;
+    color: var(--d2-cloud);
+  }
+
+  .d3 .d3-marquee-band span[data-tone="aqua"] {
+    color: var(--d2-aqua);
+  }
+
+  .d3 .d3-marquee-band span[data-tone="line"] {
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--d2-cloud);
+  }
+
+  /* Dấu ngăn: ô vuông teal nhỏ (không dùng ký tự) */
+  .d3 .d3-marquee-band span::after {
+    content: "";
+    width: 0.28em;
+    height: 0.28em;
+    margin-inline: 0.55em;
+    border-radius: 0.05em;
+    background: var(--d2-teal);
+  }
+
+  /* Nút dừng nằm ngay trên đầu phải của dải (đi theo độ nghiêng của dải), như nút của một cuộn băng */
+  .d3 .d3-marquee-toggle {
+    --focus-ring: var(--d2-aqua);
+    position: absolute;
+    top: calc(50% - 1.3vw);
+    right: var(--d2-gutter);
+    background: var(--d2-ink);
+    color: var(--d2-cloud);
+    transform: translateY(-50%);
+  }
+
+  /* ---------- "Website đứng yên, tài sản lớn lên": cảnh ghim ---------- */
+  /* Đường "tài sản" vẽ theo --line (JS tính từ tiến độ cuộn sao cho đầu đường chạm chấm đúng lúc mốc lên dẫn) */
+  .d3 .d2-story[data-live="true"] .d2-chart-asset {
+    stroke-dashoffset: calc(1 - var(--line, 1));
+  }
+
+  /* Vòng nháy và tên mốc cạnh chấm: chỉ có ở chế độ ghim; bản tĩnh không vẽ gì thêm */
+  .d3 .d2-chart-dot .d3-dot-ring {
+    fill: none;
+    stroke: var(--d2-teal);
+    stroke-width: 2.5;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .d3 .d2-chart-dot circle:not(.d3-dot-ring) {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .d3 .d2-chart-dot .d3-dot-label {
+    display: none;
+    fill: var(--d2-ink);
+    stroke: var(--d2-white);
+    stroke-width: 6px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+    font-family: var(--d2-font-display);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .d3 .d2-story[data-live="true"] .d2-chart-dot .d3-dot-label {
+    display: block;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  .d3 .d2-story[data-live="true"] .d2-chart-dot[data-lead="true"] .d3-dot-label {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Chấm đang dẫn lớn hơn các chấm đã qua */
+  .d3 .d2-story[data-live="true"] .d2-chart-dot[data-lead="true"] circle:not(.d3-dot-ring) {
+    transform: scale(1.22);
+  }
+
+  /* Mốc đang dẫn ở cột trái: khối Aqua quét sau tên mốc (chữ ký của trang), số thứ tự nhô lên, vạch tiến độ chạy dưới dòng */
+  .d3 .d2-miles li {
+    position: relative;
+  }
+
+  .d3 .d3-mile-title {
+    position: relative;
+    z-index: 0;
+    display: inline-block;
+  }
+
+  .d3 .d3-mile-title::before {
+    content: "";
+    position: absolute;
+    inset: 0.04em -0.2em;
+    z-index: -1;
+    border-radius: 0.14em;
+    background: var(--d2-aqua);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .d3 .d2-story[data-live="true"] .d2-miles li[data-active="true"] .d3-mile-title::before {
+    transform: scaleX(1);
+  }
+
+  .d3 .d2-story[data-live="true"] .d2-miles li[data-active="true"] .d2-mile-no {
+    transform: scale(1.18);
+  }
+
+  /* Vạch tiến độ: mốc đang dẫn chạy theo cuộn (--step, tuyến tính, không transition); mốc đã qua giữ vạch đầy */
+  .d3 .d2-story[data-live="true"] .d2-miles li::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
+    background: var(--d2-teal);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .d3 .d2-story[data-live="true"] .d2-miles li[data-active="true"]::after {
+    transform: scaleX(var(--step, 0));
+  }
+
+  .d3 .d2-story[data-live="true"] .d2-miles li[data-done="true"]::after {
+    transform: scaleX(1);
+  }
+
+  /* ---------- Bốn lớp dịch vụ (tấm tối): nền Aqua dâng lên từ đáy dòng thay cho đổi màu tức thì ---------- */
+  .d3 .d2-darkslab .d2-svc-index a {
+    position: relative;
+    z-index: 0;
+  }
+
+  .d3 .d2-darkslab .d2-svc-index a::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--d2-aqua);
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+
+  .d3 .d2-darkslab .d2-svc-index a:is(:hover, :focus-visible) {
+    border-bottom-color: transparent;
+    background: transparent;
+    color: var(--d2-ink);
+    --fg-muted: #1f3d3b;
+  }
+
+  .d3 .d2-darkslab .d2-svc-index a:is(:hover, :focus-visible)::before {
+    transform: scaleY(1);
+  }
+
+  .d3 .d2-darkslab .d2-svc-index a:focus-visible .d2-chip {
+    background: rgb(7 31 30 / 0.14);
+  }
+
+  /* Khung mũi tên giữ chỗ của mũi tên cũ trong lưới của dòng */
+  .d3 .d2-svc-index .d3-arrow-swap {
+    grid-row: 1 / span 3;
+    grid-column: 2;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  @media (min-width: 56rem) {
+    .d3 .d2-svc-index .d3-arrow-swap {
+      grid-row: auto;
+      grid-column: auto;
+    }
+  }
+
+  /* ---------- Ba gói thu gọn: viền hiện lên bằng opacity của một lớp riêng (không đổi box-shadow của chính ô) ---------- */
+  .d3 .d2-teaser {
+    position: relative;
+  }
+
+  .d3 .d2-teaser::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 2px var(--fg);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .d3 .d2-teaser:is(:hover, :focus-visible)::after {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* Cảnh ghim: đổi trạng thái theo mốc (0,4–0,6s); thứ gắn thẳng với cuộn (--line, --step) không có transition */
+    .d3 .d2-chart-dot .d3-dot-label,
+    .d3 .d2-chart-dot circle:not(.d3-dot-ring),
+    .d3 .d2-mile-no {
+      transition:
+        opacity 0.4s var(--kit-ease-out),
+        transform 0.5s var(--kit-ease-out),
+        color 0.4s ease,
+        background-color 0.4s ease,
+        fill 0.4s ease,
+        stroke 0.4s ease;
+    }
+
+    .d3 .d3-mile-title::before {
+      transition: transform 0.6s var(--kit-ease-out);
+    }
+
+    /* Chấm nháy MỘT lần mỗi khi đầu đường chạm tới (quy tắc bắt đầu khớp lại thì animation chạy lại từ đầu) */
+    .d3 .d2-story[data-live="true"] .d2-chart-dot[data-on="true"] .d3-dot-ring {
+      animation: d3-dot-pulse 0.9s var(--kit-ease-out) 1 both;
+    }
+
+    /* Dòng dịch vụ: nền dâng 0,45s; tên dịch sang phải cùng nhịp với mũi tên */
+    .d3 .d2-darkslab .d2-svc-index a::before {
+      transition: transform 0.45s var(--kit-ease-out);
+    }
+
+    .d3 .d2-svc-index .d2-svc-name {
+      transition: transform 0.5s var(--kit-ease-out);
+    }
+
+    .d3 .d2-svc-index a:focus-visible .d2-svc-name {
+      transform: translateX(0.6rem);
+    }
+
+    /* Ô gói: mũi tên chếch lên quay ngang (0,5s), viền hiện nhanh (0,2s) */
+    .d3 .d2-teaser::after {
+      transition: opacity 0.2s ease-out;
+    }
+
+    .d3 .d2-teaser-name svg {
+      transition: transform 0.5s var(--kit-ease-out);
+    }
+
+    .d3 .d2-teaser:is(:hover, :focus-visible) .d2-teaser-name svg {
+      transform: rotate(0deg) translateX(4px);
+    }
+  }
+
+  @keyframes d3-dot-pulse {
+    from {
+      opacity: 0.9;
+      transform: scale(1);
+    }
+
+    to {
+      opacity: 0;
+      transform: scale(2.8);
+    }
+  }
 }

@@ -1,4 +1,163 @@
 /* /demo3 — about: kiểu riêng của bản nâng cấp, viết trong phạm vi .d3 (class nền .d2-* nằm ở src/styles/demo2.css). */
 
 @layer components {
+  /* ---------- Câu tuyên bố tô dần theo cuộn (AboutStatement) ---------- */
+  /* Lớn hơn bản /demo2: câu này là thứ được "đọc" bằng thao tác cuộn, cần đủ dòng để thấy mực lan qua */
+  .d3 .d3-fill {
+    max-width: 19em;
+    font-size: clamp(1.625rem, 1.05rem + 2.3vw, 3.125rem);
+    line-height: 1.16;
+    text-wrap: balance;
+  }
+
+  .d3 .d3-fill:lang(vi) {
+    line-height: 1.3;
+  }
+
+  /*
+   * Mức tô của từng từ (--f, 0 → 1) tính từ tiến độ cuộn --p của cả câu, thứ tự --i và tổng số từ --n:
+   * mỗi lúc có khoảng hai từ đang chuyển màu, nên mực lan mềm chứ không nhảy từng từ.
+   * Không có --p (không JS, giảm chuyển động) → lấy 1 → mọi từ ở màu đậm.
+   * Màu khởi đầu là --d2-muted (10,9:1 trên Cloud): chưa cuộn tới thì chữ vẫn đọc rõ.
+   */
+  /* Từ có gạch nối ("easy-to-use") không gãy giữa chừng */
+  .d3 .d3-fill-w {
+    white-space: nowrap;
+  }
+
+  @supports (color: color-mix(in srgb, red calc(0.5 * 100%), blue)) {
+    .d3 .d3-fill-w {
+      --f: clamp(0, calc((var(--p, 1) * (var(--n) + 2) - var(--i)) / 2), 1);
+      margin-inline: -0.1em;
+      padding-inline: 0.1em;
+      border-radius: 0.14em;
+      /* Khối Aqua chỉ hiện ở những từ đang được tô (đậm nhất khi --f = 0,5), tắt hẳn ở hai đầu */
+      background: color-mix(in srgb, var(--d2-aqua) calc(4 * var(--f) * (1 - var(--f)) * 100%), transparent);
+      color: color-mix(in srgb, var(--d2-ink) calc(var(--f) * 100%), var(--d2-muted));
+    }
+  }
+
+  .d3 .d3-about-story {
+    margin-top: clamp(3rem, 2rem + 4vw, 5.5rem);
+  }
+
+  /* ---------- Tấm tối "Aegis bàn giao gì": lời hứa bên trái, danh sách bàn giao tự tick bên phải ---------- */
+  .d3 .d3-promise {
+    display: grid;
+    gap: 2.5rem 4rem;
+  }
+
+  .d3 .d3-handed ul {
+    margin-top: 0.9rem;
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .d3 .d3-handed li {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding-block: 0.8rem;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--d2-font-display);
+    font-size: clamp(1.1rem, 1rem + 0.45vw, 1.35rem);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.014em;
+  }
+
+  /* Trên nền mực, vòng tick đổi sang Aqua (vòng mực của bản gốc sẽ chìm vào nền) */
+  .d3 .d3-handed .d2-tick {
+    flex: none;
+    background: var(--d2-aqua);
+    color: var(--d2-ink);
+  }
+
+  @media (min-width: 60rem) {
+    .d3 .d3-promise {
+      grid-template-columns: 1.25fr 1fr;
+      align-items: end;
+    }
+  }
+
+  /* ---------- Ba nguyên tắc: hàng chữ lớn, một khối Aqua trượt theo hàng đang đọc (AboutValues) ---------- */
+  /*
+   * Đường kẻ giữa các hàng vẽ bằng nền của khung (các hàng cao bằng nhau nên kẻ đúng ở mỗi 1/n chiều cao),
+   * không dùng viền của từng hàng: khối Aqua nằm TRÊN đường kẻ và DƯỚI chữ, nên không bị đường kẻ cắt ngang mép.
+   */
+  .d3 .d3-values {
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    background: repeating-linear-gradient(to bottom, var(--border-strong) 0 1px, transparent 1px calc(100% / var(--n, 3)));
+  }
+
+  /* Hàng cao bằng nhau để khối trượt đúng bằng bội số chiều cao của chính nó */
+  .d3 .d3-values .d2-values {
+    position: relative;
+    display: grid;
+    grid-auto-rows: 1fr;
+  }
+
+  .d3 .d3-values .d2-values > div {
+    padding-block: clamp(1.25rem, 1rem + 1vw, 2rem);
+    border: 0;
+  }
+
+  .d3 .d3-values dt {
+    font-family: var(--d2-font-display);
+    font-size: clamp(1.875rem, 1.2rem + 2.4vw, 3.25rem);
+    font-weight: 600;
+    line-height: 1.06;
+    letter-spacing: -0.03em;
+  }
+
+  .d3 .d3-values dt:lang(vi) {
+    line-height: 1.2;
+  }
+
+  .d3 .d3-values dd {
+    max-width: 34rem;
+    margin-top: 0.75rem;
+    color: var(--fg-muted);
+  }
+
+  /* Khối chỉ tồn tại khi có chuyển động; mặc định không có gì để hiện */
+  .d3 .d3-values-marker {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* Chờ JS đặt --p: câu ở tông phụ (vẫn đọc rõ), không nháy từ đậm về nhạt lúc hydrate */
+    [data-motion="on"] .d3 .d3-fill {
+      --p: 0;
+    }
+
+    /* Dấu tick bật lần lượt khi tấm vào màn hình. Chữ của danh sách luôn hiện; chỉ vòng tick (trang trí) chờ. */
+    .d3 .d3-handed .d2-tick {
+      transition: transform 0.7s var(--kit-ease-out) calc(0.45s + var(--i, 0) * 90ms);
+    }
+
+    [data-motion="on"] .d3 .d3-promise:not([data-in]) .d2-tick {
+      transform: scale(0);
+    }
+
+    [data-motion="on"] .d3 .d3-values-marker {
+      position: absolute;
+      top: 0;
+      right: -1rem;
+      left: -1rem;
+      display: block;
+      height: calc(100% / var(--n, 3));
+      border-radius: var(--d2-r-inner);
+      background: var(--d2-aqua);
+      /* Phủ luôn đường kẻ của hàng kế tiếp (bóng tĩnh, không animate) */
+      box-shadow: 0 1px 0 var(--d2-aqua);
+      transform: translateY(calc(var(--at, 0) * 100%)) scaleX(0);
+      transform-origin: 0 50%;
+      transition: transform 0.6s var(--kit-ease-out);
+    }
+
+    [data-motion="on"] .d3 .d3-values[data-live="true"] .d3-values-marker {
+      transform: translateY(calc(var(--at, 0) * 100%)) scaleX(1);
+    }
+  }
 }

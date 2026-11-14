@@ -5,8 +5,13 @@ import type { D2Lang } from "@/content/demo2";
  * Hai ngôn ngữ phải cùng một khuôn. Không bịa số liệu, khách hàng, lời chứng thực, giá.
  */
 const copy = {
-  en: {},
-  vi: {},
+  en: {
+    /** Nhãn nút dừng / chạy của dải chữ chạy (chỉ trình đọc màn hình đọc) */
+    marquee: { pause: "Pause the moving text", play: "Play the moving text" },
+  },
+  vi: {
+    marquee: { pause: "Tạm dừng dải chữ chạy", play: "Chạy tiếp dải chữ" },
+  },
 } satisfies Record<D2Lang, Record<string, unknown>>;
 
 export default copy;
