@@ -96,6 +96,7 @@ export function WorkTile({
       href={href}
       className="d2-tile d3-tile"
       data-ink={ink}
+      data-cursor="view"
       style={{ backgroundColor: bg, order, "--peek-dur": `${seconds.toFixed(2)}s` } as CSSProperties}
       onPointerEnter={onPointerEnter}
       onPointerMove={onPointerMove}

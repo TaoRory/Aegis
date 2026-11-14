@@ -17,7 +17,7 @@ export function PostList({ t, posts }: { t: D3Dict; posts: ReturnType<typeof d3P
     <ul className="d2-posts">
       {posts.map((post) => (
         <li key={post.slug}>
-          <D3Link href={d3Href(t.lang, `/blog/${post.slug}`)}>
+          <D3Link href={d3Href(t.lang, `/blog/${post.slug}`)} data-cursor="read">
             <span className="d2-small text-muted">
               {d3Date(t.lang, post.date)} · {post.minutes} {t.blog.minutes}
             </span>

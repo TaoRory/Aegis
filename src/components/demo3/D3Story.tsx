@@ -5,77 +5,50 @@ import { useEffect, useRef, useState } from "react";
 import type { D3Dict } from "@/content/demo3";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/motion";
 
-/** Chỉ ghim khi màn hình đủ rộng và đủ cao để cả tiêu đề, năm mốc và biểu đồ nằm gọn trong một màn */
+import { StoryFlow } from "./StoryFlow";
+import { StoryNetwork } from "./StoryNetwork";
+
+type D3Path = "site" | "marketing";
+
+/** Chỉ ghim khi màn hình đủ rộng và đủ cao để cả tiêu đề, năm mốc và cảnh 3D nằm gọn trong một màn */
 const PIN_MQ = "(min-width: 64rem) and (min-height: 42rem) and (prefers-reduced-motion: no-preference)";
 
-/** Toạ độ 5 mốc trên đường "tài sản" (viewBox 600 × 380); đường "website bỏ đó" đi ngang sau mốc ra mắt */
-const POINTS: [number, number][] = [
-  [130, 262],
-  [235, 226],
-  [340, 176],
-  [445, 122],
-  [550, 62],
-];
-const ASSET = `M 30 318 C 70 300, 100 270, ${POINTS[0][0]} ${POINTS[0][1]} S 200 240, ${POINTS[1][0]} ${POINTS[1][1]} S 305 196, ${POINTS[2][0]} ${POINTS[2][1]} S 410 142, ${POINTS[3][0]} ${POINTS[3][1]} S 515 78, ${POINTS[4][0]} ${POINTS[4][1]}`;
-const FLAT = `M 30 318 C 70 300, 100 270, ${POINTS[0][0]} ${POINTS[0][1]} C 230 262, 400 272, 560 284`;
+/** Năm mốc chia đều tiến độ cuộn; mốc i bắt đầu ở i × 0,2 */
+const SLOT = 0.2;
+const PATHS: D3Path[] = ["site", "marketing"];
 
 /**
- * Kịch bản cuộn: mốc i "tới nơi" ở tiến độ REACH[i]. Mốc ra mắt có sẵn từ đầu (cả hai đường bắt đầu như nhau);
- * bốn mốc sau cách đều; sau mốc cuối còn một quãng nghỉ (0.88 → 1) để đọc xong trước khi cảnh nhả ghim.
- */
-const REACH = POINTS.map((_, index) => index * 0.22);
-
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
-
-/** Tỉ lệ chiều dài đường (0–1) tại hoành độ x: toạ độ x tăng đều dọc đường nên tìm nhị phân là đủ */
-function fractionAtX(path: SVGPathElement, total: number, x: number) {
-  let lo = 0;
-  let hi = total;
-  for (let i = 0; i < 18; i++) {
-    const mid = (lo + hi) / 2;
-    if (path.getPointAtLength(mid).x < x) lo = mid;
-    else hi = mid;
-  }
-  return hi / total;
-}
-
-/**
- * "Website đứng yên, tài sản lớn lên": một biểu đồ ý tưởng (không phải số liệu) với hai đường và năm mốc.
- * Máy tính, không giảm chuyển động: phần này ghim lại trong lúc cuộn và chạy như một cảnh có nhịp:
- *   đầu đường "tài sản" chạm chấm nào thì chấm đó nháy một lần, mốc tương ứng ở cột trái lên dẫn (khối Aqua quét sau tên mốc,
- *   vạch tiến độ chạy dưới dòng), tên mốc hiện cạnh chấm; cuộn tiếp thì đường vẽ sang mốc kế.
- * Mọi chữ luôn hiện sẵn. Điện thoại / giảm chuyển động / không JS: biểu đồ vẽ sẵn đầy đủ, năm mốc hiện bình thường.
+ * "Làm một lần rồi để đó thì phai, tài sản thì lớn lên": cột trái là năm mốc, cột phải là một cảnh SVG riêng cho từng lối vào.
+ * - Bắt đầu từ website (Own · Grow): "Dòng khách đổ về" (StoryFlow).
+ * - Chỉ marketing (Amplify): "Mạng lưới lan toả" (StoryNetwork).
+ * Đổi lối thì danh sách mốc, cảnh và chú thích đổi theo.
+ *
+ * Máy tính, không giảm chuyển động: phần này ghim lại; JS chỉ ghi tiến độ cuộn --p (0 → 1) lên section, CSS của cảnh tự tính
+ * thứ gì hiện ở mốc nào (`--at` của từng phần tử) và lưới / vòng khán giả lấp tới đâu; vòng lặp hạt đọc tiến độ qua `progress`.
+ * Không ghim (điện thoại, giảm chuyển động, không JS): không có --p → cảnh đầy đủ.
  */
 export function D3Story({ t }: { t: D3Dict }) {
   const { story } = t.home;
+  const copy = t.x.home.story;
+  const chart = t.x.home.chart;
   const rootRef = useRef<HTMLElement>(null);
-  const assetRef = useRef<SVGPathElement>(null);
   const [live, setLive] = useState(false);
   const [active, setActive] = useState(0);
+  const [path, setPath] = useState<D3Path>("site");
+  /** Tiến độ cuộn cho vòng lặp hạt của hai cảnh (1 = cảnh đầy đủ khi không ghim) */
+  const progress = useRef(1);
 
   useGSAP(
     () => {
       const root = rootRef.current;
-      const asset = assetRef.current;
-      if (!root || !asset) return;
+      if (!root) return;
       const mm = gsap.matchMedia();
       mm.add(PIN_MQ, () => {
-        // Đo một lần: mỗi chấm nằm ở bao nhiêu phần chiều dài đường, để đầu đường chạm chấm đúng lúc mốc được tô sáng
-        const total = asset.getTotalLength();
-        const at = POINTS.map(([x], index) => (index === POINTS.length - 1 ? 1 : fractionAtX(asset, total, x)));
-        const last = POINTS.length - 1;
-
-        const update = (progress: number) => {
-          let reached = 0;
-          for (let i = 1; i <= last; i++) if (progress >= REACH[i]) reached = i;
-          // Giữa hai mốc: đường vẽ tuyến tính theo cuộn từ chấm này sang chấm kế; sau mốc cuối: quãng nghỉ
-          const from = REACH[reached];
-          const to = reached < last ? REACH[reached + 1] : 1;
-          const local = clamp01((progress - from) / (to - from));
-          const line = reached < last ? at[reached] + (at[reached + 1] - at[reached]) * local : 1;
-          root.style.setProperty("--line", line.toFixed(4));
-          root.style.setProperty("--step", local.toFixed(4));
-          setActive(reached);
+        const update = (value: number) => {
+          progress.current = value;
+          root.style.setProperty("--p", value.toFixed(4));
+          root.style.setProperty("--step", ((value % SLOT) / SLOT).toFixed(4));
+          setActive(Math.min(4, Math.floor(value / SLOT + 1e-6)));
         };
 
         setLive(true);
@@ -90,7 +63,8 @@ export function D3Story({ t }: { t: D3Dict }) {
         update(trigger.progress);
         return () => {
           trigger.kill();
-          root.style.removeProperty("--line");
+          progress.current = 1;
+          root.style.removeProperty("--p");
           root.style.removeProperty("--step");
           setLive(false);
         };
@@ -105,17 +79,29 @@ export function D3Story({ t }: { t: D3Dict }) {
     ScrollTrigger.refresh();
   }, [live]);
 
+  const milestones = path === "site" ? story.milestones : copy.paths.marketing.milestones;
+  const titles = story.milestones.map((item) => item.title.replace(/\.$/, ""));
+  const flat = copy.paths[path].flat;
+
   return (
-    <section ref={rootRef} aria-labelledby="d2-story-title" className="d2-story" data-live={live}>
+    <section ref={rootRef} aria-labelledby="d2-story-title" className="d2-story d3-story" data-live={live}>
       <div className="d2-story-pin">
         <div className="d2-wrap d2-story-grid">
           <div>
             <h2 id="d2-story-title" className="d2-h2 d2-two-tone max-w-[13em]">
-              {story.ink} <span>{story.muted}</span>
+              {copy.ink} <span>{story.muted}</span>
             </h2>
-            <ol className="d2-miles">
-              {story.milestones.map((item, index) => (
-                <li key={item.title} data-active={!live || index === active} data-done={live && index < active}>
+            <div className="d3-paths" role="group" aria-label={copy.tabsLabel}>
+              {PATHS.map((id) => (
+                <button key={id} type="button" className="d3-path" aria-pressed={path === id} onClick={() => setPath(id)}>
+                  <span className="d3-path-name">{copy.paths[id].tab}</span>
+                  <span className="d3-path-plans">{copy.paths[id].plans}</span>
+                </button>
+              ))}
+            </div>
+            <ol className="d2-miles" aria-live="polite">
+              {milestones.map((item, index) => (
+                <li key={`${path}-${item.title}`} data-active={!live || index === active} data-done={live && index < active}>
                   <span className="d2-mile-no" aria-hidden>
                     {index + 1}
                   </span>
@@ -130,35 +116,26 @@ export function D3Story({ t }: { t: D3Dict }) {
             </ol>
           </div>
 
-          <figure className="d2-chart">
-            <svg viewBox="0 0 600 380" role="img" aria-label={`${story.flat} / ${story.asset}`}>
-              <path d="M 30 30 V 340 H 580" className="d2-chart-axis" />
-              <path d={FLAT} pathLength={1} className="d2-chart-flat" />
-              <path ref={assetRef} d={ASSET} pathLength={1} className="d2-chart-asset" />
-              {POINTS.map(([x, y], index) => (
-                <g key={index} className="d2-chart-dot" data-on={!live || index <= active} data-lead={live && index === active}>
-                  {/* Vòng nháy một lần khi đầu đường chạm chấm (chỉ ở chế độ ghim) */}
-                  <circle cx={x} cy={y} r={13} className="d3-dot-ring" />
-                  <circle cx={x} cy={y} r={13} />
-                  <text x={x} y={y + 4.5} textAnchor="middle">
-                    {index + 1}
-                  </text>
-                  {/* Tên mốc cạnh chấm đang dẫn: nối biểu đồ với danh sách bên trái (trang trí, danh sách đã có đủ chữ) */}
-                  <text x={x - 24} y={y - 18} textAnchor="end" className="d3-dot-label" aria-hidden>
-                    {story.milestones[index].title.replace(/\.$/, "")}
-                  </text>
-                </g>
-              ))}
-            </svg>
-            <figcaption>
-              <span className="d2-legend" data-kind="asset">
-                {story.asset}
-              </span>
-              <span className="d2-legend" data-kind="flat">
-                {story.flat}
-              </span>
-              <span className="d2-chart-note">{story.note}</span>
-            </figcaption>
+          <figure className="d3-story-scene" role="img" aria-label={`${story.asset} / ${flat}. ${story.note}`} data-path={path}>
+            <p className="d3-fx-kicker" aria-hidden>
+              {chart.kicker}
+            </p>
+            {path === "site" ? (
+              <StoryFlow
+                progress={progress}
+                labels={{ site: chart.site, owned: chart.owned, sources: [titles[2], titles[3], titles[4]], customers: chart.customers, pause: chart.pause, play: chart.play }}
+              />
+            ) : (
+              <StoryNetwork
+                progress={progress}
+                labels={{ brand: chart.brand, channels: chart.channels, landing: chart.landing, reach: chart.reach, pause: chart.pause, play: chart.play }}
+              />
+            )}
+            <p className="d3-fx-legend" aria-hidden>
+              <span data-kind="flat">{flat}</span>
+              <span data-kind="asset">{story.asset}</span>
+            </p>
+            <figcaption className="d2-chart-note">{story.note}</figcaption>
           </figure>
         </div>
       </div>

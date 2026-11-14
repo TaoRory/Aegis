@@ -1,115 +1,399 @@
 /* /demo3 — home: kiểu riêng của bản nâng cấp, viết trong phạm vi .d3 (class nền .d2-* nằm ở src/styles/demo2.css). */
 
 @layer components {
-  /* ---------- Dải chữ chạy theo tốc độ cuộn (HomeMarquee): dải tối hơi nghiêng, chữ đặc / Aqua / chỉ viền ---------- */
-  /* Khung ngoài cắt phần dải thò ra hai bên (dải rộng 108% để khi nghiêng không hở góc): trang không tràn ngang */
-  .d3 .d3-marquee {
+  /* ---------- "Làm một lần thì phai, tài sản thì lớn lên": hai cảnh SVG (StoryFlow, StoryNetwork) ----------
+     Một biến điều khiển: --p (tiến độ cuộn, D3Story ghi khi ghim; không có → 1, cảnh đầy đủ).
+     .d3-r: phần tử hiện ở mốc --at của nó (--k: 0 → 1 trong quãng 0,08 sau mốc). .d3-r-pop: nảy từ 40% lên.
+     Toạ độ là đơn vị viewBox; transform-box fill-box để phóng quanh tâm của chính phần tử. */
+  .d3 .d3-story-scene {
     position: relative;
-    overflow: hidden;
-    padding-block: clamp(2rem, 1.2rem + 3vw, 4rem);
   }
 
-  .d3 .d3-marquee-band {
-    width: 108%;
-    margin-left: -4%;
-    padding-block: clamp(0.7rem, 0.4rem + 1vw, 1.3rem);
-    background: var(--d2-ink);
-    transform: rotate(-1.6deg);
+  .d3 .d3-fx-kicker {
+    font-family: var(--d2-font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--d2-teal-ink);
   }
 
-  .d3 .d3-marquee-band .kit-marquee-row {
-    align-items: center;
+  .d3 .d3-fx {
+    position: relative;
+    margin-top: 0.5rem;
   }
 
-  .d3 .d3-marquee-band span {
+  .d3 .d3-fx-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  @media (min-width: 64rem) {
+    /* Vừa một màn khi ghim: chiều cao cảnh theo chiều cao màn hình */
+    .d3 .d2-story[data-live="true"] .d3-fx-svg {
+      max-height: calc(100svh - var(--d2-header) - 9rem);
+    }
+  }
+
+  .d3 .d3-fx .d3-r {
+    --k: clamp(0, calc((var(--p, 1) - var(--at, 0)) * 12.5), 1);
+    opacity: var(--k);
+  }
+
+  .d3 .d3-fx .d3-r-pop {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(calc(0.4 + var(--k) * 0.6));
+  }
+
+  .d3 .d3-fx-particles circle {
+    fill: var(--d2-teal);
+    opacity: 0;
+  }
+
+  .d3 [data-scene="network"] .d3-fx-particles circle {
+    fill: var(--d2-aqua);
+    stroke: var(--d2-teal-ink);
+    stroke-width: 1;
+  }
+
+  .d3 .d3-fx-caption {
+    font-family: var(--d2-font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    fill: var(--d2-teal-ink);
+    /* Viền nền quanh chữ: đọc rõ cả khi đè lên dây / chấm khán giả */
+    stroke: var(--d2-cloud);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+  }
+
+  .d3 .d3-fx-rule {
+    stroke: var(--border-strong);
+    stroke-dasharray: 3 5;
+  }
+
+  /* ----- Dòng khách đổ về ----- */
+  .d3 .d3-fx-track {
+    fill: none;
+    stroke: rgb(19 181 165 / 0.35);
+    stroke-width: 2;
+    stroke-dasharray: 2 6;
+    stroke-linecap: round;
+  }
+
+  .d3 .d3-fx-pill {
+    fill: var(--d2-white);
+    stroke: var(--border-strong);
+  }
+
+  .d3 .d3-fx-pill-dot {
+    fill: var(--d2-teal);
+  }
+
+  .d3 .d3-fx-pill-text {
+    font-family: var(--d2-font-display);
+    font-size: 14px;
+    font-weight: 600;
+    fill: var(--d2-ink);
+  }
+
+  /* Quầng sáng của cửa hàng: lớn và rõ dần theo --p */
+  .d3 .d3-fx-glow {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(calc(0.45 + var(--p, 1) * 0.75));
+    opacity: calc(0.25 + var(--p, 1) * 0.75);
+  }
+
+  .d3 .d3-fx-glow circle {
+    fill: var(--d2-aqua);
+    opacity: 0.14;
+  }
+
+  .d3 .d3-fx-own {
+    fill: none;
+    stroke: var(--d2-teal);
+    stroke-width: 2;
+    stroke-dasharray: 6 5;
+  }
+
+  .d3 .d3-fx-chip {
+    fill: var(--d2-aqua);
+  }
+
+  .d3 .d3-fx-chip-text {
+    font-family: var(--d2-font-display);
+    font-size: 12px;
+    font-weight: 600;
+    fill: var(--d2-ink);
+  }
+
+  .d3 .d3-fx-hub {
+    fill: var(--d2-ink);
+    filter: drop-shadow(0 14px 18px rgb(7 31 30 / 0.28));
+  }
+
+  .d3 .d3-fx-hub-dot {
+    fill: var(--d2-aqua);
+  }
+
+  .d3 .d3-fx-hub-line {
+    fill: rgb(245 247 246 / 0.55);
+  }
+
+  .d3 .d3-fx-hub-line[data-soft] {
+    fill: rgb(245 247 246 / 0.25);
+  }
+
+  .d3 .d3-fx-hub-text {
+    font-family: var(--d2-font-display);
+    font-size: 14px;
+    font-weight: 600;
+    fill: var(--d2-cloud);
+  }
+
+  .d3 .d3-fx-hub-text[data-small] {
+    font-size: 11px;
+  }
+
+  /* Lưới khách hàng: --fill ô được tô, cộng dồn (chậm lúc đầu, nhanh dần) */
+  .d3 [data-scene="flow"] {
+    --fill: calc(2 + 2 * clamp(0, (var(--p, 1) - 0.2) * 20, 1) + 68 * pow(clamp(0, (var(--p, 1) - 0.38) / 0.56, 1), 1.5));
+  }
+
+  .d3 .d3-fx-cell {
+    fill: none;
+    stroke: rgb(7 31 30 / 0.16);
+    stroke-width: 1.5;
+  }
+
+  .d3 .d3-fx-cell-on {
+    fill: var(--d2-teal);
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: clamp(0, calc(var(--fill) - var(--i)), 1);
+    transform: scale(clamp(0, calc(var(--fill) - var(--i)), 1));
+  }
+
+  .d3 .d3-fx-cells g:nth-child(3n) .d3-fx-cell-on {
+    fill: var(--d2-aqua);
+  }
+
+  /* Bản bỏ dở: xám, tối dần từ mốc 3 */
+  .d3 .d3-fx-alone {
+    opacity: calc(1 - clamp(0, (var(--p, 1) - 0.4) * 1.6, 0.45));
+  }
+
+  .d3 .d3-fx-alone [data-dead] {
+    fill: #9aa9a7;
+    stroke: #9aa9a7;
+    filter: none;
+  }
+
+  .d3 .d3-fx-alone .d3-fx-track[data-dead],
+  .d3 .d3-fx-alone .d3-fx-link[data-dead] {
+    fill: none;
+    stroke: #b7c2c0;
+  }
+
+  .d3 .d3-fx-cell-dead {
+    fill: #9aa9a7;
+  }
+
+  /* ----- Mạng lưới lan toả ----- */
+  .d3 .d3-fx-wave {
+    fill: none;
+    stroke: rgb(19 181 165 / 0.28);
+    stroke-width: 1.5;
+    stroke-dasharray: 2 7;
+  }
+
+  .d3 .d3-fx-link {
+    stroke: rgb(7 31 30 / 0.28);
+    stroke-width: 1.5;
+  }
+
+  .d3 .d3-fx-link[data-soft] {
+    stroke: rgb(19 181 165 / 0.3);
+    stroke-width: 1;
+  }
+
+  .d3 [data-scene="network"] {
+    --aud: calc(54 * clamp(0, (var(--p, 1) - 0.56) / 0.4, 1));
+  }
+
+  .d3 .d3-fx-audience g {
+    opacity: clamp(0, calc(var(--aud) - var(--i)), 1);
+  }
+
+  .d3 .d3-fx-person {
+    fill: var(--d2-teal);
+  }
+
+  .d3 .d3-fx-audience g:nth-child(4n) .d3-fx-person {
+    fill: var(--d2-aqua);
+    stroke: var(--d2-teal-ink);
+    stroke-width: 1;
+  }
+
+  .d3 .d3-fx-channel {
+    fill: var(--d2-white);
+    stroke: #9aa9a7;
+    stroke-width: 1.5;
+  }
+
+  .d3 .d3-fx-channel-on {
+    fill: var(--d2-teal);
+    stroke: var(--d2-teal-ink);
+    stroke-width: 1.5;
+  }
+
+  .d3 .d3-fx-channel-glyph {
+    fill: var(--d2-white);
+    opacity: 0.9;
+  }
+
+  .d3 .d3-fx-landing {
+    fill: var(--d2-aqua);
+    stroke: var(--d2-teal-ink);
+  }
+
+  .d3 .d3-fx-landing-text {
+    font-family: var(--d2-font-display);
+    font-size: 12.5px;
+    font-weight: 600;
+    fill: var(--d2-ink);
+  }
+
+  .d3 .d3-fx-halo {
+    fill: rgb(132 228 214 / 0.35);
+    stroke: var(--d2-teal);
+    stroke-width: 2;
+  }
+
+  .d3 .d3-fx-brand {
+    fill: var(--d2-ink);
+    filter: drop-shadow(0 10px 14px rgb(7 31 30 / 0.3));
+  }
+
+  .d3 .d3-fx-brand-text {
+    font-family: var(--d2-font-display);
+    font-size: 11.5px;
+    font-weight: 600;
+    fill: var(--d2-cloud);
+  }
+
+  /* Chú thích hai bên + nút tạm dừng hạt */
+  .d3 .d3-fx-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.4rem 1.5rem;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .d3 .d3-fx-legend span {
     display: inline-flex;
     align-items: center;
-    font-family: var(--d2-font-display);
-    font-size: clamp(2rem, 1.2rem + 3.6vw, 4.5rem);
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: -0.035em;
-    color: var(--d2-cloud);
+    gap: 0.5rem;
   }
 
-  .d3 .d3-marquee-band span[data-tone="aqua"] {
-    color: var(--d2-aqua);
-  }
-
-  .d3 .d3-marquee-band span[data-tone="line"] {
-    color: transparent;
-    -webkit-text-stroke: 1.5px var(--d2-cloud);
-  }
-
-  /* Dấu ngăn: ô vuông teal nhỏ (không dùng ký tự) */
-  .d3 .d3-marquee-band span::after {
+  .d3 .d3-fx-legend span::before {
     content: "";
-    width: 0.28em;
-    height: 0.28em;
-    margin-inline: 0.55em;
-    border-radius: 0.05em;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 3px;
     background: var(--d2-teal);
   }
 
-  /* Nút dừng nằm ngay trên đầu phải của dải (đi theo độ nghiêng của dải), như nút của một cuộn băng */
-  .d3 .d3-marquee-toggle {
-    --focus-ring: var(--d2-aqua);
+  .d3 .d3-fx-legend [data-kind="flat"] {
+    color: var(--fg-muted);
+  }
+
+  .d3 .d3-fx-legend [data-kind="flat"]::before {
+    background: #9aa9a7;
+  }
+
+  .d3 .d3-story-scene .d2-chart-note {
+    display: block;
+    margin-top: 0.4rem;
+    margin-left: 0;
+    font-size: 0.8125rem;
+    text-align: right;
+  }
+
+  .d3 .d3-fx-toggle {
     position: absolute;
-    top: calc(50% - 1.3vw);
-    right: var(--d2-gutter);
+    top: 0;
+    right: 0;
+  }
+
+  /* ---------- Hai lối vào: "Bắt đầu từ website" / "Chỉ marketing" (nút bật tắt, aria-pressed) ---------- */
+  .d3 .d3-paths {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+    margin-top: clamp(1.25rem, 0.9rem + 1vw, 1.75rem);
+    padding: 0.3rem;
+    border-radius: 1.1rem;
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+  }
+
+  .d3 .d3-path {
+    display: grid;
+    gap: 0.1rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 0.85rem;
+    text-align: left;
+    color: var(--fg);
+  }
+
+  .d3 .d3-path-name {
+    font-family: var(--d2-font-display);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .d3 .d3-path-plans {
+    font-family: var(--d2-font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--d2-teal-ink);
+  }
+
+  .d3 .d3-path:hover {
+    background: rgb(7 31 30 / 0.06);
+  }
+
+  .d3 .d3-path[aria-pressed="true"] {
     background: var(--d2-ink);
     color: var(--d2-cloud);
-    transform: translateY(-50%);
   }
 
-  /* ---------- "Website đứng yên, tài sản lớn lên": cảnh ghim ---------- */
-  /* Đường "tài sản" vẽ theo --line (JS tính từ tiến độ cuộn sao cho đầu đường chạm chấm đúng lúc mốc lên dẫn) */
-  .d3 .d2-story[data-live="true"] .d2-chart-asset {
-    stroke-dashoffset: calc(1 - var(--line, 1));
+  .d3 .d3-path[aria-pressed="true"] .d3-path-plans {
+    color: var(--d2-aqua);
   }
 
-  /* Vòng nháy và tên mốc cạnh chấm: chỉ có ở chế độ ghim; bản tĩnh không vẽ gì thêm */
-  .d3 .d2-chart-dot .d3-dot-ring {
-    fill: none;
-    stroke: var(--d2-teal);
-    stroke-width: 2.5;
-    opacity: 0;
-    transform-box: fill-box;
-    transform-origin: center;
-  }
+  @media (prefers-reduced-motion: no-preference) {
+    .d3 .d3-path {
+      transition:
+        background-color 0.3s var(--d2-ease),
+        color 0.3s var(--d2-ease),
+        transform 0.3s var(--kit-ease-out);
+    }
 
-  .d3 .d2-chart-dot circle:not(.d3-dot-ring) {
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .d3 .d2-chart-dot .d3-dot-label {
-    display: none;
-    fill: var(--d2-ink);
-    stroke: var(--d2-white);
-    stroke-width: 6px;
-    stroke-linejoin: round;
-    paint-order: stroke;
-    font-family: var(--d2-font-display);
-    font-size: 17px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-
-  .d3 .d2-story[data-live="true"] .d2-chart-dot .d3-dot-label {
-    display: block;
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  .d3 .d2-story[data-live="true"] .d2-chart-dot[data-lead="true"] .d3-dot-label {
-    opacity: 1;
-    transform: none;
-  }
-
-  /* Chấm đang dẫn lớn hơn các chấm đã qua */
-  .d3 .d2-story[data-live="true"] .d2-chart-dot[data-lead="true"] circle:not(.d3-dot-ring) {
-    transform: scale(1.22);
+    .d3 .d3-path:active {
+      transform: scale(0.97);
+    }
   }
 
   /* Mốc đang dẫn ở cột trái: khối Aqua quét sau tên mốc (chữ ký của trang), số thứ tự nhô lên, vạch tiến độ chạy dưới dòng */
@@ -230,9 +514,7 @@
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    /* Cảnh ghim: đổi trạng thái theo mốc (0,4–0,6s); thứ gắn thẳng với cuộn (--line, --step) không có transition */
-    .d3 .d2-chart-dot .d3-dot-label,
-    .d3 .d2-chart-dot circle:not(.d3-dot-ring),
+    /* Cảnh ghim: đổi trạng thái theo mốc (0,4–0,6s); thứ gắn thẳng với cuộn (--step, cảnh 3D) không có transition */
     .d3 .d2-mile-no {
       transition:
         opacity 0.4s var(--kit-ease-out),
@@ -245,11 +527,6 @@
 
     .d3 .d3-mile-title::before {
       transition: transform 0.6s var(--kit-ease-out);
-    }
-
-    /* Chấm nháy MỘT lần mỗi khi đầu đường chạm tới (quy tắc bắt đầu khớp lại thì animation chạy lại từ đầu) */
-    .d3 .d2-story[data-live="true"] .d2-chart-dot[data-on="true"] .d3-dot-ring {
-      animation: d3-dot-pulse 0.9s var(--kit-ease-out) 1 both;
     }
 
     /* Dòng dịch vụ: nền dâng 0,45s; tên dịch sang phải cùng nhịp với mũi tên */
@@ -276,18 +553,6 @@
 
     .d3 .d2-teaser:is(:hover, :focus-visible) .d2-teaser-name svg {
       transform: rotate(0deg) translateX(4px);
-    }
-  }
-
-  @keyframes d3-dot-pulse {
-    from {
-      opacity: 0.9;
-      transform: scale(1);
-    }
-
-    to {
-      opacity: 0;
-      transform: scale(2.8);
     }
   }
 }

@@ -369,7 +369,7 @@
    Chuyển trang trong /demo3 (View Transitions). Viết ngoài @layer vì các quy tắc ::view-transition của trang chính
    (effects.css) cũng nằm ngoài layer; quy tắc trong layer không thắng được chúng.
    - Header mang tên riêng nên không trôi theo trang: bản chụp cũ bị bỏ, bản mới hiện ngay (viên chỉ mục tự trượt trong bản mới).
-   - Trang cũ lùi lên và mờ đi nhanh; trang mới trồi lên. Loại "d3-nav" do D3Link đặt.
+   - Kiểu "tấm màn": trang cũ lùi vào trong trên nền mực, trang mới kéo lên từ đáy. Loại "d3-nav" do D3Link đặt.
    - Ảnh dự án bay từ ô sang đầu trang chi tiết: lớp .aegis-morph của trang chính (WorkShot).
    Nút Back / Forward của trình duyệt: mờ chéo ngắn mặc định của trang chính. Giảm chuyển động: đổi trang tức thì.
    ============================================================================================================ */
@@ -391,27 +391,272 @@
     animation: none;
   }
 
+  /* Tấm màn: phía sau hai trang là nền mực; trang cũ lùi vào trong (thu nhỏ, bo góc, tối dần),
+     trang mới kéo lên từ đáy với mép trên bo tròn rồi phẳng lại. Tổng 0,85s. */
+  :root:active-view-transition-type(d3-nav)::view-transition {
+    background: #071f1e; /* = --d2-ink; ::view-transition thừa hưởng từ <html>, không thấy biến của .d2 */
+  }
+
   :root:active-view-transition-type(d3-nav)::view-transition-old(root) {
     mix-blend-mode: normal;
-    animation: 0.3s cubic-bezier(0.4, 0, 1, 1) both d3-page-out;
+    transform-origin: 50% 0;
+    animation: 0.7s cubic-bezier(0.65, 0, 0.35, 1) both d3-page-out;
   }
 
   :root:active-view-transition-type(d3-nav)::view-transition-new(root) {
     mix-blend-mode: normal;
-    animation: 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.14s both d3-page-in;
+    animation: 0.85s cubic-bezier(0.76, 0, 0.24, 1) both d3-page-in;
   }
 }
 
 @keyframes d3-page-out {
+  from {
+    clip-path: inset(0 round 0);
+  }
+
   to {
-    opacity: 0;
-    transform: translateY(-1.25rem);
+    opacity: 0.35;
+    transform: scale(0.93) translateY(-2%);
+    clip-path: inset(0 round 32px);
   }
 }
 
 @keyframes d3-page-in {
   from {
-    opacity: 0;
-    transform: translateY(3rem);
+    clip-path: inset(100% 0 0 0 round 48px 48px 0 0);
+    transform: translateY(12%);
+  }
+
+  to {
+    clip-path: inset(0 round 0);
+    transform: none;
+  }
+}
+
+
+/* ============================================================================================================
+   Đợt 5 "tinh xảo": con trỏ có nhãn, đèn soi trên các tấm, tấm tối nở tràn màn hình, nút đổ màu, thanh tiến độ cuộn.
+   ============================================================================================================ */
+
+/* Độ sáng của đèn soi (0 → 1): khai báo kiểu số để chuyển động được bằng transition. @property phải nằm ngoài @layer */
+@property --ga {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@layer components {
+  /* ---------- Con trỏ có nhãn (D3Cursor): viên tròn Teal mang nhãn (Teal: nổi trên cả nền sáng, nền mực lẫn dòng tô Aqua), chỉ nở ra trên phần tử có data-cursor ---------- */
+  .d3 .d3-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .d3 .d3-cursor > span {
+    position: absolute;
+    top: -2.75rem;
+    left: -2.75rem;
+    display: grid;
+    place-items: center;
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 50%;
+    background: var(--d2-teal);
+    color: var(--d2-ink);
+    font-family: var(--d2-font-display);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    box-shadow: 0 10px 30px -12px rgb(7 31 30 / 0.45);
+    transform: scale(0);
+  }
+
+  .d3 .d3-cursor[data-on="true"] > span {
+    transform: scale(1);
+  }
+
+  html[data-d3-cursor="on"] .d3 [data-cursor],
+  html[data-d3-cursor="on"] .d3 [data-cursor] * {
+    cursor: none;
+  }
+
+  /* ---------- Tấm tối nở tràn màn hình (Expand) ----------
+     Tấm nằm gọn trong lề trang (lề --gut = lề của .d2-wrap, tính bằng cqw của lớp vỏ rộng hết màn hình), nền tối thật của tấm giữ nguyên.
+     Bản động (data-live): một lớp ::before cùng màu nằm sau tấm, giãn ngang bằng scaleX(--sx) tới sát hai mép màn hình
+     (chỉ transform, không vẽ lại tấm mỗi khung hình). overflow-x: clip để lớp giãn không làm trang tràn ngang. */
+  .d3 .d3-expand {
+    container-type: inline-size;
+    overflow-x: clip;
+  }
+
+  .d3 .d3-expand-slab {
+    --gut: max(var(--d2-gutter), (100cqw - var(--d2-max)) / 2);
+    position: relative;
+    isolation: isolate;
+    margin-inline: var(--gut);
+  }
+
+  .d3 .d3-expand[data-live="true"] .d3-expand-slab::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: var(--d2-r-slab);
+    background: var(--d2-ink);
+    transform: scaleX(var(--sx, 1));
+    will-change: transform;
+  }
+
+  /* ---------- Nút viên (D3Btn): màu mới dâng lên từ đáy, mép trên cong rồi phẳng dần ---------- */
+  .d3 .d3-btn {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    --btn-fill: var(--d2-ink);
+    --btn-on: var(--d2-cloud);
+  }
+
+  .d3 .d3-btn::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: 50% 50% 0 0 / 70% 70% 0 0;
+    background: var(--btn-fill);
+    transform: translateY(102%);
+  }
+
+  .d3 .d3-btn:is(:hover, :focus-visible) {
+    color: var(--btn-on);
+  }
+
+  .d3 .d3-btn:is(:hover, :focus-visible)::before {
+    border-radius: 0;
+    transform: translateY(0);
+  }
+
+  .d3 .d2-btn-primary.d3-btn:hover {
+    background: var(--d2-teal);
+  }
+
+  .d3 [data-d2-tone="dark"] .d2-btn-primary.d3-btn {
+    --btn-fill: var(--d2-aqua);
+    --btn-on: var(--d2-ink);
+  }
+
+  .d3 .d2-btn-ink.d3-btn {
+    --btn-fill: var(--d2-teal);
+    --btn-on: var(--d2-ink);
+  }
+
+  .d3 .d2-btn-ink.d3-btn:hover {
+    background: var(--d2-ink);
+  }
+
+  .d3 .d2-btn-line.d3-btn {
+    --btn-fill: var(--fg);
+    --btn-on: var(--bg);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .d3 .d3-btn::before {
+      transition:
+        transform 0.6s var(--kit-ease-out),
+        border-radius 0.6s var(--kit-ease-out);
+    }
+
+    .d3 .d3-btn {
+      transition:
+        background-color 0.2s var(--d2-ease),
+        box-shadow 0.2s var(--d2-ease),
+        color 0.35s var(--d2-ease),
+        transform 0.3s var(--kit-ease-out);
+    }
+
+    .d3 .d3-cursor > span {
+      transition: transform 0.45s var(--kit-ease-out);
+    }
+  }
+
+  /* ---------- Đèn soi theo con trỏ (D3Cursor ghi --gx, --gy, data-glow). Chỉ máy có chuột ----------
+     :root ở đầu để thắng các quy tắc :hover dùng `background:` viết tắt của /demo2 (viết tắt sẽ xoá background-image). */
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    :root .d3 :is(.d2-darkslab, .d2-teaser, .d2-footer-slab, .d2-final > a) {
+      background-image: radial-gradient(
+        circle 24rem at var(--gx, 50%) var(--gy, 50%),
+        color-mix(in oklab, var(--glow, var(--d2-aqua)) calc(var(--ga) * var(--glow-a, 20%)), transparent),
+        transparent 75%
+      );
+    }
+
+    .d3 :is(.d2-teaser:not([data-d2-tone="dark"]), .d2-final > a:first-child) {
+      --glow: var(--d2-teal);
+      --glow-a: 14%;
+    }
+
+    .d3 .d2-final > a:last-child {
+      --glow: var(--d2-white);
+      --glow-a: 40%;
+    }
+
+    .d3 [data-glow="on"] {
+      --ga: 1;
+    }
+
+    /* Tấm nở (Expand, bản động): lớp giãn ::before phủ lên nền tấm nên đèn soi phải vẽ trên nó (--ga thừa hưởng từ tấm) */
+    :root .d3 .d3-expand[data-live="true"] .d3-expand-slab::before {
+      background:
+        radial-gradient(
+          circle 24rem at var(--gx, 50%) var(--gy, 50%),
+          color-mix(in oklab, var(--d2-aqua) calc(var(--ga) * 20%), transparent),
+          transparent 75%
+        ),
+        var(--d2-ink);
+    }
+
+    /* Tấm nào cũng là <Rise> (trừ footer): giữ nguyên nhịp trồi lên + so le, thêm --ga */
+    .d3 :is(.d2-darkslab, .d2-teaser, .d2-final > a) {
+      transition:
+        transform 0.9s var(--kit-ease-out) calc(var(--rise-i, 0) * 80ms),
+        clip-path 1s var(--kit-ease-out) calc(var(--rise-i, 0) * 80ms),
+        background-color 0.2s var(--d2-ease),
+        box-shadow 0.2s var(--d2-ease),
+        --ga 0.6s ease-out;
+    }
+
+    .d3 .d2-footer-slab {
+      transition: --ga 0.6s ease-out;
+    }
+  }
+
+  /* ---------- Thanh tiến độ cuộn dưới header: chạy bằng CSS (scroll timeline), trình duyệt chưa hỗ trợ thì không có ---------- */
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .d3 .d2-top::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: -1px;
+        left: 0;
+        height: 2px;
+        background: var(--d2-teal);
+        transform: scaleX(0);
+        transform-origin: left;
+        pointer-events: none;
+        animation: d3-progress linear both;
+        animation-timeline: scroll(root block);
+      }
+    }
+  }
+
+  @keyframes d3-progress {
+    to {
+      transform: scaleX(1);
+    }
   }
 }

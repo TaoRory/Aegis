@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
 import { AegisMark } from "@/components/brand/AegisLogo";
-import { PageTransition } from "@/components/motion/PageTransition";
 import { d3Contact, d3Href, type D3Dict } from "@/content/demo3";
 
+import { D3Cursor } from "./fx/Cursor";
 import { D3Header } from "./D3Header";
 import { D3Link } from "./D3Link";
 import { FooterStage } from "./FooterStage";
@@ -13,12 +13,11 @@ import { FooterWordmark } from "./FooterWordmark";
 export function D3Shell({ t, children }: { t: D3Dict; children: ReactNode }) {
   return (
     <div lang={t.lang} className="contents">
-      {/* Điểm kích hoạt chuyển trang (View Transitions): nằm trong từng trang nên được gỡ / gắn lại mỗi lần đổi route */}
-      <PageTransition />
       <a href="#d2-main" className="d2-skip">
         {t.chrome.skip}
       </a>
       <D3Header t={t} />
+      <D3Cursor labels={t.x.shell.cursor} />
       <main id="d2-main" tabIndex={-1} className="outline-none">
         {children}
       </main>

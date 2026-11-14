@@ -245,15 +245,6 @@ for (const vp of [viewports[0], viewports[3]]) {
   const after = await page.locator("[data-rise]:not([data-in])").count();
   check("[chuyển động] khối chờ vẫn hiện chữ; cuộn tới thì trồi vào chỗ", before.waiting > 0 && before.hiddenText === 0 && after === 0, `chờ ${before.waiting} → ${after}, chữ ẩn ${before.hiddenText}`);
 
-  await page.goto(`${baseUrl}/demo3`, { waitUntil: "networkidle" });
-  // Dải chữ chạy bằng GSAP ticker (theo tốc độ cuộn): đo vị trí hai lần, phải khác nhau
-  const trackX = () => page.evaluate(() => document.querySelector(".d3-marquee .kit-marquee-track")?.getBoundingClientRect().x ?? null);
-  await page.locator(".d3-marquee").scrollIntoViewIfNeeded();
-  await page.waitForTimeout(400);
-  const marqueeA = await trackX();
-  await page.waitForTimeout(500);
-  const marqueeB = await trackX();
-  check("[chuyển động] dải chữ chạy đang chạy", marqueeA !== null && marqueeA !== marqueeB, `${marqueeA} → ${marqueeB}`);
   await context.close();
 }
 
@@ -270,12 +261,13 @@ for (const [name, options] of [
     headings: [...document.querySelectorAll("main :is(h1,h2,h3)")].every((el) => getComputedStyle(el).opacity === "1"),
     live: document.querySelector(".d2-story").dataset.live,
     miles: document.querySelectorAll('.d2-miles li[data-active="true"]').length,
-    dash: getComputedStyle(document.querySelector(".d2-chart-asset")).strokeDashoffset,
+    // Cảnh "dòng khách đổ về": bản tĩnh là cảnh đầy đủ, mọi phần tử theo mốc đều hiện
+    scene: [...document.querySelectorAll(".d3-fx .d3-r")].filter((el) => Number(getComputedStyle(el).opacity) < 0.99).length,
     lit: document.querySelectorAll('.d2-board .d2-layer[data-on="true"]').length,
     // Nút Tạm dừng luôn có trong HTML (giữ chiều cao hàng nút), CSS chỉ cho hiện khi trang bật chuyển động
     pause: [...document.querySelectorAll(".d2-seg-pause")].filter((el) => el.getClientRects().length > 0).length,
   }));
-  check(`[${name}] biểu đồ vẽ sẵn, 5 mốc hiện đủ, tài sản đứng ở gói Grow, không tự chạy`, state.headings && state.live !== "true" && state.miles === 5 && parseFloat(state.dash) === 0 && state.lit === 3 && state.pause === 0, JSON.stringify(state));
+  check(`[${name}] biểu đồ vẽ sẵn, 5 mốc hiện đủ, tài sản đứng ở gói Grow, không tự chạy`, state.headings && state.live !== "true" && state.miles === 5 && state.scene === 0 && state.lit === 3 && state.pause === 0, JSON.stringify(state));
   await context.close();
 }
 
@@ -385,6 +377,109 @@ for (const [name, options] of [
   await mobile.waitForTimeout(1200);
   check("[menu điện thoại] bấm link: sang trang mới, menu đóng, mở khoá cuộn", (await mobile.locator("#d2-menu:visible").count()) === 0 && !(await locked()));
   await phone.close();
+
+  // Đợt 5: chuyển trang thật sự chạy (đếm lời gọi startViewTransition), con trỏ có nhãn, tấm tối nở tràn màn hình
+  {
+    const desk = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    await desk.addInitScript(() => {
+      window.__vt = [];
+      const start = document.startViewTransition?.bind(document);
+      if (start)
+        document.startViewTransition = (arg) => {
+          const t = start(arg);
+          t.ready.then(
+            () => window.__vt.push(document.getAnimations().map((a) => a.animationName).join(",")),
+            () => window.__vt.push("skipped"),
+          );
+          return t;
+        };
+    });
+    const p = await desk.newPage();
+    watch(p);
+    await p.goto(`${baseUrl}/demo3`, { waitUntil: "networkidle" });
+    await p.waitForTimeout(2500);
+    const top = await p.evaluate(() => [...document.querySelectorAll(".d3-expand")].find((el) => el.getClientRects().length > 0).getBoundingClientRect().top + window.scrollY);
+    await p.evaluate((y) => window.scrollTo(0, y - 60), top);
+    await p.waitForTimeout(900);
+    const e = await p.evaluate(() => {
+      const el = [...document.querySelectorAll(".d3-expand")].find((node) => node.getClientRects().length > 0);
+      const layer = getComputedStyle(el.querySelector(".d3-expand-slab"), "::before");
+      const slab = el.querySelector(".d3-expand-slab").getBoundingClientRect();
+      // bề rộng lớp giãn = bề rộng tấm × scaleX (ma trận "matrix(a, ...)")
+      const scale = Number(layer.transform.match(/matrix\(([^,]+)/)?.[1] ?? 1);
+      return { covered: Math.round(slab.width * scale), screen: document.documentElement.clientWidth };
+    });
+    check("[đợt 5] tấm tối nở tràn màn hình khi cuộn tới", e.covered >= e.screen - 2, JSON.stringify(e));
+
+    const row = p.locator(".d3-expand .d2-svc-index a:visible").first();
+    const box = await row.boundingBox();
+    await p.mouse.move(box.x + 40, box.y + box.height / 2);
+    await p.mouse.move(box.x + 80, box.y + box.height / 2, { steps: 4 });
+    await p.waitForTimeout(700);
+    const cur = await p.evaluate(() => {
+      const el = [...document.querySelectorAll(".d3-cursor")].find((node) => node.getClientRects().length > 0);
+      return { on: el?.dataset.on, text: el?.textContent, glow: !!document.querySelector('[data-glow="on"]'), hidden: getComputedStyle(document.querySelector(".d3-expand .d2-svc-index a")).cursor };
+    });
+    check("[đợt 5] con trỏ có nhãn + đèn soi trên tấm tối", cur.on === "true" && cur.text === "Open" && cur.glow && cur.hidden === "none", JSON.stringify(cur));
+
+    await p.mouse.move(700, 120);
+    await p.evaluate(() => window.scrollTo(0, 0));
+    await p.waitForTimeout(500);
+    await p.click('.d2-nav a[data-path="/process"]:visible');
+    await p.waitForURL("**/demo3/process");
+    await p.waitForTimeout(1500);
+    const vt = await p.evaluate(() => window.__vt);
+    check("[đợt 5] bấm link: view transition chạy đủ hai nửa tấm màn", vt.length === 1 && /d3-page-out/.test(vt[0]) && /d3-page-in/.test(vt[0]), JSON.stringify(vt));
+    await desk.close();
+  }
+
+  // Ban giám đốc ở trang Giới thiệu: 4 thẻ, ảnh đã có tải được, thẻ chưa có ảnh hiện ô chữ cái đầu, chưa có giới thiệu thì không hiện đoạn nào
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const p = await ctx.newPage();
+    watch(p);
+    for (const path of ["/demo3/about", "/demo3/vi/about"]) {
+      await p.goto(`${baseUrl}${path}`, { waitUntil: "networkidle" });
+      await p.locator(".d3-team").scrollIntoViewIfNeeded();
+      await p.waitForTimeout(900);
+      const team = await p.evaluate(() => ({
+        cards: document.querySelectorAll(".d3-member").length,
+        loaded: [...document.querySelectorAll(".d3-member img")].filter((img) => img.complete && img.naturalWidth > 0).length,
+        empty: document.querySelectorAll('.d3-member-photo[data-empty="true"]').length,
+        bios: document.querySelectorAll(".d3-member-bio").length,
+        first: document.querySelector(".d3-member h3")?.textContent,
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      }));
+      check(`[ban giám đốc] ${path}: 4 thẻ, 2 ảnh tải được, 2 ô chờ ảnh, không có giới thiệu thừa, không tràn ngang`, team.cards === 4 && team.loaded === 2 && team.empty === 2 && team.bios === 0 && team.first === "Trương Ngô Gia Bảo" && team.overflow <= 0, JSON.stringify(team));
+    }
+    await ctx.close();
+  }
+
+  // Hai lối vào: đổi sang "Chỉ marketing" thì mốc và cảnh đổi theo (mạng lưới); cuộn hết cảnh thì mọi phần tử và vòng khán giả đều hiện
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const p = await ctx.newPage();
+    watch(p);
+    await p.goto(`${baseUrl}/demo3`, { waitUntil: "networkidle" });
+    await p.waitForTimeout(1500);
+    const range = await p.evaluate(() => { const el = document.querySelector(".d2-story"); return { top: el.getBoundingClientRect().top + scrollY, len: el.offsetHeight - innerHeight }; });
+    await p.evaluate((y) => scrollTo(0, y), range.top + range.len * 0.3);
+    await p.waitForTimeout(500);
+    await p.locator(".d3-path").nth(1).click();
+    await p.evaluate((y) => scrollTo(0, y), range.top + range.len * 0.99);
+    await p.waitForTimeout(1200);
+    const tower = await p.evaluate(() => ({
+      path: document.querySelector(".d3-story-scene")?.dataset.path,
+      scene: document.querySelector(".d3-fx")?.dataset.scene,
+      pressed: document.querySelectorAll('.d3-path[aria-pressed="true"]').length,
+      first: document.querySelector(".d2-miles h3")?.textContent,
+      hidden: [...document.querySelectorAll(".d3-fx .d3-r")].filter((el) => Number(getComputedStyle(el).opacity) < 0.99).length,
+      audience: [...document.querySelectorAll(".d3-fx-audience g")].filter((el) => Number(getComputedStyle(el).opacity) > 0.99).length,
+      moving: [...document.querySelectorAll(".d3-fx-particles circle")].filter((el) => Number(getComputedStyle(el).opacity) > 0.05).length,
+    }));
+    check("[tài sản lớn lên] đổi sang lối \"Chỉ marketing\": mốc + cảnh mạng lưới, cuộn hết thì đủ nút, đủ khán giả, hạt đang chạy", tower.path === "marketing" && tower.scene === "network" && tower.pressed === 1 && tower.first === "Strategy." && tower.hidden === 0 && tower.audience === 54 && tower.moving > 0, JSON.stringify(tower));
+    await ctx.close();
+  }
 
   check("[đợt 2] không lỗi console khi rê, bấm và đổi trang", errors.length === 0, errors.slice(0, 3).join(" | "));
 }

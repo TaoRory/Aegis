@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { d2Sans } from "@/components/demo2/fonts";
 import { D3Intro } from "@/components/demo3/D3Intro";
+import { RouteTick } from "@/components/demo3/RouteTick";
 import { ThemeGuard } from "@/components/layout/ThemeGuard";
 
 import "@/styles/demo2.css";
@@ -29,6 +30,8 @@ export default function Demo3Layout({ children }: Readonly<{ children: ReactNode
       <ThemeGuard />
       {/* Intro thương hiệu: chỉ lần đầu của phiên, ở trang chủ; đặt trước nội dung để script của nó chạy trước khung hình đầu tiên */}
       <D3Intro />
+      {/* Kích hoạt hiệu ứng chuyển trang mỗi lần đổi đường dẫn (xem RouteTick) */}
+      <RouteTick />
       {children}
     </div>
   );

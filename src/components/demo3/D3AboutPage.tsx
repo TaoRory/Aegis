@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { d3Href, type D3Dict } from "@/content/demo3";
 
 import { AboutStatement } from "./AboutStatement";
+import { AboutTeam } from "./AboutTeam";
 import { AboutValues } from "./AboutValues";
 import { PageHead } from "./D3Bits";
 import { FinalCta } from "./D3Final";
@@ -17,6 +18,7 @@ import { SplitReveal } from "./fx/SplitReveal";
  * - Câu tuyên bố: tô dần từng từ theo cuộn (AboutStatement).
  * - Tấm tối "Aegis bàn giao gì": danh sách bàn giao (nội dung có sẵn ở t.own) tự đánh dấu tick lần lượt khi tấm vào màn hình.
  * - Ba nguyên tắc: một khối Aqua trượt theo hàng đang đọc (AboutValues).
+ * - Ban giám đốc: bốn thẻ chân dung trồi lên so le (AboutTeam), cuối trang trước lời mời.
  * Vấn đề / Sứ mệnh giữ nguyên, chỉ trồi lên so le.
  */
 export function D3About({ t }: { t: D3Dict }) {
@@ -75,6 +77,7 @@ export function D3About({ t }: { t: D3Dict }) {
           <AboutValues items={about.values} />
         </div>
       </section>
+      <AboutTeam t={t} />
       <FinalCta t={t} />
     </D3Shell>
   );

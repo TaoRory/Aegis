@@ -120,6 +120,115 @@
     color: var(--fg-muted);
   }
 
+  /* ---------- Ban giám đốc (AboutTeam): lưới chân dung, chữ nằm dưới ảnh trên nền sáng ---------- */
+  .d3 .d3-team {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.75rem, 1rem + 2vw, 2.5rem) clamp(0.75rem, 0.4rem + 1.6vw, 1.5rem);
+    margin-top: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+  }
+
+  @media (min-width: 64rem) {
+    .d3 .d3-team {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /* Khung chân dung tỉ lệ 4:5; ảnh dọc cắt giữ phần mặt ở nửa trên */
+  .d3 .d3-member-photo {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    border-radius: var(--d2-r-card);
+    background: var(--d2-white);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  .d3 .d3-member-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 18%;
+  }
+
+  /* Chưa có ảnh: ô chữ cái đầu, luân phiên Aqua / mực để bốn thẻ vẫn có nhịp màu */
+  .d3 .d3-member-photo[data-empty="true"] {
+    display: grid;
+    place-items: center;
+    background: var(--d2-aqua);
+    color: var(--d2-ink);
+    box-shadow: none;
+  }
+
+  .d3 .d3-member:nth-child(4n) .d3-member-photo[data-empty="true"] {
+    background: var(--d2-ink);
+    color: var(--d2-aqua);
+  }
+
+  .d3 .d3-member-photo[data-empty="true"] span {
+    font-family: var(--d2-font-display);
+    font-size: clamp(3rem, 2rem + 4vw, 5.5rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+  }
+
+  .d3 .d3-member-text {
+    margin-top: 1rem;
+  }
+
+  /* Chức danh viết tắt: viên mono nhỏ, rê vào thẻ thì đổi sang Aqua (teal-ink 5,4:1 trên Cloud khi đứng yên) */
+  .d3 .d3-member-short {
+    display: inline-block;
+    margin-bottom: 0.6rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px var(--d2-teal-ink);
+    color: var(--d2-teal-ink);
+    font-family: var(--d2-font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+
+  .d3 .d3-member-role {
+    margin-top: 0.3rem;
+    color: var(--fg-muted);
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+
+  .d3 .d3-member-bio {
+    margin-top: 0.75rem;
+    color: var(--fg-muted);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .d3 .d3-member-photo img {
+      transition: transform 0.9s var(--kit-ease-out);
+    }
+
+    .d3 .d3-member-short {
+      transition:
+        background-color 0.3s ease,
+        color 0.3s ease,
+        box-shadow 0.3s ease;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .d3 .d3-member:hover .d3-member-short {
+      background: var(--d2-aqua);
+      box-shadow: inset 0 0 0 1px var(--d2-aqua);
+      color: var(--d2-ink);
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .d3 .d3-member:hover .d3-member-photo img {
+      transform: scale(1.05);
+    }
+  }
+
   /* Khối chỉ tồn tại khi có chuyển động; mặc định không có gì để hiện */
   .d3 .d3-values-marker {
     display: none;

@@ -171,7 +171,7 @@ export function D3Case({ t, slug }: { t: D3Dict; slug: string }) {
       </section>
 
       <section className="d2-wrap d2-section-tight" aria-label={t.work.next}>
-        <Rise as={D3Link} kind="pop" href={d3Href(t.lang, `/work/${next.slug}`)} className="d2-next d3-next" data-ink={nextStage.ink} style={{ backgroundColor: nextStage.bg }}>
+        <Rise as={D3Link} kind="pop" href={d3Href(t.lang, `/work/${next.slug}`)} className="d2-next d3-next" data-cursor="view" data-ink={nextStage.ink} style={{ backgroundColor: nextStage.bg }}>
           <div className="d3-next-text">
             <span className="d2-small font-semibold">{t.work.next}</span>
             <span className="d2-feature-name">

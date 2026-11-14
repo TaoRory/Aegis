@@ -8,9 +8,12 @@ const copy = {
   en: {
     /** Nhãn nút dừng / chạy của nền động ở khối lời mời cuối trang (chỉ trình đọc màn hình đọc) */
     final: { pause: "Pause the background motion", play: "Play the background motion" },
+    /** Nhãn trên viên tròn đi theo con trỏ (trang trí, aria-hidden; link vẫn có chữ riêng) */
+    cursor: { view: "View", drag: "Drag", open: "Open", read: "Read" },
   },
   vi: {
     final: { pause: "Tạm dừng nền chuyển động", play: "Chạy tiếp nền chuyển động" },
+    cursor: { view: "Xem", drag: "Kéo", open: "Mở", read: "Đọc" },
   },
 } satisfies Record<D2Lang, Record<string, unknown>>;
 

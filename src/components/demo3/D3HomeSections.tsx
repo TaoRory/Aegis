@@ -7,10 +7,10 @@ import { d3Host, d3Previews } from "./D3Bits";
 import { PostList } from "./D3BlogPages";
 import { D3Link } from "./D3Link";
 import { D3Ring, type D3RingItem } from "./D3Ring";
+import { Expand } from "./fx/Expand";
 import { Rise } from "./fx/Rise";
 import { SplitReveal } from "./fx/SplitReveal";
 import { ArrowSwap } from "./HomeArrowSwap";
-import { HomeMarquee } from "./HomeMarquee";
 
 /** Ba gói thu gọn (trang chủ): ba bề mặt, mỗi ô dẫn tới gói tương ứng ở trang Plans; `index` để ba ô trồi lên so le từ trái sang */
 function PlanTeaser({ t, plan, index }: { t: D3Dict; plan: D3Plan; index: number }) {
@@ -22,6 +22,7 @@ function PlanTeaser({ t, plan, index }: { t: D3Dict; plan: D3Plan; index: number
       href={d3Href(t.lang, `/plans#plan-${plan.id}`)}
       className="d2-teaser"
       data-plan={plan.id}
+      data-cursor="open"
       data-d2-tone={plan.id === "amplify" ? "dark" : undefined}
     >
       <span className="d2-teaser-name">
@@ -61,7 +62,7 @@ function ringItems(t: D3Dict): D3RingItem[] {
 }
 
 /**
- * Các phần giữa trang chủ /demo3: dải chữ chạy, bốn lớp dịch vụ, ba gói thu gọn, vòng xoay dự án, blog (khi có bài).
+ * Các phần giữa trang chủ /demo3: bốn lớp dịch vụ, ba gói thu gọn, vòng xoay dự án, blog (khi có bài).
  * Vòng xoay (GalleryRing, WebGL) là vật thể tương tác duy nhất ở đây: nó tự bỏ qua việc vẽ khi khuất màn hình hoặc tab ẩn,
  * và quanh nó không đặt thêm hiệu ứng nặng nào (nền WebGL của lời mời cuối tự đứng yên khi vòng xoay còn hiện, xem FinalStage).
  */
@@ -71,12 +72,9 @@ export function D3HomeSections({ t }: { t: D3Dict }) {
   const posts = d3Posts(t.lang).slice(0, 3);
   return (
     <>
-      {/* Dải chữ chạy theo tốc độ cuộn: bốn lớp + ba gói (trang trí, nội dung đã có ở các phần khác) */}
-      <HomeMarquee words={[...t.services.items.map((service) => service.name), ...t.plans.items.map((plan) => plan.name)]} labels={t.x.home.marquee} />
-
-      {/* 3. Bốn lớp dịch vụ: tấm tối, danh mục chữ lớn, mỗi dòng dẫn tới trang riêng. Thứ tự vào: tấm trồi lên trước, rồi từng dòng so le */}
-      <section aria-labelledby="d2-svc-title" className="d2-wrap d2-section-tight">
-        <Rise kind="pop" className="d2-darkslab" data-d2-tone="dark">
+      {/* 3. Bốn lớp dịch vụ: tấm tối nở tràn màn hình khi cuộn tới (Expand), danh mục chữ lớn, mỗi dòng dẫn tới trang riêng. Thứ tự vào: tấm trồi lên trước, rồi từng dòng so le */}
+      <Expand aria-labelledby="d2-svc-title" className="d2-section-tight">
+        <Rise kind="pop" className="d2-darkslab d3-expand-slab" data-d2-tone="dark">
           <div className="d2-split-head">
             <SplitReveal as="h2" id="d2-svc-title" className="d2-h2 d3-lines">
               {home.servicesTitle}
@@ -86,7 +84,7 @@ export function D3HomeSections({ t }: { t: D3Dict }) {
           <ul className="d2-svc-index">
             {t.services.items.map((service, index) => (
               <Rise as="li" key={service.id} index={index}>
-                <D3Link href={d3Href(t.lang, `/services/${service.id}`)}>
+                <D3Link href={d3Href(t.lang, `/services/${service.id}`)} data-cursor="open">
                   <span className="d2-svc-name">{service.name}</span>
                   <span className="d2-svc-line">{service.line}</span>
                   <span className="d2-chip">{service.plans}</span>
@@ -96,7 +94,7 @@ export function D3HomeSections({ t }: { t: D3Dict }) {
             ))}
           </ul>
         </Rise>
-      </section>
+      </Expand>
 
       {/* 4. Ba gói, thu gọn */}
       <section aria-labelledby="d2-plans-title" className="d2-wrap d2-section-tight">
@@ -129,7 +127,7 @@ export function D3HomeSections({ t }: { t: D3Dict }) {
           </span>
           <span>{t.work.drag} ↔</span>
         </div>
-        <Rise kind="pop" className="d2-ring">
+        <Rise kind="pop" className="d2-ring" data-cursor="drag">
           <D3Ring items={ringItems(t)} previews={d3Previews} copy={t.ring} />
         </Rise>
         <p className="mt-6">
