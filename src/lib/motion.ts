@@ -25,7 +25,22 @@ export const MQ = {
 export const EASE = {
   out: "expo.out",
   inOut: "power4.inOut",
+  /** Ra: tăng tốc rồi biến mất */
+  in: "power3.in",
+  /** Gắn với cuộn (scrub): luôn tuyến tính */
+  scrub: "none",
 } as const;
+
+/** Thời lượng (giây): phần tử càng lớn càng chậm */
+export const DUR = {
+  micro: 0.2,
+  ui: 0.4,
+  reveal: 1,
+  scene: 1.6,
+} as const;
+
+/** Ghép class có điều kiện */
+export const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
 
 /** Sự kiện phát khi preloader kết thúc (hoặc ngay lập tức nếu không có preloader) */
 export const INTRO_DONE_EVENT = "aegis:intro-done";

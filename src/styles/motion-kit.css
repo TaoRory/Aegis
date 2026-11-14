@@ -1,0 +1,258 @@
+/*
+ * CSS nền cho các công thức trong recipes/. Chép vào dự án (vd. src/styles/motion.css) và import một lần trong CSS gốc.
+ * CSS thuần, không phụ thuộc Tailwind. Đổi tên biến --kit-* theo token của dự án nếu cần.
+ *
+ * Hai luật xuyên suốt:
+ * 1. Trạng thái chờ animation CHỈ viết dưới html[data-motion="on"] (cờ do motion-boot.ts đặt khi không giảm chuyển động).
+ * 2. Mọi transition / animation nằm trong @media (prefers-reduced-motion: no-preference).
+ */
+
+:root {
+  --kit-ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* tương đương expo.out */
+  --kit-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --kit-header: 0px; /* chiều cao header dính, nếu có */
+}
+
+/* Chữ chỉ dành cho trình đọc màn hình. Thẻ cha phải có position: relative nếu nằm trong vùng cuộn ngang. */
+.kit-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- SplitReveal ---------- */
+/* Nới mặt nạ để không cắt dấu tiếng Việt (ễ, ặ, ữ) và phần thò xuống của g, y, p */
+.split-line-mask {
+  padding-block: 0.16em;
+  margin-block: -0.16em;
+}
+
+/* Chờ SplitText tách xong mới hiện (tránh nháy chữ chưa tách). Failsafe: JS lỗi thì tự hiện sau 3 giây. */
+[data-motion="on"] [data-split]:not([data-split="ready"]) {
+  visibility: hidden;
+  animation: kit-failsafe 0.01s 3s forwards;
+}
+
+@keyframes kit-failsafe {
+  to {
+    visibility: visible;
+  }
+}
+
+/* ---------- Khối nhấn sau từ khoá (chữ ký thị giác): <span class="kit-mark">từ khoá</span> ---------- */
+/* Đặt màu bằng --kit-mark (màu nhấn của thương hiệu). Mặc định: tông nhạt của chính màu chữ, luôn đọc được. */
+.kit-mark {
+  --kit-mark-color: var(--kit-mark, color-mix(in srgb, currentColor 18%, transparent));
+  padding: 0 0.16em;
+  border-radius: 0.14em;
+  background: var(--kit-mark-color);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* ---------- Chữ cuộn khi rê chuột: <span class="kit-roll"><span>Chữ</span><span aria-hidden>Chữ</span></span> ---------- */
+.kit-roll {
+  display: inline-grid;
+  clip-path: inset(0);
+  line-height: 1.35;
+}
+
+.kit-roll > * {
+  grid-area: 1 / 1;
+}
+
+.kit-roll > :last-child {
+  transform: translateY(105%);
+}
+
+/* ---------- VelocityMarquee ---------- */
+.kit-marquee {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.kit-marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+.kit-marquee-row {
+  display: flex;
+  flex: none;
+}
+
+/* ---------- StackCards ---------- */
+.kit-stack {
+  position: relative;
+}
+
+.kit-stack-card {
+  position: sticky;
+  top: calc(var(--stack-top, 12vh) + var(--i, 0) * var(--stack-step, 1.25rem));
+  transform-origin: 50% 0;
+}
+
+/* ---------- usePinProgress: phần ngoài cao, phần trong dính ---------- */
+.kit-pin[data-live="true"] {
+  min-height: var(--kit-pin-length, 280vh);
+}
+
+.kit-pin[data-live="true"] > .kit-pin-inner {
+  position: sticky;
+  top: var(--kit-header);
+  display: grid;
+  min-height: calc(100svh - var(--kit-header));
+  align-items: center;
+}
+
+/* Vẽ dần một đường SVG theo tiến độ ghim: <path pathLength={1} class="kit-draw" /> */
+.kit-draw {
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--p, 1));
+}
+
+/* ---------- HorizontalScroll ---------- */
+/* Mặc định (điện thoại, không JS): hàng cuộn ngang gốc có điểm bắt */
+.kit-hscroll {
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.kit-hscroll::-webkit-scrollbar {
+  display: none;
+}
+
+.kit-hscroll-track {
+  display: flex;
+  width: max-content;
+}
+
+.kit-hscroll-track > * {
+  flex: none;
+  scroll-snap-align: start;
+}
+
+/* Đang ghim (máy tính): JS điều khiển transform, tắt cuộn ngang gốc */
+.kit-hscroll[data-live="true"] {
+  overflow: hidden;
+}
+
+.kit-hscroll[data-live="true"] .kit-hscroll-track {
+  will-change: transform;
+}
+
+/* ---------- Tilt ---------- */
+.kit-tilt {
+  perspective: 1400px;
+}
+
+.kit-tilt-inner {
+  transform: rotateX(calc(var(--ry, 0) * -1 * var(--tilt-max, 6deg))) rotateY(calc(var(--rx, 0) * var(--tilt-max, 6deg)));
+  transform-style: preserve-3d;
+}
+
+.kit-tilt-layer {
+  transform: translateZ(var(--z, 0px));
+}
+
+/* ---------- Parallax ---------- */
+.kit-parallax {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Khung (.kit-parallax) phải có chiều cao xác định: đặt aspect-ratio hoặc height ở class truyền vào */
+.kit-parallax-inner {
+  position: absolute;
+  inset: 0;
+}
+
+/* Ảnh cao hơn khung 15% (mỗi đầu 7,5%) để có chỗ trôi; depth tối đa 12 thì không hở mép */
+.kit-parallax-inner[data-depth="on"] {
+  inset: -7.5% 0;
+  will-change: transform;
+}
+
+.kit-parallax-inner > :where(img, video, picture) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------- Magnetic, TextScramble ---------- */
+.kit-magnetic {
+  display: inline-block;
+  will-change: transform;
+}
+
+.kit-scramble {
+  position: relative;
+  display: inline-block;
+}
+
+/* ---------- Chuyển động ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  /* Trồi lên khi vào màn hình (<Rise>): chỉ dịch chuyển, không đổi opacity → chữ luôn đọc được */
+  [data-rise] {
+    transition:
+      transform 0.9s var(--kit-ease-out) calc(var(--rise-i, 0) * 80ms),
+      clip-path 1s var(--kit-ease-out) calc(var(--rise-i, 0) * 80ms);
+  }
+
+  [data-motion="on"] [data-rise]:not([data-in]) {
+    transform: translateY(3rem);
+  }
+
+  [data-motion="on"] [data-rise="pop"]:not([data-in]) {
+    transform: translateY(2.5rem) scale(0.95);
+  }
+
+  /* wipe: chỉ cho hình trang trí (nội dung bị che tới khi vào màn hình) */
+  [data-rise="wipe"] {
+    clip-path: inset(0);
+  }
+
+  [data-motion="on"] [data-rise="wipe"]:not([data-in]) {
+    transform: translateY(30%);
+    clip-path: inset(0 0 100% 0);
+  }
+
+  /* Khối nhấn tự quét vào khi tải trang (chữ vẫn hiện từ đầu) */
+  [data-motion="on"] .kit-mark {
+    background: linear-gradient(var(--kit-mark-color), var(--kit-mark-color)) no-repeat 0 0 / 100% 100%;
+    animation: kit-wipe 0.9s var(--kit-ease-out) 0.4s both;
+  }
+
+  /* Chữ cuộn */
+  .kit-roll > * {
+    transition: transform 0.55s var(--kit-ease-out);
+  }
+
+  :where(a, button, label):hover .kit-roll > :first-child {
+    transform: translateY(-105%);
+  }
+
+  :where(a, button, label):hover .kit-roll > :last-child {
+    transform: translateY(0);
+  }
+
+  .kit-tilt-inner {
+    transition: transform 0.35s var(--kit-ease-out);
+  }
+}
+
+@keyframes kit-wipe {
+  from {
+    background-size: 0% 100%;
+  }
+}
