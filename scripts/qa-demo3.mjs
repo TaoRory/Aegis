@@ -507,7 +507,7 @@ for (const [name, options] of [
     for (const path of ["/", "/vi", "/plans", "/vi/contact"]) {
       await p.goto(baseUrl + path, { waitUntil: "domcontentloaded" });
       const meta = await p.evaluate(() => ({ robots: document.querySelector('meta[name="robots"]')?.getAttribute("content") ?? "", canonical: document.querySelector('link[rel="canonical"]')?.getAttribute("href") ?? "" }));
-      if (/noindex/.test(meta.robots) || !meta.canonical.endsWith(path === "/" ? "/" : path)) robots.push(`${path}: ${JSON.stringify(meta)}`);
+      if (/noindex/.test(meta.robots) || new URL(meta.canonical, baseUrl).pathname !== path) robots.push(`${path}: ${JSON.stringify(meta)}`);
     }
     check("[website chính] trang được lập chỉ mục, canonical đúng địa chỉ", robots.length === 0, robots.join(" | "));
     await ctx.close();
