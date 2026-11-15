@@ -102,6 +102,19 @@
     fill: var(--d2-ink);
   }
 
+  /* Chữ ký "Growth by Aegis" phía trên cửa hàng */
+  .d3 .d3-fx-signature {
+    font-family: var(--d2-font-display);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    fill: var(--d2-teal-ink);
+    stroke: var(--d2-cloud);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+  }
+
   /* Quầng sáng của cửa hàng: lớn và rõ dần theo --p */
   .d3 .d3-fx-glow {
     transform-box: fill-box;

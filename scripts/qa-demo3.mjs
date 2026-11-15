@@ -328,7 +328,7 @@ for (const [name, options] of [
   await page.waitForTimeout(1500);
   check("[chuyển trang] ô dự án mở trang chi tiết", ((await page.locator("h1:visible").textContent()) ?? "").includes("VIDI26"));
 
-  const button = page.locator(".d3-case-intro .d3-btn:visible");
+  const button = page.locator(".d3-cs-visit:visible");
   await button.hover();
   await page.waitForTimeout(700);
   const roll = await button.evaluate((el) => {
@@ -510,6 +510,51 @@ for (const [name, options] of [
       if (/noindex/.test(meta.robots) || new URL(meta.canonical, baseUrl).pathname !== path) robots.push(`${path}: ${JSON.stringify(meta)}`);
     }
     check("[website chính] trang được lập chỉ mục, canonical đúng địa chỉ", robots.length === 0, robots.join(" | "));
+    await ctx.close();
+  }
+
+  // Lưới thương hiệu (trang chủ, trang Work) và trang dự án mở rộng (khách hàng, Aegis đã làm, những gì đã xây)
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const p = await ctx.newPage();
+    watch(p);
+    for (const path of ["/", "/vi/work"]) {
+      await p.goto(`${baseUrl}${path}`, { waitUntil: "networkidle" });
+      await p.locator(".d3-brands:visible").scrollIntoViewIfNeeded();
+      await p.waitForTimeout(900);
+      const wall = await p.evaluate(() => {
+        const list = [...document.querySelectorAll(".d3-brands")].find((el) => el.getClientRects().length > 0);
+        const logos = [...list.querySelectorAll(".d3-brand-logo")];
+        return {
+          cells: list.querySelectorAll(".d3-brand").length,
+          logos: logos.length,
+          loaded: logos.filter((el) => el.complete && el.naturalWidth > 0 && el.currentSrc.includes("brands")).length,
+          links: list.querySelectorAll("a[href*='/work/']").length,
+          names: [...list.querySelectorAll(".d3-brand-name")].every((el) => el.textContent.trim().length > 0),
+        };
+      });
+      check(`[thương hiệu] ${path}: 7 thương hiệu + ô mời, 4 logo màu gốc tải được, 6 ô dẫn tới dự án, ô nào cũng có tên`, wall.cells === 8 && wall.logos === 4 && wall.loaded === 4 && wall.links === 6 && wall.names, JSON.stringify(wall));
+    }
+    for (const [path, first] of [["/work/vidi26", "Real-time scores"], ["/vi/work/rethink-halloween", "Bán vé trực tiếp"]]) {
+      await p.goto(`${baseUrl}${path}`, { waitUntil: "networkidle" });
+      // Ảnh gallery tải lười: cuộn qua cả trang rồi mới đếm
+      for (let i = 0; i < 14; i++) {
+        await p.mouse.wheel(0, 700);
+        await p.waitForTimeout(120);
+      }
+      await p.waitForTimeout(1200);
+      const kase = await p.evaluate(() => {
+        const shown = (sel) => [...document.querySelectorAll(sel)].filter((el) => el.getClientRects().length > 0);
+        return {
+          meta: shown(".d3-cs-meta dl > div").length,
+          built: shown(".d3-cs-built li").length,
+          first: shown(".d3-cs-built h3")[0]?.textContent,
+          desk: shown(".d3-cs-desk img").filter((img) => img.naturalWidth > 0).length,
+          phones: shown(".d3-cs-phone").length,
+        };
+      });
+      check(`[dự án] ${path}: 3 dòng thông tin, "đã xây", 2 ảnh máy tính, 2 điện thoại`, kase.meta === 3 && kase.built >= 2 && kase.first === first && kase.desk === 2 && kase.phones === 2, JSON.stringify(kase));
+    }
     await ctx.close();
   }
 

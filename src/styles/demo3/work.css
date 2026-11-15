@@ -421,3 +421,469 @@
     }
   }
 }
+
+/* ============================================================================================================
+   Lưới thương hiệu (BrandWall) và phần mở rộng của trang chi tiết dự án (D3Case).
+   ============================================================================================================ */
+@layer components {
+  /* ---------- Lưới thương hiệu: ô kẻ mảnh như bảng logo, logo một màu (mặt nạ CSS) đổi màu khi rê ---------- */
+  .d3 .d3-brands {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: clamp(1.75rem, 1.2rem + 2vw, 3rem);
+    border-top: 1px solid var(--border-strong);
+    border-left: 1px solid var(--border-strong);
+  }
+
+  @media (min-width: 60rem) {
+    .d3 .d3-brands {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .d3 .d3-brand {
+    border-right: 1px solid var(--border-strong);
+    border-bottom: 1px solid var(--border-strong);
+  }
+
+  .d3 .d3-brand > :is(a, div) {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 1.25rem;
+    height: 100%;
+    min-height: clamp(11rem, 8rem + 6vw, 14rem);
+    padding: clamp(1rem, 0.7rem + 1vw, 1.5rem);
+    color: var(--d2-ink);
+  }
+
+  /* Khung logo cao cố định, flex (không dùng grid: hàng tự co của grid làm chiều cao % của ảnh bị bỏ qua, logo vuông tràn ra) */
+  .d3 .d3-brand-mark {
+    display: flex;
+    height: clamp(3.5rem, 2.8rem + 2.2vw, 5rem);
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  /* Logo giữ màu gốc: ảnh nền trong suốt, căn trái, vừa khung */
+  .d3 .d3-brand-logo {
+    display: block;
+    width: auto;
+    max-width: min(100%, 11rem);
+    height: 100%;
+    object-fit: contain;
+    object-position: left center;
+  }
+
+  /* Logo ngang dài (Handle, Sophie): thấp hơn để cân thị giác với logo vuông */
+  .d3 .d3-brand-logo:is([data-brand="handle"], [data-brand="sophie"]) {
+    height: 62%;
+  }
+
+  /* Integritas: bản nền sáng (vàng giữ nguyên, chữ bạc đổi sang navy của họ), cao hết khung logo */
+  .d3 .d3-brand-logo[data-brand="integritas"] {
+    height: 100%;
+  }
+
+  .d3 .d3-brand-word {
+    font-family: var(--d2-font-display);
+    font-size: clamp(1.05rem, 0.75rem + 1.3vw, 1.7rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+
+  .d3 .d3-brand-text {
+    display: grid;
+    align-content: end;
+    gap: 0.25rem;
+  }
+
+  /* Ô chỉ có tên bằng chữ (data-word, đặt trong JSX; không dùng :has vì làm chậm mọi lần đổi style khi cuộn):
+     tên đã hiện to ở trên, dòng tên nhỏ chỉ để trình đọc màn hình */
+  .d3 .d3-brand[data-word] .d3-brand-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .d3 .d3-brand-name {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    line-height: 1.3;
+  }
+
+  .d3 .d3-brand-work {
+    color: var(--fg-muted);
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .d3 .d3-brand-soon {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    background: rgb(132 228 214 / 0.35);
+    color: var(--d2-ink);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .d3 .d3-brand .d3-arrow-swap {
+    position: absolute;
+    top: clamp(1rem, 0.7rem + 1vw, 1.5rem);
+    right: clamp(1rem, 0.7rem + 1vw, 1.5rem);
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .d3 .d3-brand a:hover,
+  .d3 .d3-brand a:focus-visible {
+    background: var(--d2-white);
+  }
+
+  .d3 .d3-brand a:hover .d3-brand-word,
+  .d3 .d3-brand a:focus-visible .d3-brand-word {
+    color: var(--d2-teal-ink);
+  }
+
+  /* Ô "Thương hiệu của bạn": nền mực, dấu cộng Aqua */
+  .d3 .d3-brand[data-next] a {
+    background: var(--d2-ink);
+    color: var(--d2-cloud);
+    --fg-muted: #c2d0ce;
+  }
+
+  .d3 .d3-brand[data-next] a:hover {
+    background: var(--d2-ink-2);
+  }
+
+  .d3 .d3-brand-plus {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--d2-aqua);
+    color: var(--d2-ink);
+  }
+
+  .d3 .d3-brand-plus svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .d3 .d3-brand > :is(a, div) {
+      transition: background-color 0.3s var(--d2-ease);
+    }
+
+    .d3 :is(.d3-brand-logo, .d3-brand-word) {
+      transition:
+        color 0.3s var(--d2-ease),
+        transform 0.5s var(--kit-ease-out);
+    }
+
+    .d3 .d3-brand a:hover :is(.d3-brand-logo, .d3-brand-word) {
+      transform: translateY(-3px);
+    }
+
+    .d3 .d3-brand-plus {
+      transition: transform 0.5s var(--kit-ease-out);
+    }
+
+    .d3 .d3-brand[data-next] a:hover .d3-brand-plus {
+      transform: rotate(90deg);
+    }
+  }
+
+  /* ---------- Trang dự án (case study): ảnh là chính, khối chữ hai cột ---------- */
+  .d3 .d3-cs-head {
+    padding-top: clamp(1.5rem, 1rem + 2vw, 3rem);
+  }
+
+  .d3 .d3-cs-title {
+    margin-top: clamp(1.5rem, 1rem + 2vw, 3rem);
+    max-width: 14em;
+    font-family: var(--d2-font-display);
+    font-size: clamp(2.75rem, 1.6rem + 5vw, 6.5rem);
+    font-weight: 600;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+  }
+
+  .d3 .d3-cs-type {
+    margin-top: 1rem;
+    color: var(--fg-muted);
+    font-family: var(--d2-font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .d3 .d3-cs-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem 3rem;
+    margin-top: clamp(2rem, 1.4rem + 2vw, 3rem);
+    padding-bottom: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+  }
+
+  .d3 .d3-cs-meta dl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem clamp(2rem, 1rem + 3vw, 4rem);
+  }
+
+  .d3 .d3-cs-meta dl > div {
+    max-width: 22rem;
+  }
+
+  .d3 .d3-cs-meta dt {
+    color: var(--fg-muted);
+    font-size: 0.8125rem;
+  }
+
+  .d3 .d3-cs-meta dd {
+    margin-top: 0.25rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* Nút "Xem website ↗": chữ có vạch dưới, mũi tên chéo (như "View Project ↗") */
+  .d3 .d3-cs-visit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid var(--d2-ink);
+    font-weight: 600;
+  }
+
+  .d3 .d3-cs-visit .d3-arrow-swap {
+    width: 1rem;
+    height: 1rem;
+    color: var(--d2-teal-ink);
+  }
+
+  /* Ảnh chính: ảnh bìa lớn trên nền màu của dự án */
+  .d3 .d3-cs-hero {
+    display: grid;
+    place-items: center;
+    padding: clamp(1.25rem, 0.5rem + 4vw, 5rem) clamp(1rem, 0.5rem + 5vw, 7rem) 0;
+    overflow: hidden;
+    border-radius: var(--d2-r-slab);
+  }
+
+  .d3 .d3-cs-hero .d3-shot {
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 40px 80px -30px rgb(7 31 30 / 0.55);
+  }
+
+  /* Khối chữ hai cột: tiêu đề trái, nội dung phải */
+  .d3 .d3-cs-block {
+    display: grid;
+    gap: 1rem 3rem;
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 7rem);
+  }
+
+  @media (min-width: 56rem) {
+    .d3 .d3-cs-block {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+    }
+  }
+
+  .d3 .d3-cs-block-title {
+    font-family: var(--d2-font-display);
+    font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+  }
+
+  .d3 .d3-cs-lead {
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+
+  .d3 .d3-cs-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin-top: 1.5rem;
+  }
+
+  /* Cặp ảnh màn hình máy tính */
+  .d3 .d3-cs-pair {
+    display: grid;
+    gap: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
+  }
+
+  @media (min-width: 48rem) {
+    .d3 .d3-cs-pair {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .d3 .d3-cs-desk {
+    overflow: hidden;
+    border-radius: var(--d2-r-card);
+    background: var(--d2-white);
+    box-shadow:
+      inset 0 0 0 1px var(--border),
+      0 24px 50px -32px rgb(7 31 30 / 0.45);
+  }
+
+  .d3 .d3-cs-desk .d2-shot-bar span {
+    margin-left: 0.5rem;
+    color: var(--fg-muted);
+    font-family: var(--d2-font-mono);
+    font-size: 0.6875rem;
+  }
+
+  .d3 .d3-cs-desk img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Những gì đã xây: danh sách đánh số, mỗi dòng một hạng mục */
+  .d3 .d3-cs-built {
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .d3 .d3-cs-built li {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .d3 .d3-cs-built-no {
+    color: var(--d2-teal-ink);
+    font-family: var(--d2-font-mono);
+    font-size: 0.875rem;
+    line-height: 1.9;
+  }
+
+  .d3 .d3-cs-built h3 {
+    font-family: var(--d2-font-display);
+    font-size: clamp(1.15rem, 1rem + 0.5vw, 1.4rem);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  .d3 .d3-cs-built p {
+    margin-top: 0.3rem;
+    color: var(--fg-muted);
+  }
+
+  /* Dải điện thoại trên nền màu của dự án */
+  .d3 .d3-cs-phones {
+    padding: clamp(1.5rem, 1rem + 2vw, 3rem) clamp(1rem, 0.5rem + 3vw, 4rem) 0;
+    overflow: hidden;
+    border-radius: var(--d2-r-slab);
+  }
+
+  .d3 .d3-cs-phones[data-ink="light"] {
+    color: var(--d2-cloud);
+  }
+
+  .d3 .d3-cs-phones[data-ink="dark"] {
+    color: var(--d2-ink);
+  }
+
+  .d3 .d3-cs-phones-label {
+    font-family: var(--d2-font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .d3 .d3-cs-phones-row {
+    display: flex;
+    justify-content: center;
+    gap: clamp(0.75rem, 0.4rem + 2vw, 2.5rem);
+    margin-top: clamp(1.25rem, 1rem + 1.5vw, 2.5rem);
+  }
+
+  .d3 .d3-cs-phone {
+    width: min(42%, 18rem);
+    overflow: hidden;
+    border: 6px solid var(--d2-ink);
+    border-bottom: 0;
+    border-radius: 2rem 2rem 0 0;
+    background: var(--d2-ink);
+    box-shadow: 0 30px 60px -20px rgb(7 31 30 / 0.55);
+  }
+
+  .d3 .d3-cs-phone:nth-child(2) {
+    margin-top: clamp(1.5rem, 1rem + 3vw, 4rem);
+  }
+
+  .d3 .d3-cs-phone img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 1.6rem 1.6rem 0 0;
+  }
+
+  /* Toàn bộ website: khung tự cuộn ở giữa, tiêu đề phía trên */
+  .d3 .d3-cs-full {
+    display: grid;
+    justify-items: center;
+    gap: 1.5rem;
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 7rem) clamp(1rem, 0.5rem + 2vw, 2rem);
+  }
+
+  .d3 .d3-cs-full .d3-long {
+    width: min(100%, 52rem);
+  }
+
+  /* ---------- Hệ thống thiết kế: dải màu lớn + mã màu ---------- */
+  .d3 .d3-swatch-bars {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.9rem;
+  }
+
+  .d3 .d3-swatch-bars li {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .d3 .d3-swatch-bars span {
+    display: block;
+    height: clamp(4.5rem, 3.5rem + 3vw, 6.5rem);
+    border-radius: var(--d2-r-inner);
+    background: var(--c);
+    box-shadow: inset 0 0 0 1px rgb(7 31 30 / 0.12);
+  }
+
+  .d3 .d3-swatch-bars code {
+    font-family: var(--d2-font-mono);
+    font-size: 0.8125rem;
+    color: var(--fg-muted);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .d3 .d3-swatch-bars span {
+      transform-origin: bottom;
+      transition: transform 0.8s var(--kit-ease-out) calc(var(--i, 0) * 70ms);
+    }
+
+    [data-motion="on"] .d3 .d3-case-system:not([data-in]) .d3-swatch-bars span {
+      transform: scaleY(0.15);
+    }
+  }
+}

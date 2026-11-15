@@ -37,7 +37,7 @@ export function StoryFlow({
   labels,
   progress,
 }: {
-  labels: { site: string; owned: string; sources: [string, string, string]; customers: string; pause: string; play: string };
+  labels: { growth: string; site: string; owned: string; sources: [string, string, string]; customers: string; pause: string; play: string };
   progress: RefObject<number>;
 }) {
   const [paused, setPaused] = useState(false);
@@ -71,6 +71,11 @@ export function StoryFlow({
             {labels.owned}
           </text>
         </g>
+
+        {/* Chữ ký phía trên cửa hàng */}
+        <text x={300} y={132} textAnchor="middle" className="d3-fx-signature d3-r" style={at(0)}>
+          {labels.growth}
+        </text>
 
         {/* Cửa hàng: khung trình duyệt */}
         <g className="d3-r d3-r-pop" style={at(0)}>

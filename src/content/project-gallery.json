@@ -1,0 +1,184 @@
+{
+  "vidi26": {
+    "desktop": [
+      {
+        "src": "/portfolio/gallery/vidi26-desk-1.webp",
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "src": "/portfolio/gallery/vidi26-desk-2.webp",
+        "width": 1600,
+        "height": 1000
+      }
+    ],
+    "mobile": [
+      {
+        "src": "/portfolio/gallery/vidi26-m-1.webp",
+        "width": 780,
+        "height": 1328
+      },
+      {
+        "src": "/portfolio/gallery/vidi26-m-2.webp",
+        "width": 780,
+        "height": 1328
+      }
+    ]
+  },
+  "handle-vietnam": {
+    "desktop": [
+      {
+        "src": "/portfolio/gallery/handle-vietnam-desk-1.webp",
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "src": "/portfolio/gallery/handle-vietnam-desk-2.webp",
+        "width": 1600,
+        "height": 1000
+      }
+    ],
+    "mobile": [
+      {
+        "src": "/portfolio/gallery/handle-vietnam-m-1.webp",
+        "width": 780,
+        "height": 1328
+      },
+      {
+        "src": "/portfolio/gallery/handle-vietnam-m-2.webp",
+        "width": 780,
+        "height": 1328
+      }
+    ]
+  },
+  "integritas-vu-legal": {
+    "desktop": [
+      {
+        "src": "/portfolio/gallery/integritas-vu-legal-desk-1.webp",
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "src": "/portfolio/gallery/integritas-vu-legal-desk-2.webp",
+        "width": 1600,
+        "height": 1000
+      }
+    ],
+    "mobile": [
+      {
+        "src": "/portfolio/gallery/integritas-vu-legal-m-1.webp",
+        "width": 780,
+        "height": 1328
+      },
+      {
+        "src": "/portfolio/gallery/integritas-vu-legal-m-2.webp",
+        "width": 780,
+        "height": 1328
+      }
+    ]
+  },
+  "tedx-vinuniversity-2026": {
+    "desktop": [
+      {
+        "src": "/portfolio/gallery/tedx-vinuniversity-2026-desk-1.webp",
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "src": "/portfolio/gallery/tedx-vinuniversity-2026-desk-2.webp",
+        "width": 1600,
+        "height": 1000
+      }
+    ],
+    "mobile": [
+      {
+        "src": "/portfolio/gallery/tedx-vinuniversity-2026-m-1.webp",
+        "width": 780,
+        "height": 1328
+      },
+      {
+        "src": "/portfolio/gallery/tedx-vinuniversity-2026-m-2.webp",
+        "width": 780,
+        "height": 1328
+      }
+    ]
+  },
+  "rethink": {
+    "desktop": [
+      {
+        "src": "/portfolio/gallery/rethink-desk-1.webp",
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "src": "/portfolio/gallery/rethink-desk-2.webp",
+        "width": 1600,
+        "height": 1000
+      }
+    ],
+    "mobile": [
+      {
+        "src": "/portfolio/gallery/rethink-m-1.webp",
+        "width": 780,
+        "height": 1328
+      },
+      {
+        "src": "/portfolio/gallery/rethink-m-2.webp",
+        "width": 780,
+        "height": 1328
+      }
+    ]
+  },
+  "tedx-vinuniversity-2025": {
+    "desktop": [
+      {
+        "src": "/portfolio/gallery/tedx-vinuniversity-2025-desk-1.webp",
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "src": "/portfolio/gallery/tedx-vinuniversity-2025-desk-2.webp",
+        "width": 1600,
+        "height": 1000
+      }
+    ],
+    "mobile": [
+      {
+        "src": "/portfolio/gallery/tedx-vinuniversity-2025-m-1.webp",
+        "width": 780,
+        "height": 1328
+      },
+      {
+        "src": "/portfolio/gallery/tedx-vinuniversity-2025-m-2.webp",
+        "width": 780,
+        "height": 1328
+      }
+    ]
+  },
+  "rethink-halloween": {
+    "desktop": [
+      {
+        "src": "/portfolio/gallery/rethink-halloween-desk-1.webp",
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "src": "/portfolio/gallery/rethink-halloween-desk-2.webp",
+        "width": 1600,
+        "height": 1000
+      }
+    ],
+    "mobile": [
+      {
+        "src": "/portfolio/gallery/rethink-halloween-m-1.webp",
+        "width": 780,
+        "height": 1328
+      },
+      {
+        "src": "/portfolio/gallery/rethink-halloween-m-2.webp",
+        "width": 780,
+        "height": 1328
+      }
+    ]
+  }
+}

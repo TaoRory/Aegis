@@ -14,7 +14,7 @@ export const projects: Project[] = [
     services: ["web"],
     description:
       "Website cho chương trình VinUni Discovery 2026 của văn phòng tuyển sinh Trường Đại học VinUni. Có cơ sở dữ liệu và phân quyền quản trị để đội ngũ tự cập nhật nội dung blog.",
-    highlights: ["Cơ sở dữ liệu", "Phân quyền admin", "Quản lý nội dung blog"],
+    highlights: ["Điểm cập nhật realtime", "Đăng thông báo", "Cơ sở dữ liệu", "Phân quyền admin", "Quản lý nội dung blog"],
     url: "https://vidi26.vercel.app/",
   },
   {
@@ -46,7 +46,7 @@ export const projects: Project[] = [
     services: ["web"],
     description:
       "Website cho sự kiện TEDxVinUniversity 2026 với chủ đề “The Limitless Decade”, giới thiệu diễn giả và lịch trình sự kiện.",
-    url: "https://v0-tedxvinuni.vercel.app/",
+    url: "https://rethinkorg.com/tedx/2026",
   },
   {
     slug: "rethink",
@@ -74,7 +74,8 @@ export const projects: Project[] = [
     category: "event",
     services: ["web"],
     description:
-      "Website cho sự kiện Halloween của hội đồng học sinh, phối hợp cùng ReThink, tổ chức sinh viên thuộc Trường Đại học VinUni.",
+      "Website cho sự kiện Halloween của hội đồng học sinh, phối hợp cùng ReThink, tổ chức sinh viên thuộc Trường Đại học VinUni. Bán vé trực tiếp trên website.",
+    highlights: ["Bán vé trực tiếp trên website"],
     url: "https://rethinkorg.com/halloween",
   },
 ];

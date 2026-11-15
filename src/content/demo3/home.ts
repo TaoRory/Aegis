@@ -34,6 +34,7 @@ const copy = {
     /** Nhãn trang trí trong hai cảnh (StoryFlow, StoryNetwork), minh hoạ ý tưởng, không có con số nào */
     chart: {
       kicker: "Same start, two paths",
+      growth: "Growth by Aegis",
       site: "Website",
       owned: "Owned by you",
       reach: "New audiences",
@@ -67,6 +68,7 @@ const copy = {
     },
     chart: {
       kicker: "Cùng điểm xuất phát, hai lối đi",
+      growth: "Growth by Aegis",
       site: "Website",
       owned: "Thuộc về bạn",
       reach: "Khách hàng mới",

@@ -123,7 +123,7 @@ export function D3Story({ t }: { t: D3Dict }) {
             {path === "site" ? (
               <StoryFlow
                 progress={progress}
-                labels={{ site: chart.site, owned: chart.owned, sources: [titles[2], titles[3], titles[4]], customers: chart.customers, pause: chart.pause, play: chart.play }}
+                labels={{ growth: chart.growth, site: chart.site, owned: chart.owned, sources: [titles[2], titles[3], titles[4]], customers: chart.customers, pause: chart.pause, play: chart.play }}
               />
             ) : (
               <StoryNetwork

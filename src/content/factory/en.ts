@@ -18,7 +18,7 @@ const projectText: Record<string, Pick<Project, "type" | "description" | "highli
     type: "Admissions website",
     description:
       "Website for the VinUni Discovery 2026 programme of VinUniversity's admissions office. It has a database and admin permissions so the team can update blog content themselves.",
-    highlights: ["Database", "Admin permissions", "Blog content management"],
+    highlights: ["Real-time scores", "Announcements", "Database", "Admin permissions", "Blog content management"],
   },
   "handle-vietnam": {
     type: "Company website",
@@ -37,7 +37,8 @@ const projectText: Record<string, Pick<Project, "type" | "description" | "highli
   "tedx-vinuniversity-2025": { type: "Event website", description: "Website for TEDxVinUniversity 2025." },
   "rethink-halloween": {
     type: "Event website",
-    description: "Website for the student council's Halloween event, organised with ReThink, a student organisation at VinUniversity.",
+    description: "Website for the student council's Halloween event, organised with ReThink, a student organisation at VinUniversity. Tickets are sold directly on the site.",
+    highlights: ["Ticket sales on the website"],
   },
 };
 
